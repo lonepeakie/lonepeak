@@ -100,7 +100,7 @@ class _SignInScreenState extends State<SignInScreen>
           style: TextStyle(fontSize: 14, color: Colors.grey[700]),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 64),
         GoogleSignInButton(),
       ],
     );

@@ -10,6 +10,10 @@ class AuthClient {
     return await _authClientGoogle.isAuthenticated();
   }
 
+  Future<User?> getCurrentUserGoogle() async {
+    return await _authClientGoogle.getCurrentUser();
+  }
+
   Future<User?> signInGoogle() async {
     return await _authClientGoogle.signIn();
   }

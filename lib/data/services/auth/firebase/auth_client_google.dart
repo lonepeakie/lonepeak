@@ -86,4 +86,19 @@ class AuthClientGoogle {
       return false;
     }
   }
+
+  Future<User?> getCurrentUser() async {
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        _log.i('Current user: ${currentUser.displayName}');
+      } else {
+        _log.w('No user is currently signed in.');
+      }
+      return currentUser;
+    } catch (e, stackTrace) {
+      _log.e('Error getting current user: $e\nStackTrace: $stackTrace');
+      return null;
+    }
+  }
 }

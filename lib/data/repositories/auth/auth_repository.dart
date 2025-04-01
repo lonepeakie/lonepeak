@@ -14,4 +14,7 @@ abstract class AuthRepository {
 
   /// Signs out the current user.
   Future<bool> signOut(AuthType authType);
+
+  /// Returns the current user.
+  Future<AppUser?> getCurrentUser(AuthType authType);
 }

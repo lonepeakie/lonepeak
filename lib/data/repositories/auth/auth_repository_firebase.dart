@@ -75,4 +75,17 @@ class AuthRepositoryFirebase extends AuthRepository {
         return result;
     }
   }
+
+  @override
+  Future<AppUser?> getCurrentUser(AuthType authType) async {
+    switch (authType) {
+      case AuthType.google:
+        final user = await _authClient.getCurrentUserGoogle();
+        if (user == null) {
+          _log.w('No user is currently signed in.');
+          return null;
+        }
+        return AppUser.fromUser(user);
+    }
+  }
 }
