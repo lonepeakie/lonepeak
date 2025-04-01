@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "782190018954",
+    "project_id": "lonepeak-48a17",
+    "storage_bucket": "lonepeak-48a17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782190018954:android:dbb9a7c969fa65cf020873",
+        "android_client_info": {
+          "package_name": "com.example.lonepeak"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "782190018954-r8hmjivg1hg4ca7ng8iv9gbbmbghdu6l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.lonepeak",
+            "certificate_hash": "35eb77a487e129ca155c562ed0b61077efad3243"
+          }
+        },
+        {
+          "client_id": "782190018954-4m8qf1s0rtm5us92pj9i1nbholuo7loj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5kqg7vHrozzO3Kkua-44L-kTDLjD8bPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782190018954-4m8qf1s0rtm5us92pj9i1nbholuo7loj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

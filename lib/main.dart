@@ -1,10 +1,16 @@
+import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/firebase_options.dart' show DefaultFirebaseOptions;
 import 'package:lonepeak/router/router.dart';
 import 'package:lonepeak/ui/core/themes/colors.dart';
-import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  runApp(ProviderScope(child: const MainApp()));
 }
 
 class MainApp extends StatelessWidget {

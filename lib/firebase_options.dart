@@ -52,11 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static FirebaseOptions android = FirebaseOptions(
+  static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyD5kqg7vHrozzO3Kkua-44L-kTDLjD8bPQ',
     appId: '1:782190018954:android:dbb9a7c969fa65cf020873',
     messagingSenderId: '782190018954',
     projectId: 'lonepeak-48a17',
-    storageBucket: 'lonepeak-48a17.appspot.com',
+    storageBucket: 'lonepeak-48a17.firebasestorage.app',
   );
 }
