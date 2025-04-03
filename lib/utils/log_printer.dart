@@ -1,14 +1,12 @@
-import 'package:logger/logger.dart' show LogEvent, LogPrinter, PrettyPrinter;
+import 'package:logger/logger.dart';
 
-class AppPrefixPrinter extends LogPrinter {
+class PrefixedLogPrinter extends LogPrinter {
   final String prefix;
-  final LogPrinter _realPrinter;
 
-  AppPrefixPrinter(this.prefix, [LogPrinter? realPrinter])
-    : _realPrinter = realPrinter ?? PrettyPrinter();
+  PrefixedLogPrinter(this.prefix);
 
   @override
   List<String> log(LogEvent event) {
-    return _realPrinter.log(event).map((line) => '[$prefix] $line').toList();
+    return ['[$prefix] ${event.message}'];
   }
 }

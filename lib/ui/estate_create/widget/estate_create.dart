@@ -108,21 +108,21 @@ class EstateCreate extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text('Back'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
                       side: const BorderSide(color: Colors.grey),
                     ),
+                    child: const Text('Back'),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       // Handle estate creation
                     },
-                    child: const Text('Create Estate'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
+                    child: const Text('Create Estate'),
                   ),
                 ],
               ),

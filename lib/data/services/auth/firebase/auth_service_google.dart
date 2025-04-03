@@ -4,8 +4,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-class AuthClientGoogle {
-  final _log = Logger(printer: AppPrefixPrinter('AuthClientGoogle'));
+class AuthServiceGoogle {
+  final _log = Logger(printer: PrefixedLogPrinter('AuthServiceGoogle'));
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future<bool> isAuthenticated() async {

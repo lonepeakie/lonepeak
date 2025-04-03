@@ -13,11 +13,13 @@ void main() async {
   runApp(ProviderScope(child: const MainApp()));
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

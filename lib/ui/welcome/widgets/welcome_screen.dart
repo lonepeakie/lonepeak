@@ -47,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () => context.go(Routes.signin),
+                onPressed: () => context.go(Routes.login),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF0B73DC),
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),

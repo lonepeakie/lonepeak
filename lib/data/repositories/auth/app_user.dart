@@ -21,4 +21,9 @@ class AppUser {
       profilePictureUrl: user.photoURL,
     );
   }
+
+  @override
+  String toString() {
+    return 'AppUser(displayName: $displayName';
+  }
 }
