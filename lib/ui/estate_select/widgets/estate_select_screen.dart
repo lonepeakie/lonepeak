@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
 
-class EstateSelectScreen extends StatelessWidget {
+class EstateSelectScreen extends ConsumerWidget {
   const EstateSelectScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FF),
       body: Padding(
@@ -16,14 +18,28 @@ class EstateSelectScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 40),
-            Text(
-              'Welcome, User!',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
+            FutureBuilder<String>(
+              future: ref.watch(estateSelectViewModelProvider).getDisplayName(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return const Text(
+                    'Error loading display name',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  );
+                } else {
+                  return Text(
+                    'Welcome, ${snapshot.data}!',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
+                }
+              },
             ),
             const SizedBox(height: 10),
             const Text(

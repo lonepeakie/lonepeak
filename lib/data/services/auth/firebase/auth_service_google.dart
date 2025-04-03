@@ -8,20 +8,6 @@ class AuthServiceGoogle {
   final _log = Logger(printer: PrefixedLogPrinter('AuthServiceGoogle'));
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Future<bool> isAuthenticated() async {
-    try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      final isSignedIn = currentUser != null;
-      _log.i('User is ${isSignedIn ? "authenticated" : "not authenticated"}.');
-      return isSignedIn;
-    } catch (e, stackTrace) {
-      _log.e(
-        'Error checking authentication status: $e\nStackTrace: $stackTrace',
-      );
-      return false;
-    }
-  }
-
   Future<User?> signIn() async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user;
@@ -84,21 +70,6 @@ class AuthServiceGoogle {
     } catch (e, stackTrace) {
       _log.e('Error signing out: $e\nStackTrace: $stackTrace');
       return false;
-    }
-  }
-
-  Future<User?> getCurrentUser() async {
-    try {
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        _log.i('Current user: ${currentUser.displayName}');
-      } else {
-        _log.w('No user is currently signed in.');
-      }
-      return currentUser;
-    } catch (e, stackTrace) {
-      _log.e('Error getting current user: $e\nStackTrace: $stackTrace');
-      return null;
     }
   }
 }

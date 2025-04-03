@@ -4,7 +4,7 @@ import 'package:lonepeak/data/repositories/result.dart';
 
 abstract class AuthRepository {
   /// Returns true if the user is authenticated.
-  Future<bool> isAuthenticated(AuthType authType);
+  Future<bool> isAuthenticated();
 
   /// Returns the current user.
   // Future<User?> getCurrentUser();
@@ -16,5 +16,5 @@ abstract class AuthRepository {
   Future<bool> signOut(AuthType authType);
 
   /// Returns the current user.
-  Future<AppUser?> getCurrentUser(AuthType authType);
+  Future<AppUser?> getCurrentUser();
 }
