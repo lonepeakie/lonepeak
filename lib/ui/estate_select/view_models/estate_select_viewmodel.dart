@@ -14,7 +14,7 @@ class EstateSelectViewmodel {
 
   final AuthRepository authRepository;
 
-  Future<void> signOut() async {
+  Future<void> logout() async {
     await authRepository.signOut(AuthType.google);
   }
 

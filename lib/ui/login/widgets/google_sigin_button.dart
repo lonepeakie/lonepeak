@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/router/route_notifier.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/login/view_models/login_viewmodel.dart';
 
@@ -20,6 +21,7 @@ class GoogleSignInButton extends ConsumerWidget {
               onTap: () async {
                 final success =
                     await ref.read(loginViewModelProvider.notifier).logIn();
+                await ref.read(routerNotifierProvider).refreshAuthState();
                 if (success) {
                   if (context.mounted) {
                     context.go(Routes.estateSelect);

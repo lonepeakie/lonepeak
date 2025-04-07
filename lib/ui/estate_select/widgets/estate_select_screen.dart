@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/router/route_notifier.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/colors.dart';
 import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
@@ -12,12 +13,31 @@ class EstateSelectScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FF),
+      appBar: AppBar(
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.logout,
+              color: Colors.black.withValues(alpha: 0.5),
+            ),
+            onPressed: () async {
+              await ref.read(estateSelectViewModelProvider).logout();
+              await ref.read(routerNotifierProvider).refreshAuthState();
+              if (context.mounted) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.go(Routes.login);
+                });
+              }
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 40),
             FutureBuilder<String>(
               future: ref.watch(estateSelectViewModelProvider).getDisplayName(),
               builder: (context, snapshot) {

@@ -25,7 +25,7 @@ class RouterNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void refreshAuthState() {
-    _checkAuthState();
+  Future<void> refreshAuthState() async {
+    await _checkAuthState();
   }
 }
