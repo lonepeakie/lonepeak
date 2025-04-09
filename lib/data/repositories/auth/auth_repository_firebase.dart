@@ -15,8 +15,9 @@ class AuthRepositoryFirebase extends AuthRepository {
   final _log = Logger(printer: PrefixedLogPrinter('AuthRepositoryFirebase'));
 
   @override
-  Future<bool> isAuthenticated() async {
-    return await _authService.isAuthenticated();
+  Future<Result<bool>> isAuthenticated() async {
+    final isAuthenticated = await _authService.isAuthenticated();
+    return Result.success(isAuthenticated);
   }
 
   @override
@@ -38,22 +39,27 @@ class AuthRepositoryFirebase extends AuthRepository {
   }
 
   @override
-  Future<bool> signOut(AuthType authType) async {
+  Future<Result<void>> signOut(AuthType authType) async {
     switch (authType) {
       case AuthType.google:
         final result = await _authService.signOutGoogle();
-        if (result) {}
-        return result;
+        if (result) {
+          _log.i('User signed out successfully.');
+          return Result.success(null);
+        } else {
+          _log.e('Failed to sign out user.');
+          return Result.failure('Failed to sign out user');
+        }
     }
   }
 
   @override
-  Future<AppUser?> getCurrentUser() async {
+  Future<Result<AppUser>> getCurrentUser() async {
     final user = await _authService.getCurrentUser();
     if (user == null) {
       _log.w('No user is currently signed in.');
-      return null;
+      return Result.failure('No user is currently signed in.');
     }
-    return AppUser.fromUser(user);
+    return Result.success(AppUser.fromUser(user));
   }
 }

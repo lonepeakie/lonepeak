@@ -10,11 +10,11 @@ final membersServiceProvider = Provider<MembersService>(
 );
 
 class MembersService {
-  FirebaseFirestore db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('MembersService'));
 
   Future<Result<void>> addMember(String estateId, Member member) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('members')
@@ -35,7 +35,7 @@ class MembersService {
   }
 
   Future<Result<Member>> getMemberById(String estateId, String email) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('members')
@@ -59,7 +59,7 @@ class MembersService {
   }
 
   Future<Result<List<Member>>> getMembers(String estateId) async {
-    final collectionRef = db
+    final collectionRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('members')
@@ -79,7 +79,7 @@ class MembersService {
   }
 
   Future<Result<void>> updateMember(String estateId, Member member) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('members')
@@ -100,7 +100,7 @@ class MembersService {
   }
 
   Future<Result<void>> deleteMember(String estateId, String memberId) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('members')

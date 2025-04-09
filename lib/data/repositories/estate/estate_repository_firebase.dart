@@ -13,24 +13,31 @@ final estateRepositoryProvider = Provider<EstateRepositoryFirebase>((ref) {
 });
 
 class EstateRepositoryFirebase extends EstateRepository {
-  EstateRepositoryFirebase({required this.estateService});
+  EstateRepositoryFirebase({required EstateService estateService})
+    : _estateService = estateService;
 
-  final EstateService estateService;
+  final EstateService _estateService;
 
   @override
   Future<Result<String>> addEstate(Estate estate) {
     estate.metadata = Metadata(createdAt: Timestamp.now());
-    return estateService.createEstateWithAutoId(estate);
+    return _estateService.createEstateWithAutoId(estate);
   }
 
   @override
   Future<Result<Estate>> getEstateById(String id) {
-    return estateService.getEstate(id);
+    return _estateService.getEstate(id);
   }
 
   @override
-  Future<Result<void>> updateEstate(Estate estate) {
+  Future<Result<void>> updateEstate(String id, Estate estate) {
     estate.metadata?.updatedAt = Timestamp.now();
-    return estateService.updateEstate(estate.id, estate);
+
+    return _estateService.updateEstate(id, estate);
+  }
+
+  @override
+  Future<Result<void>> deleteEstate(String id) {
+    return _estateService.deleteEstate(id);
   }
 }

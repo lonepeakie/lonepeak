@@ -21,7 +21,12 @@ class AuthState extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
 
   Future<void> _checkAuthState() async {
-    _isAuthenticated = await _authRepository.isAuthenticated();
+    final result = await _authRepository.isAuthenticated();
+    if (result.isSuccess) {
+      _isAuthenticated = result.data ?? false;
+    } else {
+      _isAuthenticated = false;
+    }
     notifyListeners();
   }
 

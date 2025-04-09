@@ -8,11 +8,11 @@ import 'package:lonepeak/utils/result.dart';
 final estateServiceProvider = Provider<EstateService>((ref) => EstateService());
 
 class EstateService {
-  FirebaseFirestore db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('EstateService'));
 
   Future<Result<void>> createEstate(String estateId, Estate estateData) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .withConverter(
           fromFirestore: Estate.fromFirestore,
@@ -31,7 +31,7 @@ class EstateService {
   }
 
   Future<Result<String>> createEstateWithAutoId(Estate estateData) {
-    return db
+    return _db
         .collection('estates')
         .withConverter(
           fromFirestore: Estate.fromFirestore,
@@ -49,7 +49,7 @@ class EstateService {
   }
 
   Future<Result<Estate>> getEstate(String estateId) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .withConverter(
           fromFirestore: Estate.fromFirestore,
@@ -72,7 +72,7 @@ class EstateService {
   }
 
   Future<Result<void>> updateEstate(String estateId, Estate estateData) async {
-    final docRef = db
+    final docRef = _db
         .collection('estates')
         .withConverter(
           fromFirestore: Estate.fromFirestore,
@@ -87,6 +87,25 @@ class EstateService {
     } catch (e) {
       _log.e('Error updating estate: $e');
       return Result.failure('Failed to update estate');
+    }
+  }
+
+  Future<Result<void>> deleteEstate(String estateId) async {
+    final docRef = _db
+        .collection('estates')
+        .withConverter(
+          fromFirestore: Estate.fromFirestore,
+          toFirestore: (Estate estate, options) => estate.toFirestore(),
+        )
+        .doc(estateId);
+
+    try {
+      await docRef.delete();
+      _log.i('Estate deleted successfully with ID: $estateId');
+      return Result.success(null);
+    } catch (e) {
+      _log.e('Error deleting estate: $e');
+      return Result.failure('Failed to delete estate');
     }
   }
 }

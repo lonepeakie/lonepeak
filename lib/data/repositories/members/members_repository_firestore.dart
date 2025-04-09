@@ -16,57 +16,58 @@ final membersRepositoryProvider = Provider<MembersRepositoryFirestore>((ref) {
 
 class MembersRepositoryFirestore extends MembersRepository {
   MembersRepositoryFirestore({
-    required this.appState,
-    required this.membersService,
-  });
+    required AppState appState,
+    required MembersService membersService,
+  }) : _membersService = membersService,
+       _appState = appState;
 
-  final MembersService membersService;
-  final AppState appState;
+  final MembersService _membersService;
+  final AppState _appState;
 
   @override
   Future<Result<void>> addMember(Member member) {
     member.metadata = Metadata(createdAt: Timestamp.now());
-    final estateId = appState.getEstateId;
+    final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return membersService.addMember(estateId, member);
+    return _membersService.addMember(estateId, member);
   }
 
   @override
   Future<Result<void>> deleteMember(String id) {
-    final estateId = appState.getEstateId;
+    final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return membersService.deleteMember(estateId, id);
+    return _membersService.deleteMember(estateId, id);
   }
 
   @override
   Future<Result<Member>> getMemberById(String id) {
-    final estateId = appState.getEstateId;
+    final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return membersService.getMemberById(estateId, id);
+    return _membersService.getMemberById(estateId, id);
   }
 
   @override
   Future<Result<List<Member>>> getMembers() {
-    final estateId = appState.getEstateId;
+    final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return membersService.getMembers(estateId);
+    return _membersService.getMembers(estateId);
   }
 
   @override
   Future<Result<void>> updateMember(Member member) {
-    final estateId = appState.getEstateId;
+    final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
     member.metadata = Metadata(updatedAt: Timestamp.now());
-    return membersService.updateMember(estateId, member);
+    return _membersService.updateMember(estateId, member);
   }
 }
