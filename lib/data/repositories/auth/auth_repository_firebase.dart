@@ -3,7 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/auth/app_user.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
-import 'package:lonepeak/data/repositories/result.dart';
+import 'package:lonepeak/utils/result.dart';
 import 'package:lonepeak/data/services/auth/firebase/auth_service.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 

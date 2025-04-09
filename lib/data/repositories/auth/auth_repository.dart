@@ -1,6 +1,6 @@
 import 'package:lonepeak/data/repositories/auth/app_user.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
-import 'package:lonepeak/data/repositories/result.dart';
+import 'package:lonepeak/utils/result.dart';
 
 abstract class AuthRepository {
   /// Returns true if the user is authenticated.

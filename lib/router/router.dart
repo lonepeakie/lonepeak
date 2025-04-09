@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lonepeak/router/route_notifier.dart';
+import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/dashboard/dash.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create.dart';
@@ -10,7 +10,7 @@ import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final routerNotifier = ref.watch(routerNotifierProvider);
+  final routerNotifier = ref.watch(authStateProvider);
 
   redirect(BuildContext context, GoRouterState state) {
     final isAuthenticated = routerNotifier.isAuthenticated;
