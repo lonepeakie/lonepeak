@@ -135,7 +135,7 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                   children: [
                     OutlinedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        context.go(Routes.estateSelect);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.black,

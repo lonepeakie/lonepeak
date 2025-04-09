@@ -4,6 +4,8 @@ abstract final class Routes {
   static const welcome = '/welcome';
   static const dashboard = '/dashboard';
   static const estateSelect = '/estate-select';
-  static const estateCreate = '/estate-create';
-  static const estateJoin = '/estate-join';
+  static const estateCreate = '/$estateCreateRelative';
+  static const estateCreateRelative = 'estate-create';
+  static const estateJoin = '/$estateJoinRelative';
+  static const estateJoinRelative = 'estate-join';
 }

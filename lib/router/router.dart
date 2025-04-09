@@ -53,12 +53,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           return const EstateSelectScreen();
         },
-      ),
-      GoRoute(
-        path: Routes.estateCreate,
-        builder: (context, state) {
-          return const EstateCreateScreen();
-        },
+        routes: [
+          GoRoute(
+            path: Routes.estateCreateRelative,
+            builder: (context, state) {
+              return const EstateCreateScreen();
+            },
+          ),
+        ],
       ),
     ],
   );

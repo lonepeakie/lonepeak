@@ -81,7 +81,9 @@ class EstateSelectScreen extends ConsumerWidget {
                     buttonText: 'Create Estate',
                     buttonColor: AppColors.blue,
                     onPressed: () {
-                      context.go(Routes.estateCreate);
+                      context.go(
+                        '${Routes.estateSelect}${Routes.estateCreate}',
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
@@ -97,7 +99,7 @@ class EstateSelectScreen extends ConsumerWidget {
                     textColor: AppColors.blue,
                     borderColor: AppColors.blue,
                     onPressed: () {
-                      // Navigate to Join Estate screen
+                      context.go(Routes.dashboard);
                     },
                   ),
                 ],
