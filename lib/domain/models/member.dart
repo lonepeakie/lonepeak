@@ -41,6 +41,7 @@ class Member {
 
   Map<String, dynamic> toFirestore() {
     return {
+      "email": email,
       if (displayName != null) "displayName": displayName,
       if (mobile != null) "mobile": mobile,
       if (photoUrl != null) "photoUrl": photoUrl,

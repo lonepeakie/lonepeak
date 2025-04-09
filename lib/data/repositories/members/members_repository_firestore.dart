@@ -26,7 +26,6 @@ class MembersRepositoryFirestore extends MembersRepository {
 
   @override
   Future<Result<void>> addMember(Member member) {
-    member.metadata = Metadata(createdAt: Timestamp.now());
     final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));

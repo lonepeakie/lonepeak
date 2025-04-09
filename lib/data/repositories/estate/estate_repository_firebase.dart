@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/services/estate/estate_service.dart';
 import 'package:lonepeak/domain/models/estate.dart';
-import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/utils/result.dart';
 
 final estateRepositoryProvider = Provider<EstateRepositoryFirebase>((ref) {
@@ -20,7 +19,6 @@ class EstateRepositoryFirebase extends EstateRepository {
 
   @override
   Future<Result<String>> addEstate(Estate estate) {
-    estate.metadata = Metadata(createdAt: Timestamp.now());
     return _estateService.createEstateWithAutoId(estate);
   }
 

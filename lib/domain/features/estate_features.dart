@@ -9,6 +9,7 @@ import 'package:lonepeak/data/repositories/members/members_repository_firestore.
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
+import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
 
@@ -43,15 +44,6 @@ class EstateFeatures {
   final AppState _appState;
 
   Future<Result<void>> createEstateAndAddMember(Estate estateData) async {
-    // Create the estate
-    final estateResult = await _estateRepository.addEstate(estateData);
-    if (estateResult.isFailure) {
-      return Result.failure('Failed to create estate');
-    }
-
-    final String estateId = estateResult.data as String;
-    _appState.setEstateId(estateId);
-
     // Get the current user
     final authResult = await _authRepository.getCurrentUser();
     if (authResult.isFailure) {
@@ -62,10 +54,24 @@ class EstateFeatures {
       return Result.failure('Current user is null');
     }
 
+    // Create the estate
+    estateData.metadata = Metadata(
+      createdAt: Timestamp.now(),
+      createdBy: currentUser.email,
+    );
+    final estateResult = await _estateRepository.addEstate(estateData);
+    if (estateResult.isFailure) {
+      return Result.failure('Failed to create estate');
+    }
+
+    final String estateId = estateResult.data as String;
+    _appState.setEstateId(estateId);
+
     // Create the member
     final member = Member(
       email: currentUser.email,
       displayName: currentUser.displayName,
+      role: RoleType.admin.name,
       metadata: Metadata(
         createdAt: Timestamp.now(),
         createdBy: currentUser.email,
@@ -87,6 +93,7 @@ class EstateFeatures {
     }
 
     _appState.setEstateId(estateId);
+    _appState.setMemberId(currentUser.email);
     return Result.success(null);
   }
 }
