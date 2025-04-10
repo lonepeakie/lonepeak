@@ -99,7 +99,7 @@ class EstateSelectScreen extends ConsumerWidget {
                     textColor: AppColors.blue,
                     borderColor: AppColors.blue,
                     onPressed: () {
-                      context.go(Routes.dashboard);
+                      context.go(Routes.estateHome);
                     },
                   ),
                 ],

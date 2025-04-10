@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/dashboard/dashboard_screen.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create_screen.dart';
+import 'package:lonepeak/ui/estate_home/widgets/estate_home_screen.dart';
 import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
@@ -43,9 +43,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: Routes.dashboard,
+        path: Routes.estateHome,
         builder: (context, state) {
-          return const DashboardScreen();
+          return const EstateHomeScreen();
         },
       ),
       GoRoute(
