@@ -1,18 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/members/members_repository.dart';
 import 'package:lonepeak/data/services/members/members_service.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
-
-final membersRepositoryProvider = Provider<MembersRepositoryFirestore>((ref) {
-  return MembersRepositoryFirestore(
-    membersService: ref.read(membersServiceProvider),
-    appState: ref.read(appStateProvider),
-  );
-});
 
 class MembersRepositoryFirestore extends MembersRepository {
   MembersRepositoryFirestore({

@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
+import 'package:lonepeak/ui/estate_members/widgets/member_tile.dart';
+import 'package:lonepeak/utils/ui_state.dart';
 
-class EstateMembersScreen extends StatelessWidget {
+class EstateMembersScreen extends ConsumerStatefulWidget {
   const EstateMembersScreen({super.key});
 
   @override
+  ConsumerState<EstateMembersScreen> createState() =>
+      _EstateMembersScreenState();
+}
+
+class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => ref.read(estateMembersViewModelProvider.notifier).getMembers(),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModelState = ref.watch(estateMembersViewModelProvider);
+    final members = ref.watch(estateMembersViewModelProvider.notifier).members;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Members'),
@@ -55,63 +75,63 @@ class EstateMembersScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView(
-              children: const [
-                MemberTile(
-                  name: 'John Doe',
-                  email: 'john@example.com',
-                  role: 'Admin',
-                  roleColor: Colors.blue,
-                ),
-                MemberTile(
-                  name: 'Jane Smith',
-                  email: 'jane@example.com',
-                  role: 'Secretary',
-                  roleColor: Colors.purple,
-                ),
-                MemberTile(
-                  name: 'Bob Johnson',
-                  email: 'bob@example.com',
-                  role: 'Resident',
-                  roleColor: Colors.grey,
-                ),
-              ],
+            child: Builder(
+              builder: (context) {
+                if (viewModelState is UIStateLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (viewModelState is UIStateFailure) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: ${viewModelState.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            ref
+                                .read(estateMembersViewModelProvider.notifier)
+                                .getMembers();
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return members.isEmpty
+                      ? const Center(child: Text('No members found'))
+                      : ListView.builder(
+                        itemCount: members.length,
+                        itemBuilder: (context, index) {
+                          final member = members[index];
+                          final role = member.role ?? "resident";
+                          return MemberTile(
+                            name: member.displayName ?? "Unknown",
+                            email: member.email,
+                            role: role,
+                            roleColor: _getRoleColor(role),
+                          );
+                        },
+                      );
+                }
+              },
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class MemberTile extends StatelessWidget {
-  final String name;
-  final String email;
-  final String role;
-  final Color roleColor;
-
-  const MemberTile({
-    super.key,
-    required this.name,
-    required this.email,
-    required this.role,
-    required this.roleColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(child: Text(name[0])),
-      title: Text(name),
-      subtitle: Text(email),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        decoration: BoxDecoration(
-          color: roleColor.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Text(role, style: TextStyle(color: roleColor)),
-      ),
-    );
+  Color _getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return Colors.blue;
+      case 'secretary':
+        return Colors.purple;
+      case 'resident':
+        return Colors.grey;
+      default:
+        return Colors.teal;
+    }
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/router/routes.dart';
 
 class EstateCreateScreen extends ConsumerStatefulWidget {
   const EstateCreateScreen({super.key});
@@ -124,7 +126,7 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      ref
+                      final result = ref
                           .read(estateFeaturesProvider)
                           .createEstateAndAddMember(
                             Estate(
@@ -135,6 +137,17 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                               county: 'County',
                             ),
                           );
+                      result.then((value) {
+                        if (context.mounted) {
+                          if (value.isFailure) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: ${value.error}')),
+                            );
+                          } else {
+                            context.go(Routes.estateHome);
+                          }
+                        }
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
