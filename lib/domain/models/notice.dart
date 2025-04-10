@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 
 class Notice {
-  final String id;
+  final String? id;
   final String title;
   final String message;
   final NoticeType type;
   final Metadata? metadata;
 
   Notice({
-    required this.id,
+    this.id,
     required this.title,
     required this.message,
     required this.type,
@@ -25,7 +25,7 @@ class Notice {
       id: snapshot.id,
       title: data?['title'],
       message: data?['message'],
-      type: _parseNoticeType(data?['type']),
+      type: NoticeType.fromString(data?['type'] ?? 'general'),
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }
@@ -38,18 +38,25 @@ class Notice {
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
+}
 
-  static NoticeType _parseNoticeType(String typeValue) {
-    switch (typeValue) {
+enum NoticeType {
+  general('general'),
+  urgent('urgent'),
+  event('event');
+
+  static NoticeType fromString(String type) {
+    switch (type) {
       case 'urgent':
         return NoticeType.urgent;
       case 'event':
         return NoticeType.event;
-      case 'general':
       default:
         return NoticeType.general;
     }
   }
-}
 
-enum NoticeType { general, urgent, event }
+  final String name;
+
+  const NoticeType(this.name);
+}

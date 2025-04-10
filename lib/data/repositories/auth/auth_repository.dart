@@ -1,5 +1,5 @@
-import 'package:lonepeak/data/repositories/auth/app_user.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
+import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/utils/result.dart';
 
 abstract class AuthRepository {
@@ -10,11 +10,11 @@ abstract class AuthRepository {
   // Future<User?> getCurrentUser();
 
   /// Signs in the user with the given credentials.
-  Future<Result<AppUser>> signIn(AuthType authType);
+  Future<Result<User>> signIn(AuthType authType);
 
   /// Signs out the current user.
   Future<Result<void>> signOut(AuthType authType);
 
   /// Returns the current user.
-  Future<Result<AppUser>> getCurrentUser();
+  Future<Result<User>> getCurrentUser();
 }

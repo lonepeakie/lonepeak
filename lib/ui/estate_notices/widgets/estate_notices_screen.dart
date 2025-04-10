@@ -36,7 +36,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_active_outlined),
-            onPressed: () {},
+            onPressed: () => _showCreateNoticeDialog(context),
           ),
         ],
       ),
@@ -54,6 +54,79 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCreateNoticeDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    String selectedType = 'General';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Create New Notice'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Title'),
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. Community Meeting',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Content'),
+                TextField(
+                  controller: contentController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: 'Describe the announcement details...',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Type'),
+                DropdownButton<String>(
+                  value: selectedType,
+                  onChanged: (value) {
+                    if (value != null) {
+                      selectedType = value;
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(value: 'General', child: Text('General')),
+                    DropdownMenuItem(value: 'Urgent', child: Text('Urgent')),
+                    DropdownMenuItem(value: 'Social', child: Text('Social')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newNotice = Notice(
+                  title: titleController.text,
+                  message: contentController.text,
+                  type: NoticeType.fromString(selectedType),
+                );
+                ref
+                    .read(estateNoticesViewModelProvider.notifier)
+                    .addNotice(newNotice);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Create Notice'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -83,7 +156,7 @@ class NoticeCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87, // Slightly lighter black
+                    color: Colors.black87,
                   ),
                 ),
                 const Spacer(),
@@ -110,18 +183,12 @@ class NoticeCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               notice.message,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black54, // Lighter text color
-              ),
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 8),
             Text(
               'Posted on ${notice.metadata?.createdAt}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey, // Keep this as is
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 8),
             Row(

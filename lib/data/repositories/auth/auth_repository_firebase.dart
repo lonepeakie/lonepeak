@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
-import 'package:lonepeak/data/repositories/auth/app_user.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
 import 'package:lonepeak/utils/result.dart';
 import 'package:lonepeak/data/services/auth/firebase/auth_service.dart';
 import 'package:lonepeak/utils/log_printer.dart';
+import 'package:lonepeak/domain/models/user.dart' as app_user;
 
 class AuthRepositoryFirebase extends AuthRepository {
   AuthRepositoryFirebase({required AuthService authService})
@@ -21,7 +21,7 @@ class AuthRepositoryFirebase extends AuthRepository {
   }
 
   @override
-  Future<Result<AppUser>> signIn(AuthType authType) async {
+  Future<Result<app_user.User>> signIn(AuthType authType) async {
     switch (authType) {
       case AuthType.google:
         try {
@@ -30,7 +30,7 @@ class AuthRepositoryFirebase extends AuthRepository {
             _log.e('Failed to sign in with Google');
             return Result.failure('Failed to sign in with Google');
           }
-          return Result.success(AppUser.fromUser(user));
+          return Result.success(app_user.User.fromFirebaseUser(user));
         } catch (e) {
           _log.e('Error during Google sign-in: $e');
           return Result.failure(e.toString());
@@ -54,12 +54,12 @@ class AuthRepositoryFirebase extends AuthRepository {
   }
 
   @override
-  Future<Result<AppUser>> getCurrentUser() async {
+  Future<Result<app_user.User>> getCurrentUser() async {
     final user = await _authService.getCurrentUser();
     if (user == null) {
       _log.w('No user is currently signed in.');
       return Result.failure('No user is currently signed in.');
     }
-    return Result.success(AppUser.fromUser(user));
+    return Result.success(app_user.User.fromFirebaseUser(user));
   }
 }

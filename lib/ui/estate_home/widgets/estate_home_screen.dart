@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/ui/core/themes/colors.dart';
 import 'package:lonepeak/ui/estate_dashboard/widgets/estate_dashboard_screen.dart';
+import 'package:lonepeak/ui/estate_home/view_models/estate_home_viewmodel.dart';
 import 'package:lonepeak/ui/estate_members/widgets/estate_members_screen.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/estate_notices_screen.dart';
 
@@ -13,6 +14,14 @@ class EstateHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _EstateHomeState extends ConsumerState<EstateHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => ref.read(estateHomeViewModelProvider.notifier).setUserAndEstateId(),
+    );
+  }
+
   int _selectedIndex = 0;
 
   @override

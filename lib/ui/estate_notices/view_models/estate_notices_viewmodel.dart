@@ -32,4 +32,16 @@ class EstateNoticesViewmodel extends StateNotifier<UIState> {
       state = UIStateFailure(result.error ?? 'Unknown error');
     }
   }
+
+  Future<void> addNotice(Notice notice) async {
+    state = UIStateLoading();
+
+    final result = await _noticesRepository.addNotice(notice);
+    if (result.isSuccess) {
+      _notices.add(notice);
+      state = UIStateSuccess();
+    } else {
+      state = UIStateFailure(result.error ?? 'Unknown error');
+    }
+  }
 }

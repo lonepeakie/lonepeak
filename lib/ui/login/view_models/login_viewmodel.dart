@@ -3,28 +3,37 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
+import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
 final loginViewModelProvider = StateNotifierProvider<LoginViewModel, UIState>((
   ref,
 ) {
+  final userSiginFeature = ref.watch(userSiginFeatureProvider);
   final authRepository = ref.watch(authRepositoryProvider);
-  return LoginViewModel(authRepository: authRepository);
+  return LoginViewModel(
+    userSiginFeature: userSiginFeature,
+    authRepository: authRepository,
+  );
 });
 
 class LoginViewModel extends StateNotifier<UIState> {
-  LoginViewModel({required AuthRepository authRepository})
-    : _authRepository = authRepository,
-      super(UIStateInitial());
+  LoginViewModel({
+    required UserSiginFeature userSiginFeature,
+    required AuthRepository authRepository,
+  }) : _authRepository = authRepository,
+       _userSiginFeature = userSiginFeature,
+       super(UIStateInitial());
 
   final AuthRepository _authRepository;
+  final UserSiginFeature _userSiginFeature;
   final _log = Logger(printer: PrefixedLogPrinter('SignInViewModel'));
 
   Future<bool> logIn() async {
     state = UIStateLoading();
 
-    final result = await _authRepository.signIn(AuthType.google);
+    final result = await _userSiginFeature.logInAndAddUserIfNotExists();
     if (result.isSuccess) {
       _log.i('Log-in successful: ${result.data}');
       state = UIStateSuccess();

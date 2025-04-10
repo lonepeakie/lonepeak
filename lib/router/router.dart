@@ -17,6 +17,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     final isLoginPage = state.matchedLocation == Routes.login;
     final isWelcomePage = state.matchedLocation == Routes.welcome;
 
+    //TODO: Add logic to check if the user belongs to an estate and redirect accordingly
     if (isAuthenticated && (isLoginPage || isWelcomePage)) {
       return Routes.estateSelect;
     } else if (!isAuthenticated && !isLoginPage && !isWelcomePage) {

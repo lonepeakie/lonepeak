@@ -6,6 +6,8 @@ import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/members/members_provider.dart';
 import 'package:lonepeak/data/repositories/members/members_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_provider.dart';
+import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
@@ -17,12 +19,14 @@ final estateFeaturesProvider = Provider<EstateFeatures>((ref) {
   final estateRepository = ref.read(estateRepositoryProvider);
   final membersRepository = ref.read(membersRepositoryProvider);
   final authRepository = ref.read(authRepositoryProvider);
+  final usersRepository = ref.read(usersRepositoryProvider);
   final appState = ref.read(appStateProvider);
 
   return EstateFeatures(
     estateRepository: estateRepository,
     membersRepository: membersRepository,
     authRepository: authRepository,
+    usersRepository: usersRepository,
     appState: appState,
   );
 });
@@ -32,15 +36,18 @@ class EstateFeatures {
     required EstateRepository estateRepository,
     required MembersRepository membersRepository,
     required AuthRepository authRepository,
+    required UsersRepository usersRepository,
     required AppState appState,
   }) : _estateRepository = estateRepository,
        _membersRepository = membersRepository,
        _authRepository = authRepository,
+       _usersRepository = usersRepository,
        _appState = appState;
 
   final EstateRepository _estateRepository;
   final MembersRepository _membersRepository;
   final AuthRepository _authRepository;
+  final UsersRepository _usersRepository;
   final AppState _appState;
 
   Future<Result<void>> createEstateAndAddMember(Estate estateData) async {
@@ -93,7 +100,35 @@ class EstateFeatures {
     }
 
     _appState.setEstateId(estateId);
-    _appState.setMemberId(currentUser.email);
+    _appState.setUserEmail(currentUser.email);
+    return Result.success(null);
+  }
+
+  Future<Result<void>> setUserAndEstateId() async {
+    final authResult = await _authRepository.getCurrentUser();
+    if (authResult.isFailure) {
+      return Result.failure('Failed to get current user');
+    }
+    final currentUser = authResult.data;
+    if (currentUser == null) {
+      return Result.failure('Current user is null');
+    }
+
+    _appState.setUserEmail(currentUser.email);
+
+    final storedUser = await _usersRepository.getUser(currentUser.email);
+    if (storedUser.isFailure) {
+      return Result.failure('Failed to get user');
+    }
+    final user = storedUser.data;
+    if (user == null) {
+      return Result.failure('User not found');
+    }
+
+    if (user.estateId != null) {
+      _appState.setEstateId(user.estateId!);
+    }
+
     return Result.success(null);
   }
 }
