@@ -5,9 +5,11 @@ import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/utils/result.dart';
 
-final noticeServiceProvider = Provider<NoticeService>((ref) => NoticeService());
+final noticesServiceProvider = Provider<NoticesService>(
+  (ref) => NoticesService(),
+);
 
-class NoticeService {
+class NoticesService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('NoticeService'));
 

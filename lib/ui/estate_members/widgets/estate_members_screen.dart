@@ -13,6 +13,9 @@ class EstateMembersScreen extends ConsumerStatefulWidget {
 }
 
 class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -22,9 +25,29 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModelState = ref.watch(estateMembersViewModelProvider);
-    final members = ref.watch(estateMembersViewModelProvider.notifier).members;
+    final allMembers =
+        ref.watch(estateMembersViewModelProvider.notifier).members;
+
+    // Filter members based on search query
+    final filteredMembers =
+        _searchQuery.isEmpty
+            ? allMembers
+            : allMembers.where((member) {
+              final name = member.displayName?.toLowerCase() ?? '';
+              final email = member.email.toLowerCase();
+              final role = member.role?.toLowerCase() ?? '';
+              return name.contains(_searchQuery.toLowerCase()) ||
+                  email.contains(_searchQuery.toLowerCase()) ||
+                  role.contains(_searchQuery.toLowerCase());
+            }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -65,13 +88,31 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search members...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
+                suffixIcon:
+                    _searchQuery.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                        : null,
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
             ),
           ),
           Expanded(
@@ -98,12 +139,18 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                     ),
                   );
                 } else {
-                  return members.isEmpty
-                      ? const Center(child: Text('No members found'))
+                  return filteredMembers.isEmpty
+                      ? Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? 'No members found'
+                              : 'No matching members found',
+                        ),
+                      )
                       : ListView.builder(
-                        itemCount: members.length,
+                        itemCount: filteredMembers.length,
                         itemBuilder: (context, index) {
-                          final member = members[index];
+                          final member = filteredMembers[index];
                           final role = member.role ?? "resident";
                           return MemberTile(
                             name: member.displayName ?? "Unknown",

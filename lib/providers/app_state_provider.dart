@@ -11,6 +11,6 @@ class AppState {
   Future<void> setEstateId(String estateId) async => _estateId = estateId;
   Future<void> setMemberId(String memberId) async => _memberId = memberId;
 
-  String? get getEstateId => _estateId;
+  String? get getEstateId => "ypVMiIGnd7ZmL1MzAoQo";
   String? get getMemberId => _memberId;
 }

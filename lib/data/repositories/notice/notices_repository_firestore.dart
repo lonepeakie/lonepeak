@@ -1,17 +1,17 @@
-import 'package:lonepeak/data/repositories/notice/notice_repository.dart';
-import 'package:lonepeak/data/services/notice/notice_service.dart';
+import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
+import 'package:lonepeak/data/services/notices/notices_service.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
 
-class NoticeRepositoryFirestore extends NoticeRepository {
-  NoticeRepositoryFirestore({
-    required NoticeService noticeService,
+class NoticesRepositoryFirestore extends NoticesRepository {
+  NoticesRepositoryFirestore({
+    required NoticesService noticesService,
     required AppState appState,
-  }) : _noticeService = noticeService,
+  }) : _noticesService = noticesService,
        _appState = appState;
 
-  final NoticeService _noticeService;
+  final NoticesService _noticesService;
   final AppState _appState;
 
   @override
@@ -20,7 +20,7 @@ class NoticeRepositoryFirestore extends NoticeRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _noticeService.createNotice(estateId, notice);
+    return _noticesService.createNotice(estateId, notice);
   }
 
   @override
@@ -29,7 +29,7 @@ class NoticeRepositoryFirestore extends NoticeRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _noticeService.deleteNotice(estateId, id);
+    return _noticesService.deleteNotice(estateId, id);
   }
 
   @override
@@ -38,7 +38,7 @@ class NoticeRepositoryFirestore extends NoticeRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _noticeService.getNotice(estateId, id);
+    return _noticesService.getNotice(estateId, id);
   }
 
   @override
@@ -47,7 +47,7 @@ class NoticeRepositoryFirestore extends NoticeRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _noticeService.getNotices(estateId);
+    return _noticesService.getNotices(estateId);
   }
 
   @override
@@ -56,6 +56,6 @@ class NoticeRepositoryFirestore extends NoticeRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _noticeService.updateNotice(estateId, notice);
+    return _noticesService.updateNotice(estateId, notice);
   }
 }

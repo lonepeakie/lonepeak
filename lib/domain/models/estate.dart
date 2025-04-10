@@ -20,6 +20,18 @@ class Estate {
     this.metadata,
   });
 
+  factory Estate.empty() {
+    return Estate(
+      name: 'Unknown',
+      description: null,
+      address: null,
+      city: 'Unknown',
+      county: 'Unknown',
+      logoUrl: null,
+      metadata: null,
+    );
+  }
+
   factory Estate.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
