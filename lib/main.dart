@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/firebase_options.dart' show DefaultFirebaseOptions;
 import 'package:lonepeak/router/router.dart';
-import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

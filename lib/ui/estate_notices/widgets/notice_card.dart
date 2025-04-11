@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
+import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 
 class NoticeCard extends StatelessWidget {
   const NoticeCard({super.key, required this.notice});
@@ -10,8 +12,8 @@ class NoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final IconData categoryIcon = _getCategoryIcon(notice.type);
-    final Color categoryColor = _getCategoryColor(notice.type);
+    final IconData categoryIcon = NoticeTypeUI.getCategoryIcon(notice.type);
+    final Color categoryColor = NoticeTypeUI.getCategoryColor(notice.type);
     final String formattedDate =
         notice.metadata?.createdAt != null
             ? DateFormat(
@@ -32,42 +34,41 @@ class NoticeCard extends StatelessWidget {
               children: [
                 Icon(categoryIcon, color: categoryColor, size: 22),
                 const SizedBox(width: 8),
-                Text(
-                  notice.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87.withAlpha(200),
-                  ),
-                ),
+                Text(notice.title, style: AppStyles.titleText),
                 const Spacer(),
                 AppChip(
-                  text:
-                      '${notice.type.name[0].toUpperCase()}${notice.type.name.substring(1)}',
-                  color: categoryColor,
+                  chipData: AppChipData(
+                    label:
+                        notice.type.name[0].toUpperCase() +
+                        notice.type.name.substring(1),
+                    color: categoryColor,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              notice.message,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Posted on $formattedDate',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
+            Text(notice.message, style: AppStyles.subtitleText),
+            const SizedBox(height: 24),
             Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.thumb_up_alt_outlined),
-                  onPressed: () {},
+                Text(
+                  'Posted on $formattedDate',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.comment_outlined),
-                  onPressed: () {},
+                const Spacer(),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.thumb_up_alt_outlined),
+                      iconSize: 20,
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.comment_outlined),
+                      iconSize: 20,
+                      onPressed: () {},
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -75,27 +76,5 @@ class NoticeCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(NoticeType type) {
-    switch (type) {
-      case NoticeType.urgent:
-        return Icons.warning_amber_outlined;
-      case NoticeType.general:
-        return Icons.info_outline;
-      case NoticeType.event:
-        return Icons.group_outlined;
-    }
-  }
-
-  Color _getCategoryColor(NoticeType type) {
-    switch (type) {
-      case NoticeType.urgent:
-        return Colors.red.withValues(alpha: 0.65);
-      case NoticeType.general:
-        return Colors.blue.withValues(alpha: 0.8);
-      case NoticeType.event:
-        return Colors.green.withValues(alpha: 0.7);
-    }
   }
 }

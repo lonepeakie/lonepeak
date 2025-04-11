@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

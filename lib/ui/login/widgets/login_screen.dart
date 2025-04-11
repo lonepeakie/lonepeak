@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/login/widgets/google_sigin_button.dart';
 
 class LoginScreen extends StatefulWidget {

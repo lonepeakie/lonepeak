@@ -16,7 +16,7 @@ class AppbarActionButton extends StatelessWidget {
       icon: Icon(icon),
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
+import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_card.dart';
+import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
 class EstateNoticesScreen extends ConsumerStatefulWidget {
@@ -36,7 +40,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
           // AppbarActionButton(icon: Icons.filter_alt_outlined, onPressed: () {}),
           AppbarActionButton(
             icon: Icons.notification_add,
-            onPressed: () => _showCreateNoticeDialog(context),
+            onPressed: () => _showCreateNoticeBottomSheet(context),
           ),
         ],
       ),
@@ -57,81 +61,147 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
     );
   }
 
-  void _showCreateNoticeDialog(BuildContext context) {
+  void _showCreateNoticeBottomSheet(BuildContext context) {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
     NoticeType selectedType = NoticeType.general;
+    final _formKey = GlobalKey<FormState>();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
-        return SizedBox(
-          width: MediaQuery.of(context).size.width * 1,
-          child: AlertDialog(
-            title: const Text('Create New Notice'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Title'),
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. Community Meeting',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Content'),
-                  TextField(
-                    controller: contentController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      hintText: 'Describe the announcement details...',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Type'),
-                  DropdownButton<NoticeType>(
-                    value: selectedType,
-                    onChanged: (value) {
-                      if (value != null) {
-                        selectedType = value;
-                      }
-                    },
-                    items:
-                        NoticeType.values.map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Text(
-                              '${type.name[0].toUpperCase()}${type.name.substring(1)}',
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(
+                            width: 24,
+                          ), // Placeholder for alignment
+                          const Text(
+                            'Create New Notice',
+                            style: AppStyles.titleText,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: const Text(
+                          'Create a new notification or announcement for all estate members.',
+                          style: AppStyles.subtitleText,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextInput(
+                        controller: titleController,
+                        labelText: 'Title',
+                        hintText: 'e.g. Community Meeting',
+                        required: true,
+                        errorText: 'Title is required',
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextInput(
+                        controller: contentController,
+                        labelText: 'Content',
+                        maxLines: 3,
+                        hintText: 'Describe the announcement details...',
+                        required: true,
+                        errorText: 'Message is required',
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8.0,
+                        children:
+                            NoticeType.values.map((type) {
+                              final chipColor = NoticeTypeUI.getCategoryColor(
+                                type,
+                              );
+                              final chipLabel =
+                                  type.name[0].toUpperCase() +
+                                  type.name.substring(1);
+                              return ChoiceChip(
+                                label: Text(
+                                  chipLabel,
+                                  style: TextStyle(
+                                    color: chipColor,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                selected: selectedType == type,
+                                backgroundColor: chipColor.withAlpha(50),
+                                selectedColor: chipColor.withAlpha(50),
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                onSelected: (isSelected) {
+                                  if (isSelected) {
+                                    setState(() {
+                                      selectedType = type;
+                                    });
+                                  }
+                                },
+                              );
+                            }).toList(),
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          AppElevatedButton(
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                final newNotice = Notice(
+                                  title: titleController.text,
+                                  message: contentController.text,
+                                  type: selectedType,
+                                );
+                                final notifier = ref.read(
+                                  estateNoticesViewModelProvider.notifier,
+                                );
+                                notifier.addNotice(newNotice);
+                                notifier.getNotices();
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
                             ),
-                          );
-                        }).toList(),
+                            buttonText: 'Create',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final newNotice = Notice(
-                    title: titleController.text,
-                    message: contentController.text,
-                    type: selectedType,
-                  );
-                  ref
-                      .read(estateNoticesViewModelProvider.notifier)
-                      .addNotice(newNotice);
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Create Notice'),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

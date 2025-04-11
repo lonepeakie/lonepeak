@@ -56,11 +56,6 @@ enum NoticeType {
     }
   }
 
-  @override
-  String toString() {
-    return name;
-  }
-
   final String name;
 
   const NoticeType(this.name);

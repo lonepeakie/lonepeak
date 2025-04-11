@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/themes/colors.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
 
 class EstateSelectScreen extends ConsumerWidget {
