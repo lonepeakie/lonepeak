@@ -108,7 +108,8 @@ class NoticesService {
         .withConverter(
           fromFirestore: Notice.fromFirestore,
           toFirestore: (Notice notice, options) => notice.toFirestore(),
-        );
+        )
+        .orderBy('metadata.createdAt', descending: true);
 
     try {
       final snapshot = await collectionRef.get();
@@ -117,6 +118,31 @@ class NoticesService {
     } catch (e) {
       _log.e('Error fetching notices: $e');
       return Result.failure('Failed to fetch notices');
+    }
+  }
+
+  Future<Result<List<Notice>>> getLatestNotices(
+    String estateId,
+    int limit,
+  ) async {
+    final collectionRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('notices')
+        .withConverter(
+          fromFirestore: Notice.fromFirestore,
+          toFirestore: (Notice notice, options) => notice.toFirestore(),
+        )
+        .orderBy('metadata.createdAt', descending: true)
+        .limit(limit);
+
+    try {
+      final snapshot = await collectionRef.get();
+      final notices = snapshot.docs.map((doc) => doc.data()).toList();
+      return Result.success(notices);
+    } catch (e) {
+      _log.e('Error fetching latest notices: $e');
+      return Result.failure('Failed to fetch latest notices');
     }
   }
 }

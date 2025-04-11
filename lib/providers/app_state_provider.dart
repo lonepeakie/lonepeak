@@ -4,6 +4,7 @@ final appStateProvider = Provider<AppState>((ref) {
   return AppState();
 });
 
+//TODO: Persist app state
 class AppState {
   String? _estateId;
   String? _userEmail;

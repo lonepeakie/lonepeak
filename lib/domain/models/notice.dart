@@ -6,7 +6,7 @@ class Notice {
   final String title;
   final String message;
   final NoticeType type;
-  final Metadata? metadata;
+  Metadata? metadata;
 
   Notice({
     this.id,
@@ -54,6 +54,11 @@ enum NoticeType {
       default:
         return NoticeType.general;
     }
+  }
+
+  @override
+  String toString() {
+    return name;
   }
 
   final String name;

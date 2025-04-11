@@ -42,6 +42,7 @@ class GoogleSignInButton extends ConsumerWidget {
                   );
                 }
               },
+              //TODO: Change to button
               child: SvgPicture.asset(
                 'assets/svgs/google_signin_button.svg',
                 height: 50.0,

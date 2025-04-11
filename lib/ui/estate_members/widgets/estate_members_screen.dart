@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/estate_members/widgets/member_tile.dart';
 import 'package:lonepeak/utils/ui_state.dart';
@@ -51,7 +52,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Members'),
+        title: const AppbarTitle(text: 'Members'),
         actions: [
           IconButton(icon: const Icon(Icons.person_add), onPressed: () {}),
           Stack(

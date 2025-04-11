@@ -3,6 +3,7 @@ import 'package:lonepeak/utils/result.dart';
 
 abstract class NoticesRepository {
   Future<Result<List<Notice>>> getNotices();
+  Future<Result<List<Notice>>> getLatestNotices({int limit = 2});
   Future<Result<Notice>> getNoticeById(String id);
   Future<Result<void>> addNotice(Notice notice);
   Future<Result<void>> updateNotice(Notice notice);
