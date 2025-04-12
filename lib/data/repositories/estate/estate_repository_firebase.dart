@@ -38,14 +38,22 @@ class EstateRepositoryFirebase extends EstateRepository {
   }
 
   @override
-  Future<Result<void>> updateEstate(String id, Estate estate) {
+  Future<Result<void>> updateEstate(Estate estate) {
+    final estateId = _appState.getEstateId;
+    if (estateId == null) {
+      return Future.value(Result.failure('Estate ID is null'));
+    }
     estate.metadata?.updatedAt = Timestamp.now();
 
-    return _estateService.updateEstate(id, estate);
+    return _estateService.updateEstate(estateId, estate);
   }
 
   @override
-  Future<Result<void>> deleteEstate(String id) {
-    return _estateService.deleteEstate(id);
+  Future<Result<void>> deleteEstate() {
+    final estateId = _appState.getEstateId;
+    if (estateId == null) {
+      return Future.value(Result.failure('Estate ID is null'));
+    }
+    return _estateService.deleteEstate(estateId);
   }
 }

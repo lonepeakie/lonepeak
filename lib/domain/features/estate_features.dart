@@ -89,7 +89,7 @@ class EstateFeatures {
     final memberResult = await _membersRepository.addMember(member);
     if (memberResult.isFailure) {
       // If adding the member fails, delete the estate
-      final estateDeleteResult = await _estateRepository.deleteEstate(estateId);
+      final estateDeleteResult = await _estateRepository.deleteEstate();
       if (estateDeleteResult.isFailure) {
         return Result.failure(
           'Failed to delete estate after member addition failure',

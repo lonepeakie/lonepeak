@@ -78,6 +78,44 @@ class MembersService {
     }
   }
 
+  Future<Result<List<Member>>> getMembersByRole(
+    String estateId,
+    String role,
+  ) async {
+    final collectionRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('members')
+        .withConverter(
+          fromFirestore: Member.fromFirestore,
+          toFirestore: (Member member, options) => member.toFirestore(),
+        );
+
+    try {
+      final snapshot = await collectionRef.where('role', isEqualTo: role).get();
+      final members = snapshot.docs.map((doc) => doc.data()).toList();
+      return Result.success(members);
+    } catch (e) {
+      _log.e('Error getting members by role: $e');
+      return Result.failure('Failed to get members by role');
+    }
+  }
+
+  Future<Result<int>> getMemberCount(String estateId) async {
+    final collectionRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('members');
+
+    try {
+      final res = await collectionRef.count().get();
+      return Result.success(res.count);
+    } catch (error) {
+      _log.e('Error getting member count: $error');
+      return Result.failure('Failed to get member count');
+    }
+  }
+
   Future<Result<void>> updateMember(String estateId, Member member) async {
     final docRef = _db
         .collection('estates')

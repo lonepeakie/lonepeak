@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
 
 class EstateSelectScreen extends ConsumerWidget {
@@ -79,7 +80,6 @@ class EstateSelectScreen extends ConsumerWidget {
                     description:
                         'Perfect if you\'re establishing a new estate or community and need to set everything up from scratch.',
                     buttonText: 'Create Estate',
-                    buttonColor: AppColors.blue,
                     onPressed: () {
                       context.go(
                         '${Routes.estateSelect}${Routes.estateCreate}',
@@ -95,9 +95,7 @@ class EstateSelectScreen extends ConsumerWidget {
                     description:
                         'Use the estate code provided by your administrator to join an existing estate community.',
                     buttonText: 'Join Estate',
-                    buttonColor: Colors.white,
-                    textColor: AppColors.blue,
-                    borderColor: AppColors.blue,
+                    isAccent: true,
                     onPressed: () {
                       context.go(Routes.estateHome);
                     },
@@ -118,10 +116,8 @@ class EstateSelectScreen extends ConsumerWidget {
     required String subtitle,
     required String description,
     required String buttonText,
-    required Color buttonColor,
-    Color? textColor,
-    Color? borderColor,
     required VoidCallback onPressed,
+    bool isAccent = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -167,29 +163,12 @@ class EstateSelectScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              foregroundColor: textColor ?? Colors.white,
-              backgroundColor: buttonColor,
-              side:
-                  borderColor != null
-                      ? BorderSide(color: borderColor)
-                      : BorderSide.none,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              ),
-            ),
-            onPressed: onPressed,
-            child: Text(
-              buttonText,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: textColor ?? Colors.white,
-              ),
-            ),
-          ),
+          isAccent
+              ? AppElevatedAccentButton(
+                buttonText: buttonText,
+                onPressed: onPressed,
+              )
+              : AppElevatedButton(buttonText: buttonText, onPressed: onPressed),
         ],
       ),
     );

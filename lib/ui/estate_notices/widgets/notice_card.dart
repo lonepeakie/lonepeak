@@ -22,9 +22,10 @@ class NoticeCard extends StatelessWidget {
             : 'Unknown date';
 
     return Card(
-      elevation: 0.1,
+      elevation: 0.3,
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      // color: AppColors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
