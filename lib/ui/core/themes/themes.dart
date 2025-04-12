@@ -4,6 +4,7 @@ abstract final class AppColors {
   static const Color blue = Color(0xFF0B73DC);
   static const Color black = Color.fromARGB(196, 0, 0, 0);
   static const Color white = Color.fromARGB(255, 249, 252, 254);
+  static const Color lightblack = Color.fromARGB(156, 0, 0, 0);
 }
 
 abstract final class AppThemes {
@@ -36,6 +37,6 @@ abstract final class AppStyles {
   );
   static const TextStyle subtitleText = TextStyle(
     fontSize: 14,
-    color: Color.fromARGB(156, 0, 0, 0),
+    color: AppColors.lightblack,
   );
 }

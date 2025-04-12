@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmodel.dart';
+import 'package:lonepeak/ui/estate_dashboard/widgets/dashboard_button.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
 class EstateDashboardScreen extends ConsumerStatefulWidget {
@@ -214,6 +217,53 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  DashboardButton(
+                    title: 'Documents',
+                    subtitle: 'View and manage estate documents',
+                    icon: Icons.description,
+                    onTap: () {
+                      // GoRouter.of(context).go('/documents');
+                    },
+                  ),
+                  DashboardButton(
+                    title: 'Notices',
+                    subtitle: 'View and manage estate notices',
+                    icon: Icons.notifications,
+                    onTap: () {
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.estateNotices);
+                    },
+                  ),
+                  DashboardButton(
+                    title: 'Members',
+                    subtitle: 'View and manage estate members',
+                    icon: Icons.groups,
+                    onTap: () {
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.estateMembers);
+                    },
+                  ),
+                  DashboardButton(
+                    title: 'Treasury',
+                    subtitle: 'View and manage estate treasury',
+                    icon: Icons.account_balance_wallet,
+                    onTap: () {
+                      // GoRouter.of(context).go('/treasury');
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
