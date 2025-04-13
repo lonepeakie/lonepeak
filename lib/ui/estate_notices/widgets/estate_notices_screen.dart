@@ -7,7 +7,7 @@ import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
-import 'package:lonepeak/ui/estate_notices/widgets/notice_card.dart';
+import 'package:lonepeak/ui/core/widgets/notice_card.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
@@ -44,18 +44,20 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (state is UIStateLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (state is UIStateFailure)
-              Center(child: Text('Error: ${state.error}'))
-            else
-              ...notices.map((notice) => NoticeCard(notice: notice)),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state is UIStateLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (state is UIStateFailure)
+                Center(child: Text('Error: ${state.error}'))
+              else
+                ...notices.map((notice) => NoticeCard(notice: notice)),
+            ],
+          ),
         ),
       ),
     );
@@ -65,7 +67,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
     NoticeType selectedType = NoticeType.general;
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       context: context,
@@ -85,7 +87,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
               ),
               child: SingleChildScrollView(
                 child: Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -173,7 +175,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                         children: [
                           AppElevatedButton(
                             onPressed: () {
-                              if (_formKey.currentState!.validate()) {
+                              if (formKey.currentState!.validate()) {
                                 final newNotice = Notice(
                                   title: titleController.text,
                                   message: contentController.text,

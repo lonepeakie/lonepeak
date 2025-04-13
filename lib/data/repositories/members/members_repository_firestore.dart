@@ -62,12 +62,12 @@ class MembersRepositoryFirestore extends MembersRepository {
   }
 
   @override
-  Future<Result<List<Member>>> getMembersByRole(String role) {
+  Future<Result<List<Member>>> getMembersByRoles(List<String> roles) {
     final estateId = _appState.getEstateId;
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _membersService.getMembersByRole(estateId, role);
+    return _membersService.getMembersByRoles(estateId, roles);
   }
 
   @override

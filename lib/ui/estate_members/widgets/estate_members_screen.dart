@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
-import 'package:lonepeak/ui/estate_members/widgets/member_tile.dart';
+import 'package:lonepeak/ui/core/widgets/member_tile.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
 class EstateMembersScreen extends ConsumerStatefulWidget {
@@ -84,102 +84,90 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search members...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search members...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  suffixIcon:
+                      _searchQuery.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                          : null,
                 ),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _searchController.clear();
-                              _searchQuery = '';
-                            });
-                          },
-                        )
-                        : null,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
             ),
-          ),
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                if (viewModelState is UIStateLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (viewModelState is UIStateFailure) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Error: ${viewModelState.error}'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            ref
-                                .read(estateMembersViewModelProvider.notifier)
-                                .getMembers();
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (viewModelState is UIStateLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (viewModelState is UIStateFailure) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Error: ${viewModelState.error}'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              ref
+                                  .read(estateMembersViewModelProvider.notifier)
+                                  .getMembers();
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return filteredMembers.isEmpty
+                        ? Center(
+                          child: Text(
+                            _searchQuery.isEmpty
+                                ? 'No members found'
+                                : 'No matching members found',
+                          ),
+                        )
+                        : ListView.builder(
+                          itemCount: filteredMembers.length,
+                          itemBuilder: (context, index) {
+                            final member = filteredMembers[index];
+                            final role = member.role ?? "resident";
+                            return MemberTile(
+                              name: member.displayName ?? "Unknown",
+                              email: member.email,
+                              role: role,
+                            );
                           },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  return filteredMembers.isEmpty
-                      ? Center(
-                        child: Text(
-                          _searchQuery.isEmpty
-                              ? 'No members found'
-                              : 'No matching members found',
-                        ),
-                      )
-                      : ListView.builder(
-                        itemCount: filteredMembers.length,
-                        itemBuilder: (context, index) {
-                          final member = filteredMembers[index];
-                          final role = member.role ?? "resident";
-                          return MemberTile(
-                            name: member.displayName ?? "Unknown",
-                            email: member.email,
-                            role: role,
-                            roleColor: _getRoleColor(role),
-                          );
-                        },
-                      );
-                }
-              },
+                        );
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  Color _getRoleColor(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return Colors.blue;
-      case 'secretary':
-        return Colors.purple;
-      case 'resident':
-        return Colors.grey;
-      default:
-        return Colors.teal;
-    }
   }
 }

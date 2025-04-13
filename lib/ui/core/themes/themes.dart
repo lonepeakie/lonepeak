@@ -35,6 +35,11 @@ abstract final class AppStyles {
     fontWeight: FontWeight.bold,
     color: AppColors.black,
   );
+  static const TextStyle titleText1 = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: AppColors.black,
+  );
   static const TextStyle subtitleText = TextStyle(
     fontSize: 14,
     color: AppColors.lightblack,

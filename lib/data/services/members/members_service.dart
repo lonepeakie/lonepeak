@@ -78,9 +78,9 @@ class MembersService {
     }
   }
 
-  Future<Result<List<Member>>> getMembersByRole(
+  Future<Result<List<Member>>> getMembersByRoles(
     String estateId,
-    String role,
+    List<String> roles,
   ) async {
     final collectionRef = _db
         .collection('estates')
@@ -92,12 +92,12 @@ class MembersService {
         );
 
     try {
-      final snapshot = await collectionRef.where('role', isEqualTo: role).get();
+      final snapshot = await collectionRef.where('role', whereIn: roles).get();
       final members = snapshot.docs.map((doc) => doc.data()).toList();
       return Result.success(members);
     } catch (e) {
-      _log.e('Error getting members by role: $e');
-      return Result.failure('Failed to get members by role');
+      _log.e('Error getting members by roles: $e');
+      return Result.failure('Failed to get members by roles');
     }
   }
 

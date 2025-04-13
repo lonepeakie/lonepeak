@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmodel.dart';
 import 'package:lonepeak/ui/estate_dashboard/widgets/dashboard_button.dart';
+import 'package:lonepeak/ui/core/widgets/notice_card.dart';
+import 'package:lonepeak/ui/core/widgets/member_tile.dart';
 import 'package:lonepeak/utils/ui_state.dart';
 
 class EstateDashboardScreen extends ConsumerStatefulWidget {
@@ -25,6 +28,18 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     Future.microtask(
       () =>
           ref.read(estateDashboardViewModelProvider.notifier).getMembersCount(),
+    );
+    Future.microtask(
+      () =>
+          ref
+              .read(estateDashboardViewModelProvider.notifier)
+              .getCommitteeMembers(),
+    );
+    Future.microtask(
+      () =>
+          ref
+              .read(estateDashboardViewModelProvider.notifier)
+              .getLatestNotices(),
     );
   }
 
@@ -88,135 +103,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   ],
                 ),
               const SizedBox(height: 32),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                elevation: 0.2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.info_outline, color: AppColors.blue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Overview',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // const SizedBox(height: 4),
-                      const Text(
-                        'General information about your estate',
-                        style: AppStyles.subtitleText,
-                      ),
-                      const SizedBox(height: 40),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Estate Code',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'FDSF',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Total Members',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                membersCount.toString(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
+              overviewCard(membersCount),
               const SizedBox(height: 16),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                elevation: 0.2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.groups_outlined, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Committee Contacts',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      const ListTile(
-                        leading: CircleAvatar(
-                          child: Icon(Icons.person, color: Colors.blue),
-                        ),
-                        title: Text('John Doe'),
-                        subtitle: Text('Admin'),
-                        trailing: Text(
-                          'Email',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                      const Divider(),
-                      const ListTile(
-                        leading: CircleAvatar(
-                          child: Icon(Icons.person, color: Colors.blue),
-                        ),
-                        title: Text('Jane Smith'),
-                        subtitle: Text('Secretary'),
-                        trailing: Text(
-                          'Email',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
+              latestNoticesCard(),
+              const SizedBox(height: 16),
+              committeCard(),
               const SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: 2,
@@ -266,6 +157,199 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               const SizedBox(height: 16),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Card latestNoticesCard() {
+    final notices =
+        ref.watch(estateDashboardViewModelProvider.notifier).notices;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 0.2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.notifications_outlined, color: AppColors.blue),
+                    SizedBox(width: 8),
+                    Text('Latest Notices', style: AppStyles.titleText1),
+                  ],
+                ),
+                AppTextArrowButton(
+                  onPressed: () {
+                    GoRouter.of(
+                      context,
+                    ).go(Routes.estateHome + Routes.estateNotices);
+                  },
+                  buttonText: 'View All',
+                ),
+              ],
+            ),
+            const Text(
+              'Recent announcements from your estate',
+              style: AppStyles.subtitleText,
+            ),
+            const SizedBox(height: 32),
+            Column(
+              children:
+                  notices.map((notice) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          NoticeWidget(notice: notice, displayActions: false),
+                          if (notices.last != notice) const Divider(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card committeCard() {
+    final committeeMembers =
+        ref.watch(estateDashboardViewModelProvider.notifier).committeeMembers;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 0.2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.groups_outlined, color: AppColors.blue),
+                    SizedBox(width: 8),
+                    Text('Committee', style: AppStyles.titleText1),
+                  ],
+                ),
+                AppTextArrowButton(
+                  onPressed: () {
+                    GoRouter.of(
+                      context,
+                    ).go(Routes.estateHome + Routes.estateMembers);
+                  },
+                  buttonText: 'View All',
+                ),
+              ],
+            ),
+            const Text(
+              'Quickly reachout to your commitee',
+              style: AppStyles.subtitleText,
+            ),
+            const SizedBox(height: 32),
+            if (committeeMembers.isEmpty)
+              const Center(
+                child: Text(
+                  'No committee members available',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              )
+            else
+              ...committeeMembers.map((member) {
+                final isLast =
+                    committeeMembers.indexOf(member) ==
+                    committeeMembers.length - 1;
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      MemberTile(
+                        name: member.displayName ?? "Unknown",
+                        email: member.email,
+                        role: member.role ?? "resident",
+                        padding: EdgeInsets.zero,
+                      ),
+                      if (!isLast) const Divider(),
+                    ],
+                  ),
+                );
+              }),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card overviewCard(int membersCount) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 0.2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.blue),
+                SizedBox(width: 8),
+                Text('Overview', style: AppStyles.titleText1),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'General information about your estate',
+              style: AppStyles.subtitleText,
+            ),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Estate Code', style: TextStyle(fontSize: 14)),
+                    SizedBox(height: 4),
+                    Text(
+                      'TKPARK',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Total Members', style: TextStyle(fontSize: 14)),
+                    SizedBox(height: 4),
+                    Text(
+                      membersCount.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
         ),
       ),
     );

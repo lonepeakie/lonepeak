@@ -74,3 +74,34 @@ class AppElevatedAccentButton extends StatelessWidget {
     );
   }
 }
+
+class AppTextArrowButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String buttonText;
+
+  const AppTextArrowButton({
+    super.key,
+    required this.onPressed,
+    required this.buttonText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      child: Row(
+        children: [
+          Text(
+            'View All',
+            style: TextStyle(
+              color: AppColors.black.withAlpha(170),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.black),
+        ],
+      ),
+    );
+  }
+}
