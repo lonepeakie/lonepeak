@@ -25,6 +25,7 @@ class MainApp extends ConsumerWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue),
       ),
+
       routerConfig: router,
     );
   }

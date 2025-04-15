@@ -56,6 +56,14 @@ class Permission {
   }
 }
 
-enum RoleType { admin, president, vicePresident, secretary, treasurer, member }
+enum RoleType {
+  admin,
+  president,
+  vicepresident,
+  secretary,
+  treasurer,
+  member,
+  resident,
+}
 
 enum PermissionName { estate, member }

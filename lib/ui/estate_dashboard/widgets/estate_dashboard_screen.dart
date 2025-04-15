@@ -149,7 +149,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate treasury',
                     icon: Icons.account_balance_wallet,
                     onTap: () {
-                      // GoRouter.of(context).go('/treasury');
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.estateTreasury);
                     },
                   ),
                 ],

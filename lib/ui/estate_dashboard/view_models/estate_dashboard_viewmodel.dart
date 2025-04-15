@@ -70,7 +70,7 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
     final committeeRoles = [
       'president',
-      'vp',
+      'vicepresident',
       'secretary',
       'treasurer',
       'admin',
@@ -88,7 +88,7 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
   Future<void> getLatestNotices() async {
     state = UIStateLoading();
 
-    final result = await _noticesRepository.getLatestNotices(limit: 3);
+    final result = await _noticesRepository.getLatestNotices();
     if (result.isSuccess) {
       _notices = result.data ?? [];
       state = UIStateSuccess();

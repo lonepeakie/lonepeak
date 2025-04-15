@@ -8,6 +8,7 @@ import 'package:lonepeak/ui/estate_home/widgets/estate_home_screen.dart';
 import 'package:lonepeak/ui/estate_members/widgets/estate_members_screen.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/estate_notices_screen.dart';
 import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
+import 'package:lonepeak/ui/estate_treasury/widgets/estate_treasury_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
 
@@ -61,6 +62,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: Routes.estateNoticesRelative,
             builder: (context, state) {
               return const EstateNoticesScreen();
+            },
+          ),
+          GoRoute(
+            path: Routes.estateTreasuryRelative,
+            builder: (context, state) {
+              return EstateTreasuryScreen();
             },
           ),
         ],

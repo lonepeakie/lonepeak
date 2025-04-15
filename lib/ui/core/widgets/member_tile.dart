@@ -33,11 +33,19 @@ Color _getRoleColor(String role) {
   switch (role.toLowerCase()) {
     case 'admin':
       return Colors.blue;
+    case 'president':
+      return Colors.teal;
+    case 'vicepresident':
+      return Colors.orange;
+    case 'treasurer':
+      return Colors.green;
+    case 'member':
+      return Colors.cyan;
     case 'secretary':
       return Colors.purple;
     case 'resident':
       return Colors.grey;
     default:
-      return Colors.teal;
+      return Colors.grey;
   }
 }
