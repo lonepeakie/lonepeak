@@ -75,4 +75,20 @@ class NoticesRepositoryFirestore extends NoticesRepository {
     }
     return _noticesService.updateNotice(estateId, notice);
   }
+
+  @override
+  Future<Result<Notice>> toggleLike(String noticeId) {
+    final estateId = _appState.getEstateId;
+    final userEmail = _appState.getUserEmail;
+
+    if (estateId == null) {
+      return Future.value(Result.failure('Estate ID is null'));
+    }
+
+    if (userEmail == null) {
+      return Future.value(Result.failure('User email is null'));
+    }
+
+    return _noticesService.likeNotice(estateId, noticeId, userEmail);
+  }
 }

@@ -145,4 +145,51 @@ class NoticesService {
       return Result.failure('Failed to fetch latest notices');
     }
   }
+
+  Future<Result<Notice>> likeNotice(
+    String estateId,
+    String noticeId,
+    String userEmail,
+  ) async {
+    try {
+      // Get the current notice
+      final noticeResult = await getNotice(estateId, noticeId);
+      if (noticeResult.isFailure) {
+        return Result.failure('Failed to fetch notice for liking');
+      }
+
+      final notice = noticeResult.data!;
+      final likedBy = List<String>.from(notice.likedBy);
+
+      // Check if user already liked the notice
+      if (likedBy.contains(userEmail)) {
+        // Unlike
+        likedBy.remove(userEmail);
+        final updatedNotice = notice.copyWith(likedBy: likedBy);
+
+        // Update notice in Firestore
+        final updateResult = await updateNotice(estateId, updatedNotice);
+        if (updateResult.isFailure) {
+          return Result.failure('Failed to unlike the notice');
+        }
+
+        return Result.success(updatedNotice);
+      } else {
+        // Like
+        likedBy.add(userEmail);
+        final updatedNotice = notice.copyWith(likedBy: likedBy);
+
+        // Update notice in Firestore
+        final updateResult = await updateNotice(estateId, updatedNotice);
+        if (updateResult.isFailure) {
+          return Result.failure('Failed to like the notice');
+        }
+
+        return Result.success(updatedNotice);
+      }
+    } catch (e) {
+      _log.e('Error toggling like: $e');
+      return Result.failure('Failed to process like operation');
+    }
+  }
 }

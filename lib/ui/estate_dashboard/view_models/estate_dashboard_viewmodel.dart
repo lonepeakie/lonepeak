@@ -96,4 +96,21 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
       state = UIStateFailure(result.error ?? 'Unknown error');
     }
   }
+
+  Future<void> toggleLike(String noticeId) async {
+    // No loading state to avoid UI flickering
+    final result = await _noticesRepository.toggleLike(noticeId);
+
+    if (result.isSuccess) {
+      // Update the notice in our local list
+      final updatedNotice = result.data!;
+      final index = _notices.indexWhere((notice) => notice.id == noticeId);
+
+      if (index != -1) {
+        _notices[index] = updatedNotice;
+        // Notify listeners without changing the UI state
+        state = UIStateSuccess();
+      }
+    }
+  }
 }

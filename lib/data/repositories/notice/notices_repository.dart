@@ -8,4 +8,5 @@ abstract class NoticesRepository {
   Future<Result<void>> addNotice(Notice notice);
   Future<Result<void>> updateNotice(Notice notice);
   Future<Result<void>> deleteNotice(String id);
+  Future<Result<Notice>> toggleLike(String noticeId);
 }
