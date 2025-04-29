@@ -47,4 +47,14 @@ app.*.map.json
 #vscode
 .vscode/
 
-scripts/
+# Firebase credentials & sensitive information
+scripts/*firebase*.json
+*firebase*.json
+.env
+*.env
+google-services.json
+GoogleService-Info.plist
+*-adminsdk-*.json
+
+# Keep scripts directory but ignore credentials
+# scripts/

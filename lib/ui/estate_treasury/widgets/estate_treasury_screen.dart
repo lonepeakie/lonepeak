@@ -1,12 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
+import 'package:lonepeak/ui/estate_treasury/widgets/add_transaction_dialog.dart';
 
-class EstateTreasuryScreen extends StatelessWidget {
+class EstateTreasuryScreen extends ConsumerStatefulWidget {
+  const EstateTreasuryScreen({super.key});
+
+  @override
+  ConsumerState<EstateTreasuryScreen> createState() =>
+      _EstateTreasuryScreenState();
+}
+
+class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load transactions when screen initializes
+    Future.microtask(
+      () => ref.read(treasuryViewModelProvider.notifier).loadTransactions(),
+    );
+  }
+
+  // Show dialog to add a new transaction
+  void _showAddTransactionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const AddTransactionDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final treasuryState = ref.watch(treasuryViewModelProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Treasury & Financial Records'),
+        title: const Text('Treasury'),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_alt_outlined),
@@ -16,121 +49,57 @@ class EstateTreasuryScreen extends StatelessWidget {
             icon: const Icon(Icons.download_outlined),
             onPressed: () {},
           ),
-          IconButton(icon: const Icon(Icons.add), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddTransactionDialog,
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCurrentBalanceCard(),
-            const SizedBox(height: 24),
-            _buildExpenseBreakdownChart(),
-            const SizedBox(height: 24),
-            _buildRecentTransactions(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCurrentBalanceCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Current Balance',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '€930',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+      body:
+          treasuryState.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : treasuryState.errorMessage != null
+              ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCurrentBalanceCard(treasuryState.currentBalance),
+                    // const SizedBox(height: 24),
+                    // _buildExpenseBreakdownContainer(
+                    //   treasuryState.expensesByType,
+                    // ),
+                    const SizedBox(height: 24),
+                    _buildRecentTransactionsContainer(
+                      treasuryState.transactions,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildExpenseBreakdownChart() {
-    return Expanded(
+  Widget _buildCurrentBalanceCard(double balance) {
+    final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
+    return SizedBox(
+      width: double.infinity,
       child: Card(
-        elevation: 2,
+        elevation: 0.3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Expense Breakdown',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const Text('Current Balance', style: AppStyles.titleText),
               const SizedBox(height: 8),
-              const Text(
-                'Current month',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: PieChart(
-                  PieChartData(
-                    sections: [
-                      PieChartSectionData(
-                        color: Colors.blue,
-                        value: 37,
-                        title: 'Maintenance 37%',
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      PieChartSectionData(
-                        color: Colors.green,
-                        value: 39,
-                        title: 'Insurance',
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      PieChartSectionData(
-                        color: Colors.yellow,
-                        value: 10,
-                        title: 'Utilities 10%',
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      PieChartSectionData(
-                        color: Colors.orange,
-                        value: 14,
-                        title: 'Other 14%',
-                        titleStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 40,
-                  ),
+              Text(
+                formatter.format(balance),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: balance >= 0 ? Colors.green : Colors.red,
                 ),
               ),
             ],
@@ -140,70 +109,152 @@ class EstateTreasuryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentTransactions() {
-    return Expanded(
+  Widget _buildExpenseBreakdownContainer(
+    Map<TransactionType, double> expensesByType,
+  ) {
+    // Calculate total expenses
+    final totalExpenses = expensesByType.values.fold(
+      0.0,
+      (sum, amount) => sum + amount,
+    );
+
+    // Prepare pie chart sections
+    final List<PieChartSectionData> sections = [];
+    final List<Color> colors = [
+      Colors.blue.shade500,
+      Colors.green.shade500,
+      Colors.yellow.shade500,
+      Colors.orange.shade500,
+      Colors.purple.shade500,
+      Colors.red.shade500,
+    ];
+
+    int i = 0;
+    expensesByType.forEach((type, amount) {
+      // Only add sections for types with values
+      if (amount > 0 && totalExpenses > 0) {
+        final percentage = (amount / totalExpenses * 100).round();
+        sections.add(
+          PieChartSectionData(
+            color: colors[i % colors.length],
+            value: amount,
+            title: '${type.displayName} $percentage%',
+            titleStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
+      i++;
+    });
+
+    return SizedBox(
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Recent Transactions',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+          const Text('Expense Breakdown', style: AppStyles.titleText),
           const SizedBox(height: 16),
-          Expanded(
-            child: ListView(
-              children: [
-                _buildTransactionCard(
-                  title: 'Annual maintenance fees',
-                  category: 'Annual Fees',
-                  categoryColor: Colors.blue,
-                  date: '2023-10-15',
-                  amount: '+€3,500',
-                  amountColor: Colors.green,
-                  isIncome: true,
-                ),
-                _buildTransactionCard(
-                  title: 'Gardening services - October',
-                  category: 'Maintenance',
-                  categoryColor: Colors.orange,
-                  date: '2023-10-10',
-                  amount: '-€850',
-                  amountColor: Colors.red,
-                  isIncome: false,
-                ),
-                _buildTransactionCard(
-                  title: 'Property insurance premium',
-                  category: 'Insurance',
-                  categoryColor: Colors.purple,
-                  date: '2023-09-28',
-                  amount: '-€1,200',
-                  amountColor: Colors.red,
-                  isIncome: false,
-                ),
-                _buildTransactionCard(
-                  title: 'Community hall rental - Wedding',
-                  category: 'Rental',
-                  categoryColor: Colors.green,
-                  date: '2023-09-20',
-                  amount: '+€250',
-                  amountColor: Colors.green,
-                  isIncome: true,
-                ),
-                _buildTransactionCard(
-                  title: 'Electricity for common areas',
-                  category: 'Utilities',
-                  categoryColor: Colors.red,
-                  date: '2023-09-15',
-                  amount: '-€320',
-                  amountColor: Colors.red,
-                  isIncome: false,
-                ),
-              ],
+          Card(
+            elevation: 0.3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Current month', style: AppStyles.subtitleText),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 200,
+                    child:
+                        sections.isEmpty
+                            ? const Center(
+                              child: Text('No expenses this month'),
+                            )
+                            : PieChart(
+                              PieChartData(
+                                sections: sections,
+                                sectionsSpace: 0,
+                                centerSpaceRadius: 0,
+                                borderData: FlBorderData(show: false),
+                              ),
+                            ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildRecentTransactionsContainer(
+    List<TreasuryTransaction> transactions,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Recent Transactions', style: AppStyles.titleText),
+          const SizedBox(height: 16),
+          transactions.isEmpty
+              ? const Center(child: Text('No transactions found'))
+              : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                itemBuilder: (context, index) {
+                  final transaction = transactions[index];
+                  final formatter = NumberFormat.currency(
+                    symbol: '€',
+                    decimalDigits: 2,
+                  );
+                  final amount =
+                      transaction.isIncome
+                          ? '+${formatter.format(transaction.amount)}'
+                          : '-${formatter.format(transaction.amount)}';
+                  final color =
+                      transaction.isIncome ? Colors.green : Colors.red;
+                  final dateFormatter = DateFormat('yyyy-MM-dd');
+
+                  return _buildTransactionCard(
+                    title: transaction.title,
+                    category: transaction.type.displayName,
+                    categoryColor: _getCategoryColor(transaction.type),
+                    date: dateFormatter.format(transaction.date),
+                    amount: amount,
+                    amountColor: color,
+                    isIncome: transaction.isIncome,
+                  );
+                },
+              ),
+        ],
+      ),
+    );
+  }
+
+  Color _getCategoryColor(TransactionType type) {
+    switch (type) {
+      case TransactionType.maintenance:
+        return Colors.blue;
+      case TransactionType.insurance:
+        return Colors.purple;
+      case TransactionType.utilities:
+        return Colors.yellow.shade800;
+      case TransactionType.rental:
+        return Colors.green;
+      case TransactionType.fees:
+        return Colors.teal;
+      case TransactionType.other:
+        return Colors.deepPurpleAccent;
+    }
   }
 
   Widget _buildTransactionCard({
@@ -216,32 +267,40 @@ class EstateTreasuryScreen extends StatelessWidget {
     required bool isIncome,
   }) {
     return Card(
-      elevation: 1,
+      elevation: 0,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(
-          isIncome ? Icons.arrow_upward : Icons.arrow_downward,
+          isIncome ? Icons.south_west : Icons.arrow_outward,
           color: isIncome ? Colors.green : Colors.red,
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Row(
+        subtitle: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: categoryColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                category,
-                style: TextStyle(color: categoryColor, fontSize: 12),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              date,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withAlpha(50),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    category,
+                    style: TextStyle(color: categoryColor, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  date,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
             ),
           ],
         ),
