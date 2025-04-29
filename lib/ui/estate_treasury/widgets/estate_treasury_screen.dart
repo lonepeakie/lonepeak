@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
+import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
+import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
-import 'package:lonepeak/ui/estate_treasury/widgets/add_transaction_dialog.dart';
 
 class EstateTreasuryScreen extends ConsumerStatefulWidget {
   const EstateTreasuryScreen({super.key});
@@ -25,14 +26,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  // Show dialog to add a new transaction
-  void _showAddTransactionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => const AddTransactionDialog(),
-    );
-  }
-
+  // Show bottom sheet to add a new transaction
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
@@ -49,9 +43,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             icon: const Icon(Icons.download_outlined),
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddTransactionDialog,
+          AppbarActionButton(
+            icon: Icons.add,
+            onPressed: () => _showAddTransactionBottomSheet(context),
           ),
         ],
       ),
@@ -66,10 +60,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildCurrentBalanceCard(treasuryState.currentBalance),
-                    // const SizedBox(height: 24),
-                    // _buildExpenseBreakdownContainer(
-                    //   treasuryState.expensesByType,
-                    // ),
                     const SizedBox(height: 24),
                     _buildRecentTransactionsContainer(
                       treasuryState.transactions,
@@ -105,91 +95,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildExpenseBreakdownContainer(
-    Map<TransactionType, double> expensesByType,
-  ) {
-    // Calculate total expenses
-    final totalExpenses = expensesByType.values.fold(
-      0.0,
-      (sum, amount) => sum + amount,
-    );
-
-    // Prepare pie chart sections
-    final List<PieChartSectionData> sections = [];
-    final List<Color> colors = [
-      Colors.blue.shade500,
-      Colors.green.shade500,
-      Colors.yellow.shade500,
-      Colors.orange.shade500,
-      Colors.purple.shade500,
-      Colors.red.shade500,
-    ];
-
-    int i = 0;
-    expensesByType.forEach((type, amount) {
-      // Only add sections for types with values
-      if (amount > 0 && totalExpenses > 0) {
-        final percentage = (amount / totalExpenses * 100).round();
-        sections.add(
-          PieChartSectionData(
-            color: colors[i % colors.length],
-            value: amount,
-            title: '${type.displayName} $percentage%',
-            titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        );
-      }
-      i++;
-    });
-
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Expense Breakdown', style: AppStyles.titleText),
-          const SizedBox(height: 16),
-          Card(
-            elevation: 0.3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Current month', style: AppStyles.subtitleText),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 200,
-                    child:
-                        sections.isEmpty
-                            ? const Center(
-                              child: Text('No expenses this month'),
-                            )
-                            : PieChart(
-                              PieChartData(
-                                sections: sections,
-                                sectionsSpace: 0,
-                                centerSpaceRadius: 0,
-                                borderData: FlBorderData(show: false),
-                              ),
-                            ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -309,6 +214,227 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
         ),
       ),
+    );
+  }
+
+  void _showAddTransactionBottomSheet(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final titleController = TextEditingController();
+    final amountController = TextEditingController();
+    final dateController = TextEditingController();
+    final descriptionController = TextEditingController();
+    TransactionType selectedType = TransactionType.other;
+    bool isIncome = false;
+
+    void submitForm() {
+      if (formKey.currentState!.validate()) {
+        final newTransaction = TreasuryTransaction(
+          title: titleController.text,
+          amount: double.parse(amountController.text),
+          type: selectedType,
+          date: DateTime.parse(dateController.text),
+          description:
+              descriptionController.text.isEmpty
+                  ? null
+                  : descriptionController.text,
+          isIncome: isIncome,
+        );
+
+        ref
+            .read(treasuryViewModelProvider.notifier)
+            .addTransaction(newTransaction)
+            .then((result) {
+              if (result.isSuccess) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Transaction added successfully'),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${result.error}')),
+                );
+              }
+            });
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(width: 24),
+                          const Text(
+                            'Add Transaction',
+                            style: AppStyles.titleText,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          'Add a new financial transaction to the estate treasury.',
+                          style: AppStyles.subtitleText,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Income/Expense toggle
+                      Row(
+                        children: [
+                          const Text('Transaction is: '),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ToggleButtons(
+                              isSelected: [!isIncome, isIncome],
+                              onPressed: (int index) {
+                                setState(() {
+                                  isIncome = index == 1;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              selectedColor: Colors.white,
+                              fillColor: isIncome ? Colors.green : Colors.red,
+                              constraints: const BoxConstraints(minHeight: 32),
+                              children: const [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text('Expense'),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text('Income'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextInput(
+                        controller: titleController,
+                        labelText: 'Title',
+                        hintText: 'e.g. Community garden Repair',
+                        required: true,
+                        errorText: 'Title is required',
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextInput(
+                        controller: amountController,
+                        labelText: 'Amount',
+                        hintText: 'e.g. 150.00',
+                        required: true,
+                        errorText: 'Amount is required',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter an amount';
+                          }
+                          try {
+                            final amount = double.parse(value);
+                            if (amount <= 0) {
+                              return 'Amount must be greater than 0';
+                            }
+                          } catch (e) {
+                            return 'Please enter a valid number';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      AppDatePicker(
+                        controller: dateController,
+                        labelText: 'Transaction Date',
+                        hintText: 'Select a date',
+                        required: true,
+                        errorText: 'Please select a date',
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextInput(
+                        controller: descriptionController,
+                        labelText: 'Description (optional)',
+                        hintText: 'Additional details about the transaction',
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      // Use the generic AppDropdown component
+                      AppDropdown<TransactionType>(
+                        labelText: 'Transaction Type',
+                        value: selectedType,
+                        required: true,
+                        errorText: 'Please select a transaction type',
+                        items:
+                            TransactionType.values
+                                .map(
+                                  (type) => DropdownItem<TransactionType>(
+                                    value: type,
+                                    label: type.displayName,
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (TransactionType? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedType = newValue;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Submit button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          AppElevatedButton(
+                            onPressed: submitForm,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
+                            ),
+                            buttonText: 'Add',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
