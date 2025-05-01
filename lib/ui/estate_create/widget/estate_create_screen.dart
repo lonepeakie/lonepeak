@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/constants/constants.dart';
+import 'package:lonepeak/ui/core/constants.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
@@ -30,15 +30,8 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Estate'),
-        backgroundColor: Colors.white,
         elevation: 0,
-        titleTextStyle: const TextStyle(
-          color: Colors.black,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: AppColors.black50),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -46,8 +39,14 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
           child: Form(
             key: formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const Text(
+                  'Create a New Estate',
+                  style: AppStyles.titleTextLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
                 const Text(
                   'Set up your estate community with basic information',
                   style: AppStyles.subtitleText,

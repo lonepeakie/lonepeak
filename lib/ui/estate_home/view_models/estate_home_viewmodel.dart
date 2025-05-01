@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateHomeViewModelProvider =
     StateNotifierProvider<EstateHomeViewmodel, UIState>((ref) {

@@ -8,7 +8,7 @@ import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmo
 import 'package:lonepeak/ui/estate_dashboard/widgets/dashboard_button.dart';
 import 'package:lonepeak/ui/core/widgets/notice_card.dart';
 import 'package:lonepeak/ui/core/widgets/member_tile.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateDashboardScreen extends ConsumerStatefulWidget {
   const EstateDashboardScreen({super.key});
@@ -183,7 +183,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   children: [
                     Icon(Icons.notifications_outlined, color: AppColors.blue),
                     SizedBox(width: 8),
-                    Text('Latest Notices', style: AppStyles.titleText1),
+                    Text('Latest Notices', style: AppStyles.titleTextMedium),
                   ],
                 ),
                 AppTextArrowButton(
@@ -241,7 +241,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   children: [
                     Icon(Icons.groups_outlined, color: AppColors.blue),
                     SizedBox(width: 8),
-                    Text('Committee', style: AppStyles.titleText1),
+                    Text('Committee', style: AppStyles.titleTextMedium),
                   ],
                 ),
                 AppTextArrowButton(
@@ -306,7 +306,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               children: [
                 Icon(Icons.info_outline, color: AppColors.blue),
                 SizedBox(width: 8),
-                Text('Overview', style: AppStyles.titleText1),
+                Text('Overview', style: AppStyles.titleTextMedium),
               ],
             ),
             const SizedBox(height: 8),

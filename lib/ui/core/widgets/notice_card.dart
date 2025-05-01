@@ -66,7 +66,7 @@ class NoticeWidget extends ConsumerWidget {
           children: [
             Icon(categoryIcon, color: categoryColor, size: 22),
             const SizedBox(width: 8),
-            Text(notice.title, style: AppStyles.titleText),
+            Text(notice.title, style: AppStyles.titleTextSmall),
             const Spacer(),
             AppChip(
               label:

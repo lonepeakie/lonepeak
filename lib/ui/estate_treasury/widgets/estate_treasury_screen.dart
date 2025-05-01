@@ -81,7 +81,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Current Balance', style: AppStyles.titleText),
+              const Text('Current Balance', style: AppStyles.titleTextSmall),
               const SizedBox(height: 8),
               Text(
                 formatter.format(balance),
@@ -106,7 +106,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Recent Transactions', style: AppStyles.titleText),
+          const Text('Recent Transactions', style: AppStyles.titleTextSmall),
           const SizedBox(height: 16),
           transactions.isEmpty
               ? const Center(child: Text('No transactions found'))
@@ -200,7 +200,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                           const SizedBox(width: 24),
                           const Text(
                             'Add Transaction',
-                            style: AppStyles.titleText,
+                            style: AppStyles.titleTextSmall,
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),

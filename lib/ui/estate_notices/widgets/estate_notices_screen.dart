@@ -9,7 +9,7 @@ import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/notice_card.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateNoticesScreen extends ConsumerStatefulWidget {
   const EstateNoticesScreen({super.key});
@@ -100,7 +100,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                           ), // Placeholder for alignment
                           const Text(
                             'Create New Notice',
-                            style: AppStyles.titleText,
+                            style: AppStyles.titleTextSmall,
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),

@@ -18,10 +18,7 @@ class EstateSelectScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.logout,
-              color: Colors.black.withValues(alpha: 0.5),
-            ),
+            icon: Icon(Icons.logout, color: AppColors.black50),
             onPressed: () async {
               await ref.read(estateSelectViewModelProvider).logout();
               await ref.read(authStateProvider).refreshAuthState();
@@ -52,11 +49,7 @@ class EstateSelectScreen extends ConsumerWidget {
                 } else {
                   return Text(
                     'Welcome, ${snapshot.data}!',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    style: AppStyles.titleTextLarge,
                     textAlign: TextAlign.center,
                   );
                 }
@@ -97,7 +90,7 @@ class EstateSelectScreen extends ConsumerWidget {
                     buttonText: 'Join Estate',
                     isAccent: true,
                     onPressed: () {
-                      context.go(Routes.estateHome);
+                      context.go('${Routes.estateSelect}${Routes.estateJoin}');
                     },
                   ),
                 ],

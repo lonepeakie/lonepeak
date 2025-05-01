@@ -8,7 +8,7 @@ import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/notice.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateDashboardViewModelProvider =
     StateNotifierProvider<EstateDashboardViewmodel, UIState>(

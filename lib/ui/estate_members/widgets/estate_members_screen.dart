@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/member_tile.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateMembersScreen extends ConsumerStatefulWidget {
   const EstateMembersScreen({super.key});

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/notice/notices_provider.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/domain/models/notice.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateNoticesViewModelProvider =
     StateNotifierProvider<EstateNoticesViewmodel, UIState>(

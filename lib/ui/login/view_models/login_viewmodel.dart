@@ -5,7 +5,7 @@ import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
 import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 import 'package:lonepeak/utils/log_printer.dart';
-import 'package:lonepeak/utils/ui_state.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
 final loginViewModelProvider = StateNotifierProvider<LoginViewModel, UIState>((
   ref,
