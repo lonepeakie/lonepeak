@@ -175,19 +175,20 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                         children: [
                           AppElevatedButton(
                             onPressed: () {
-                              if (formKey.currentState!.validate()) {
-                                final newNotice = Notice(
-                                  title: titleController.text,
-                                  message: contentController.text,
-                                  type: selectedType,
-                                );
-                                final notifier = ref.read(
-                                  estateNoticesViewModelProvider.notifier,
-                                );
-                                notifier.addNotice(newNotice);
-                                notifier.getNotices();
-                                Navigator.of(context).pop();
+                              if (!formKey.currentState!.validate()) {
+                                return;
                               }
+                              final newNotice = Notice(
+                                title: titleController.text,
+                                message: contentController.text,
+                                type: selectedType,
+                              );
+                              final notifier = ref.read(
+                                estateNoticesViewModelProvider.notifier,
+                              );
+                              notifier.addNotice(newNotice);
+                              notifier.getNotices();
+                              Navigator.of(context).pop();
                             },
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,

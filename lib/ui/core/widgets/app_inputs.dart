@@ -182,7 +182,7 @@ class _AppDatePickerState extends State<AppDatePicker> {
 
 class AppDropdown<T> extends StatelessWidget {
   final String labelText;
-  final T value;
+  final T? initialValue;
   final List<DropdownItem<T>> items;
   final void Function(T?) onChanged;
   final String? Function(T?)? validator;
@@ -192,7 +192,7 @@ class AppDropdown<T> extends StatelessWidget {
   const AppDropdown({
     super.key,
     required this.labelText,
-    required this.value,
+    this.initialValue,
     required this.items,
     required this.onChanged,
     this.validator,
@@ -203,7 +203,7 @@ class AppDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FormField<T>(
-      initialValue: value,
+      initialValue: initialValue,
       validator:
           validator ??
           (value) {

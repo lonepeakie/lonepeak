@@ -300,7 +300,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       const SizedBox(height: 16),
                       AppDropdown<TransactionType>(
                         labelText: 'Transaction Type',
-                        value: selectedType,
+                        initialValue: selectedType,
                         required: true,
                         errorText: 'Please select a transaction type',
                         items:

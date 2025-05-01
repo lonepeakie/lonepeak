@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/router/routes.dart';
+import 'package:lonepeak/ui/core/constants/constants.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
+import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 
 class EstateCreateScreen extends ConsumerStatefulWidget {
   const EstateCreateScreen({super.key});
@@ -13,12 +17,20 @@ class EstateCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
+  final estateNameController = TextEditingController();
+  final estateAddressController = TextEditingController();
+  final estateEircodeController = TextEditingController();
+  final estateDescriptionController = TextEditingController();
+  final estateCountyController = TextEditingController();
+  final estateLogoController = TextEditingController();
+  final estateCityController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Estate'),
-        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         titleTextStyle: const TextStyle(
@@ -28,136 +40,129 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      backgroundColor: const Color(0xFFF8FAFC), // Light background color
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Set up your estate community with basic information',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-              const TextField(
-                decoration: InputDecoration(
+          child: Form(
+            key: formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Set up your estate community with basic information',
+                  style: AppStyles.subtitleText,
+                ),
+                const SizedBox(height: 24),
+                AppTextInput(
+                  controller: estateNameController,
                   labelText: 'Estate Name',
                   hintText: 'e.g. Oakwood Residences',
-                  border: OutlineInputBorder(),
+                  required: true,
+                  errorText: 'Estate name is required',
                 ),
-              ),
-              const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Address',
+                const SizedBox(height: 16),
+                AppTextInput(
+                  controller: estateCityController,
+                  labelText: 'Address (Optional)',
                   hintText: 'Street Address',
-                  border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Eircode (Optional)',
-                  hintText: 'e.g. D04 V2N1',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                AppTextInput(
+                  controller: estateCityController,
+                  labelText: 'City',
+                  hintText: 'e.g. Dublin',
+                  required: true,
+                  errorText: 'City is required',
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
+                const SizedBox(height: 16),
+                AppDropdown<String>(
                   labelText: 'County',
-                  border: OutlineInputBorder(),
+                  required: true,
+                  errorText: 'County is required',
+                  items:
+                      Constants.counties
+                          .map(
+                            (county) => DropdownItem<String>(
+                              value: county,
+                              label: "Co. $county",
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        estateCountyController.text = newValue;
+                      });
+                    }
+                  },
                 ),
-                items:
-                    <String>['County 1', 'County 2', 'County 3'].map((
-                      String value,
-                    ) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  // Handle county selection
-                },
-              ),
-              const SizedBox(height: 16),
-              const TextField(
-                maxLines: 3,
-                decoration: InputDecoration(
+                const SizedBox(height: 16),
+                AppTextInput(
+                  controller: estateDescriptionController,
                   labelText: 'Description (Optional)',
                   hintText: 'A brief description of your estate community',
-                  border: OutlineInputBorder(),
+                  maxLines: 3,
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Estate Logo (Optional)',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Handle logo upload
-                },
-                icon: const Icon(Icons.upload, size: 20),
-                label: const Text('Upload logo'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  side: const BorderSide(color: Colors.grey),
-                  elevation: 0,
+                const SizedBox(height: 16),
+                const Text(
+                  'Estate Logo (Optional)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.grey),
-                    ),
-                    child: const Text('Back'),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle logo upload
+                  },
+                  icon: const Icon(Icons.upload, size: 20),
+                  label: const Text('Upload logo'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.grey, width: 1.2),
+                    elevation: 0,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      final result = ref
-                          .read(estateFeaturesProvider)
-                          .createEstateAndAddMember(
-                            Estate(
-                              name: 'Estate Name',
-                              description: 'Description',
-                              address: 'Address',
-                              city: 'City',
-                              county: 'County',
-                            ),
-                          );
-                      result.then((value) {
-                        if (context.mounted) {
-                          if (value.isFailure) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${value.error}')),
-                            );
-                          } else {
-                            context.go(Routes.estateHome);
-                          }
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppElevatedButton(
+                      onPressed: () {
+                        if (!formKey.currentState!.validate()) {
+                          return;
                         }
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                        final result = ref
+                            .read(estateFeaturesProvider)
+                            .createEstateAndAddMember(
+                              Estate(
+                                name: estateNameController.text,
+                                description: estateDescriptionController.text,
+                                address: estateAddressController.text,
+                                city: estateCityController.text,
+                                county: estateCountyController.text,
+                                logoUrl: estateLogoController.text,
+                              ),
+                            );
+                        result.then((value) {
+                          if (context.mounted) {
+                            if (value.isFailure) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${value.error}'),
+                                ),
+                              );
+                            } else {
+                              context.go(Routes.estateHome);
+                            }
+                          }
+                        });
+                      },
+                      buttonText: 'Create',
                     ),
-                    child: const Text('Create Estate'),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
