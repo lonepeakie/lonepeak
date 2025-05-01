@@ -7,6 +7,7 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
+import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
 
 class EstateTreasuryScreen extends ConsumerStatefulWidget {
   const EstateTreasuryScreen({super.key});
@@ -20,13 +21,11 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   void initState() {
     super.initState();
-    // Load transactions when screen initializes
     Future.microtask(
       () => ref.read(treasuryViewModelProvider.notifier).loadTransactions(),
     );
   }
 
-  // Show bottom sheet to add a new transaction
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
@@ -117,102 +116,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                 itemCount: transactions.length,
                 itemBuilder: (context, index) {
                   final transaction = transactions[index];
-                  final formatter = NumberFormat.currency(
-                    symbol: '€',
-                    decimalDigits: 2,
-                  );
-                  final amount =
-                      transaction.isIncome
-                          ? '+${formatter.format(transaction.amount)}'
-                          : '-${formatter.format(transaction.amount)}';
-                  final color =
-                      transaction.isIncome ? Colors.green : Colors.red;
-                  final dateFormatter = DateFormat('yyyy-MM-dd');
-
-                  return _buildTransactionCard(
-                    title: transaction.title,
-                    category: transaction.type.displayName,
-                    categoryColor: _getCategoryColor(transaction.type),
-                    date: dateFormatter.format(transaction.date),
-                    amount: amount,
-                    amountColor: color,
-                    isIncome: transaction.isIncome,
-                  );
+                  return TransactionCard(transaction: transaction);
                 },
               ),
         ],
-      ),
-    );
-  }
-
-  Color _getCategoryColor(TransactionType type) {
-    switch (type) {
-      case TransactionType.maintenance:
-        return Colors.blue;
-      case TransactionType.insurance:
-        return Colors.purple;
-      case TransactionType.utilities:
-        return Colors.yellow.shade800;
-      case TransactionType.rental:
-        return Colors.green;
-      case TransactionType.fees:
-        return Colors.teal;
-      case TransactionType.other:
-        return Colors.deepPurpleAccent;
-    }
-  }
-
-  Widget _buildTransactionCard({
-    required String title,
-    required String category,
-    required Color categoryColor,
-    required String date,
-    required String amount,
-    required Color amountColor,
-    required bool isIncome,
-  }) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(
-          isIncome ? Icons.south_west : Icons.arrow_outward,
-          color: isIncome ? Colors.green : Colors.red,
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
-          children: [
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withAlpha(50),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    category,
-                    style: TextStyle(color: categoryColor, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  date,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: Text(
-          amount,
-          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
-        ),
       ),
     );
   }
@@ -245,16 +152,20 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             .addTransaction(newTransaction)
             .then((result) {
               if (result.isSuccess) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Transaction added successfully'),
-                  ),
-                );
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Transaction added successfully'),
+                    ),
+                  );
+                }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${result.error}')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${result.error}')),
+                  );
+                }
               }
             });
       }
@@ -387,7 +298,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
-                      // Use the generic AppDropdown component
                       AppDropdown<TransactionType>(
                         labelText: 'Transaction Type',
                         value: selectedType,
@@ -412,7 +322,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Submit button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

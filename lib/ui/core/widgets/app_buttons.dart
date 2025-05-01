@@ -105,3 +105,54 @@ class AppTextArrowButton extends StatelessWidget {
     );
   }
 }
+
+// ...existing code...
+
+class AppButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String buttonText;
+  final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
+  final Color? textColor;
+
+  const AppButton({
+    super.key,
+    required this.onPressed,
+    required this.buttonText,
+    this.padding,
+    this.backgroundColor,
+    this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectivePadding =
+        padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20);
+    final effectiveBackgroundColor = backgroundColor ?? AppColors.blue;
+    final effectiveTextColor = textColor ?? Colors.white;
+
+    return TextButton(
+      style: ButtonStyle(
+        padding: WidgetStateProperty.all(effectivePadding),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        ),
+        backgroundColor: WidgetStateProperty.all(effectiveBackgroundColor),
+        foregroundColor: WidgetStateProperty.all(effectiveTextColor),
+        // Remove elevation
+        elevation: WidgetStateProperty.all(0),
+        // Add minimumSize to ensure consistent sizing with other buttons
+        minimumSize: WidgetStateProperty.all(const Size(64, 36)),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        buttonText,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: effectiveTextColor,
+        ),
+      ),
+    );
+  }
+}
