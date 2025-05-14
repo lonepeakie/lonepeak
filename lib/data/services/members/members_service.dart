@@ -34,6 +34,37 @@ class MembersService {
     }
   }
 
+  Future<Result<void>> requestToJoinEstate(
+    String estateId,
+    Member member,
+  ) async {
+    final existingMemberResult = await getMemberById(estateId, member.email);
+    if (existingMemberResult.isSuccess) {
+      return Result.failure(
+        'You are already a member or have a pending request for this estate',
+      );
+    }
+
+    final docRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('memberRequests')
+        .withConverter(
+          fromFirestore: Member.fromFirestore,
+          toFirestore: (Member member, options) => member.toFirestore(),
+        )
+        .doc(member.email);
+
+    try {
+      await docRef.set(member);
+      _log.i('Join request submitted successfully for user: ${member.email}');
+      return Result.success(null);
+    } catch (e) {
+      _log.e('Error submitting join request: $e');
+      return Result.failure('Failed to submit join request');
+    }
+  }
+
   Future<Result<Member>> getMemberById(String estateId, String email) async {
     final docRef = _db
         .collection('estates')

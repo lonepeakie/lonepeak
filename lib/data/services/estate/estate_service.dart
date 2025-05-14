@@ -60,7 +60,7 @@ class EstateService {
     try {
       final snapshot = await docRef.get();
       if (snapshot.exists) {
-        return Result.success(snapshot.data());
+        return Result.success(snapshot.data()!);
       } else {
         _log.w('No estate found with ID: $estateId');
         return Result.failure('No estate found with ID: $estateId');
@@ -68,6 +68,28 @@ class EstateService {
     } catch (e) {
       _log.e('Error fetching estate: $e');
       return Result.failure('Failed to fetch estate');
+    }
+  }
+
+  Future<Result<List<Estate>>> getPublicEstates() async {
+    try {
+      final querySnapshot =
+          await _db
+              .collection('estates')
+              .withConverter(
+                fromFirestore: Estate.fromFirestore,
+                toFirestore: (Estate estate, options) => estate.toFirestore(),
+              )
+              // In a real application, you'd have a field to indicate if an estate is public/joinable
+              // For now, we're just getting all estates
+              .get();
+
+      final estates = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+      return Result.success(estates);
+    } catch (e) {
+      _log.e('Error fetching public estates: $e');
+      return Result.failure('Failed to fetch available estates');
     }
   }
 

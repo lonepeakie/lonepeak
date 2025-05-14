@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 
 class Estate {
+  final String? id;
   final String name;
   final String? description;
   final String? address;
@@ -11,6 +12,7 @@ class Estate {
   Metadata? metadata;
 
   Estate({
+    this.id,
     required this.name,
     this.description,
     this.address,
@@ -22,6 +24,7 @@ class Estate {
 
   factory Estate.empty() {
     return Estate(
+      id: '',
       name: 'Unknown',
       description: null,
       address: null,
@@ -38,6 +41,7 @@ class Estate {
   ) {
     final data = snapshot.data();
     return Estate(
+      id: snapshot.id,
       name: data?['name'],
       description: data?['description'],
       address: data?['address'],

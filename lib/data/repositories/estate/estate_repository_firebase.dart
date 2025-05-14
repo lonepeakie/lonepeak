@@ -38,6 +38,11 @@ class EstateRepositoryFirebase extends EstateRepository {
   }
 
   @override
+  Future<Result<List<Estate>>> getPublicEstates() {
+    return _estateService.getPublicEstates();
+  }
+
+  @override
   Future<Result<void>> updateEstate(Estate estate) {
     final estateId = _appState.getEstateId;
     if (estateId == null) {

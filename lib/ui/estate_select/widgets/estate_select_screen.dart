@@ -93,6 +93,20 @@ class EstateSelectScreen extends ConsumerWidget {
                       context.go('${Routes.estateSelect}${Routes.estateJoin}');
                     },
                   ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      context.go(Routes.estateHome);
+                    },
+                    child: const Text(
+                      'Go to Dashboard',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.blue,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -119,7 +133,7 @@ class EstateSelectScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withAlpha(25),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

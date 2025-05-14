@@ -4,7 +4,8 @@ This directory contains scripts for generating test data in Firebase for your Lo
 
 ## Main Script: `generate_data.py`
 
-This is the primary script for adding and clearing test data in your Firebase database. The script can generate three types of dummy data:
+This is the primary script for adding and clearing test data in your Firebase database. The script can generate four types of dummy data:
+- Estates (housing communities)
 - Treasury transactions (incomes and expenses)
 - Community notices
 - Estate members
@@ -61,7 +62,29 @@ Place your credentials file named `lonepeak-48a17-firebase-adminsdk-fbsvc-67ece6
 
 ## How to Run the Script
 
-The script requires at minimum an estate ID to work with. Use the following command structure:
+The script can either create new estates or work with an existing estate ID.
+
+### Creating Estates
+
+To generate new estates (no estate ID required):
+
+```bash
+python scripts/generate_data.py --type estates --estates_count 5
+```
+
+This will create 5 estates with realistic Irish names and locations. The script will output the generated estate IDs that you can use for adding more data.
+
+You can also automatically populate the first created estate with data:
+
+```bash
+python scripts/generate_data.py --type estates --estates_count 3 --count 20
+```
+
+This creates 3 estates and populates the first one with 20 members, 20 notices, and a set of transactions.
+
+### Working with Existing Estates
+
+For operations on existing estates, an estate ID is required:
 
 ```bash
 python scripts/generate_data.py --estate_id YOUR_ESTATE_ID [OPTIONS]
@@ -100,15 +123,21 @@ python scripts/generate_data.py --estate_id YOUR_ESTATE_ID [OPTIONS]
 
 The script accepts the following command-line arguments:
 
-| Argument             | Description                                                              | Required? | Default                                  |
-| -------------------- | ------------------------------------------------------------------------ | --------- | ---------------------------------------- |
-| `--estate_id`        | The ID of the estate to add data to                                      | Yes       | N/A                                      |
-| `--action`           | Action to perform: `add` or `clear`                                      | No        | `add`                                    |
-| `--type`             | Type of data to generate: `all`, `transactions`, `notices`, or `members` | No        | `all`                                    |
-| `--count`            | Number of items to generate                                              | No        | 25 for members, 10 for notices           |
-| `--credentials_path` | Path to Firebase credentials JSON file                                   | No        | Environment variable or default location |
+| Argument             | Description                                                                         | Required?            | Default                                  |
+| -------------------- | ----------------------------------------------------------------------------------- | -------------------- | ---------------------------------------- |
+| `--estate_id`        | The ID of the estate to add data to                                                 | For existing estates | N/A                                      |
+| `--action`           | Action to perform: `add` or `clear`                                                 | No                   | `add`                                    |
+| `--type`             | Type of data to generate: `all`, `estates`, `transactions`, `notices`, or `members` | No                   | `all`                                    |
+| `--count`            | Number of items to generate                                                         | No                   | 25 for members, 10 for notices           |
+| `--estates_count`    | Number of estates to generate when using `--type estates`                           | No                   | 3                                        |
+| `--credentials_path` | Path to Firebase credentials JSON file                                              | No                   | Environment variable or default location |
 
 ## Data Generated
+
+### Estates
+- Housing communities with realistic names (e.g., "Oak Gardens", "Maple Heights")
+- Irish locations with matching counties and cities
+- Complete with addresses and descriptions
 
 ### Transactions
 - Monthly HOA fees (income)
