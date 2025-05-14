@@ -1,41 +1,41 @@
 {
   "project_info": {
-    "project_number": "782190018954",
-    "project_id": "lonepeak-48a17",
-    "storage_bucket": "lonepeak-48a17.firebasestorage.app"
+    "project_number": "64064045781",
+    "project_id": "lonepeak-194b2",
+    "storage_bucket": "lonepeak-194b2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:782190018954:android:dbb9a7c969fa65cf020873",
+        "mobilesdk_app_id": "1:64064045781:android:3de7d2da2010bc64add85c",
         "android_client_info": {
           "package_name": "com.example.lonepeak"
         }
       },
       "oauth_client": [
         {
-          "client_id": "782190018954-r8hmjivg1hg4ca7ng8iv9gbbmbghdu6l.apps.googleusercontent.com",
+          "client_id": "64064045781-g49cc6730ob16uinqa00thm27j3mm2qe.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.lonepeak",
-            "certificate_hash": "35eb77a487e129ca155c562ed0b61077efad3243"
+            "certificate_hash": "28c953a88a9021217cfcb9225378d39df72b2858"
           }
         },
         {
-          "client_id": "782190018954-4m8qf1s0rtm5us92pj9i1nbholuo7loj.apps.googleusercontent.com",
+          "client_id": "64064045781-tplsfv9gcn878gd2osn8fim0gd9i6ro9.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD5kqg7vHrozzO3Kkua-44L-kTDLjD8bPQ"
+          "current_key": "AIzaSyCmE16xsdeUTL9xPi4iajAbNbS6pZ34cQc"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "782190018954-4m8qf1s0rtm5us92pj9i1nbholuo7loj.apps.googleusercontent.com",
+              "client_id": "64064045781-tplsfv9gcn878gd2osn8fim0gd9i6ro9.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

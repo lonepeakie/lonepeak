@@ -30,7 +30,7 @@ except ValueError:
     
     if not cred_path:
         # Try the default location as a fallback
-        cred_path = "lonepeak-48a17-firebase-adminsdk-fbsvc-67ece634c6.json"
+        cred_path = "lonepeak-194b2-firebase-adminsdk-fbsvc-77fe11d61f.json"
         if not os.path.exists(cred_path):
             # If trying with environment variables
             cred_json = os.environ.get('FIREBASE_CREDENTIALS_JSON')

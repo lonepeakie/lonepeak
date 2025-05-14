@@ -53,10 +53,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD5kqg7vHrozzO3Kkua-44L-kTDLjD8bPQ',
-    appId: '1:782190018954:android:dbb9a7c969fa65cf020873',
-    messagingSenderId: '782190018954',
-    projectId: 'lonepeak-48a17',
-    storageBucket: 'lonepeak-48a17.firebasestorage.app',
+    apiKey: 'AIzaSyCmE16xsdeUTL9xPi4iajAbNbS6pZ34cQc',
+    appId: '1:64064045781:android:3de7d2da2010bc64add85c',
+    messagingSenderId: '64064045781',
+    projectId: 'lonepeak-194b2',
+    storageBucket: 'lonepeak-194b2.firebasestorage.app',
   );
+
 }
