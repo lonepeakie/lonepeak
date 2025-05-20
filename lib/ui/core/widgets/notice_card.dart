@@ -66,7 +66,7 @@ class NoticeWidget extends ConsumerWidget {
           children: [
             Icon(categoryIcon, color: categoryColor, size: 22),
             const SizedBox(width: 8),
-            Text(notice.title, style: AppStyles.titleTextSmall),
+            Text(notice.title, style: AppStyles.titleTextSmall(context)),
             const Spacer(),
             AppChip(
               label:
@@ -77,7 +77,7 @@ class NoticeWidget extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text(notice.message, style: AppStyles.subtitleText),
+        Text(notice.message, style: AppStyles.subtitleText(context)),
         const SizedBox(height: 24),
         Row(
           children: [
@@ -96,7 +96,7 @@ class NoticeWidget extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: hasLiked ? AppColors.blue : Colors.grey,
+                      color: hasLiked ? AppColors.primary : Colors.grey,
                     ),
                   ),
                   IconButton(
@@ -124,7 +124,7 @@ class _LikeButton extends ConsumerWidget {
     return IconButton(
       icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
       iconSize: 20,
-      color: hasLiked ? AppColors.blue : Colors.grey,
+      color: hasLiked ? AppColors.primary : Colors.grey,
       onPressed: () {
         if (notice.id != null) {
           // Try to update using the notices screen viewmodel first

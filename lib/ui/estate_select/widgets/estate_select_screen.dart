@@ -13,12 +13,11 @@ class EstateSelectScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F8FF),
       appBar: AppBar(
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout, color: AppColors.black50),
+            icon: Icon(Icons.logout),
             onPressed: () async {
               await ref.read(estateSelectViewModelProvider).logout();
               await ref.read(authStateProvider).refreshAuthState();
@@ -49,7 +48,7 @@ class EstateSelectScreen extends ConsumerWidget {
                 } else {
                   return Text(
                     'Welcome, ${snapshot.data}!',
-                    style: AppStyles.titleTextLarge,
+                    style: AppStyles.titleTextLarge(context),
                     textAlign: TextAlign.center,
                   );
                 }
@@ -102,7 +101,7 @@ class EstateSelectScreen extends ConsumerWidget {
                       'Go to Dashboard',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.blue,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -129,15 +128,8 @@ class EstateSelectScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(25),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -145,16 +137,12 @@ class EstateSelectScreen extends ConsumerWidget {
           CircleAvatar(
             radius: 30,
             backgroundColor: Colors.blue[70],
-            child: Icon(icon, color: AppColors.blue, size: 30),
+            child: Icon(icon, color: AppColors.primary, size: 30),
           ),
           const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 5),

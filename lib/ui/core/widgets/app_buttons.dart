@@ -20,7 +20,7 @@ class AppElevatedButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: AppColors.blue,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         side: BorderSide.none,
         padding: effectivePadding,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
@@ -28,7 +28,7 @@ class AppElevatedButton extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         buttonText,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -54,11 +54,12 @@ class AppElevatedAccentButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20);
+    final theme = Theme.of(context);
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        foregroundColor: AppColors.blue,
-        backgroundColor: Colors.white,
-        side: BorderSide(color: AppColors.blue),
+        foregroundColor: theme.colorScheme.primary,
+        backgroundColor: theme.colorScheme.surface,
+        side: BorderSide(color: theme.colorScheme.primary),
         padding: effectivePadding,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       ),
@@ -68,7 +69,7 @@ class AppElevatedAccentButton extends StatelessWidget {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: AppColors.blue,
+          color: theme.colorScheme.primary,
         ),
       ),
     );
@@ -87,19 +88,20 @@ class AppTextArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextButton(
       onPressed: onPressed,
       child: Row(
         children: [
           Text(
-            'View All',
+            buttonText,
             style: TextStyle(
-              color: AppColors.black.withAlpha(170),
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.black),
+          const Icon(Icons.arrow_forward_ios, size: 14),
         ],
       ),
     );
@@ -128,7 +130,7 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20);
-    final effectiveBackgroundColor = backgroundColor ?? AppColors.blue;
+    final effectiveBackgroundColor = backgroundColor ?? AppColors.primary;
     final effectiveTextColor = textColor ?? Colors.white;
 
     return TextButton(

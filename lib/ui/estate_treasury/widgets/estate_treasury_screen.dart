@@ -81,7 +81,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Current Balance', style: AppStyles.titleTextSmall),
+              Text('Current Balance', style: AppStyles.titleTextSmall(context)),
               const SizedBox(height: 8),
               Text(
                 formatter.format(balance),
@@ -106,7 +106,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Recent Transactions', style: AppStyles.titleTextSmall),
+          Text('Recent Transactions', style: AppStyles.titleTextSmall(context)),
           const SizedBox(height: 16),
           transactions.isEmpty
               ? const Center(child: Text('No transactions found'))
@@ -198,9 +198,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const SizedBox(width: 24),
-                          const Text(
+                          Text(
                             'Add Transaction',
-                            style: AppStyles.titleTextSmall,
+                            style: AppStyles.titleTextSmall(context),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -212,7 +212,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       Center(
                         child: Text(
                           'Add a new financial transaction to the estate treasury.',
-                          style: AppStyles.subtitleText,
+                          style: AppStyles.subtitleText(context),
                           textAlign: TextAlign.center,
                         ),
                       ),

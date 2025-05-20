@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: Colors.blue[70],
                   child: Icon(
                     Icons.home_outlined,
-                    color: AppColors.blue,
+                    color: AppColors.primary,
                     size: 40,
                   ),
                 ),

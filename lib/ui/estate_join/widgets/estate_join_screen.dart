@@ -62,15 +62,15 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'Join an Estate',
-                style: AppStyles.titleTextLarge,
+                style: AppStyles.titleTextLarge(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Search and select the estate you want to join',
-                style: AppStyles.subtitleText,
+                style: AppStyles.subtitleText(context),
               ),
               const SizedBox(height: 24),
               TextField(

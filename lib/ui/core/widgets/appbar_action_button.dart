@@ -12,7 +12,7 @@ class AppbarActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton.filledTonal(
+    return IconButton(
       icon: Icon(icon),
       onPressed: onPressed,
       style: IconButton.styleFrom(

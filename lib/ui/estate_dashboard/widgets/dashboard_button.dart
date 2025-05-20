@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class DashboardButton extends StatelessWidget {
   final String title;
@@ -17,6 +16,8 @@ class DashboardButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -29,17 +30,30 @@ class DashboardButton extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.blue.withAlpha(225), size: 30),
+              Icon(
+                icon,
+                color: theme.colorScheme.primary.withValues(alpha: 0.9),
+                size: 30,
+              ),
               const SizedBox(height: 8),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.titleMedium?.color,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: AppColors.lightblack),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.7,
+                  ),
+                ),
               ),
             ],
           ),

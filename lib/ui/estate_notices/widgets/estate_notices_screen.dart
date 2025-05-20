@@ -37,7 +37,6 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
       appBar: AppBar(
         title: AppbarTitle(text: 'Notices'),
         actions: [
-          // AppbarActionButton(icon: Icons.filter_alt_outlined, onPressed: () {}),
           AppbarActionButton(
             icon: Icons.notification_add,
             onPressed: () => _showCreateNoticeBottomSheet(context),
@@ -98,9 +97,9 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                           const SizedBox(
                             width: 24,
                           ), // Placeholder for alignment
-                          const Text(
+                          Text(
                             'Create New Notice',
-                            style: AppStyles.titleTextSmall,
+                            style: AppStyles.titleTextSmall(context),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -110,9 +109,9 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                       ),
                       const SizedBox(height: 8),
                       Center(
-                        child: const Text(
+                        child: Text(
                           'Create a new notification or announcement for all estate members.',
-                          style: AppStyles.subtitleText,
+                          style: AppStyles.subtitleText(context),
                         ),
                       ),
                       const SizedBox(height: 16),

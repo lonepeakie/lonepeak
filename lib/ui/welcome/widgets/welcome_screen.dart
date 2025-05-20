@@ -19,7 +19,7 @@ class WelcomeScreen extends StatelessWidget {
               SizedBox(height: 64), // Increased padding to move content down
               Row(
                 children: [
-                  Icon(Icons.home_outlined, color: AppColors.blue, size: 32),
+                  Icon(Icons.home_outlined, color: AppColors.primary, size: 32),
                   SizedBox(width: 8),
                   Text(
                     'MyEstate',

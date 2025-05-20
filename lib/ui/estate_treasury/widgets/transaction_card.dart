@@ -20,6 +20,7 @@ class TransactionCard extends ConsumerWidget {
             ? '+${formatter.format(transaction.amount)}'
             : '-${formatter.format(transaction.amount)}';
     final categoryColor = _getCategoryColor(transaction.type);
+    final theme = Theme.of(context);
 
     return Card(
       elevation: 0,
@@ -32,7 +33,10 @@ class TransactionCard extends ConsumerWidget {
         ),
         title: Text(
           transaction.title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.titleMedium?.color,
+          ),
         ),
         subtitle: Column(
           children: [
@@ -56,7 +60,13 @@ class TransactionCard extends ConsumerWidget {
                 const SizedBox(width: 16),
                 Text(
                   dateFormatter.format(transaction.date),
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(
+                    color:
+                        theme.brightness == Brightness.dark
+                            ? Colors.grey.shade400
+                            : Colors.grey,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),

@@ -18,12 +18,36 @@ class MemberTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color roleColor = _getRoleColor(role);
+    final theme = Theme.of(context);
 
     return ListTile(
       contentPadding: padding,
-      leading: CircleAvatar(child: Text(name[0])),
-      title: Text(name),
-      subtitle: Text(email),
+      leading: CircleAvatar(
+        backgroundColor:
+            theme.brightness == Brightness.dark
+                ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                : theme.colorScheme.primary.withValues(alpha: 0.1),
+        child: Text(
+          name[0],
+          style: TextStyle(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      title: Text(
+        name,
+        style: TextStyle(
+          color: theme.textTheme.titleMedium?.color,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(
+        email,
+        style: TextStyle(
+          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+        ),
+      ),
       trailing: AppChip(label: role, color: roleColor),
     );
   }

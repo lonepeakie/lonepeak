@@ -11,7 +11,7 @@ class EstateTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(estate.name, style: AppStyles.titleTextSmall),
+      title: Text(estate.name, style: AppStyles.titleTextSmall(context)),
       subtitle: Text(
         '${estate.address!.isEmpty ? "" : "${estate.address}, "}${estate.city}, ${estate.county}',
       ),

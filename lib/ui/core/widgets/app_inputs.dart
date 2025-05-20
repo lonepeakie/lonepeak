@@ -31,6 +31,7 @@ class AppTextInput extends StatefulWidget {
 class _AppTextInputState extends State<AppTextInput> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final validator =
         widget.validator ??
         (value) {
@@ -45,7 +46,11 @@ class _AppTextInputState extends State<AppTextInput> {
       children: [
         Text(
           widget.labelText,
-          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
         const SizedBox(height: 4),
         TextFormField(
@@ -53,23 +58,46 @@ class _AppTextInputState extends State<AppTextInput> {
           maxLines: widget.maxLines,
           validator: validator,
           keyboardType: widget.keyboardType,
+          style: TextStyle(color: theme.textTheme.bodyLarge?.color),
           decoration: InputDecoration(
             hintText: widget.hintText,
+            hintStyle: TextStyle(color: theme.hintColor),
+            filled: theme.brightness == Brightness.dark,
+            fillColor:
+                theme.brightness == Brightness.dark
+                    ? theme.inputDecorationTheme.fillColor ??
+                        theme.colorScheme.surface.withValues(alpha: 0.8)
+                    : null,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+              borderSide: BorderSide(
+                color:
+                    theme.brightness == Brightness.dark
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
+                        : Colors.grey,
+                width: 1.2,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: AppColors.blue, width: 2.0),
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2.0,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.red, width: 1.2),
+              borderSide: BorderSide(
+                color: theme.colorScheme.error,
+                width: 1.2,
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              borderSide: BorderSide(
+                color: theme.colorScheme.error,
+                width: 2.0,
+              ),
             ),
           ),
         ),
@@ -101,78 +129,97 @@ class AppDatePicker extends StatefulWidget {
 }
 
 class _AppDatePickerState extends State<AppDatePicker> {
-  late DateTime selectedDate;
+  DateTime? selectedDate;
 
   @override
   void initState() {
     super.initState();
     if (widget.controller.text.isNotEmpty) {
       try {
-        selectedDate = DateFormat('yyyy-MM-dd').parse(widget.controller.text);
+        selectedDate = DateFormat('MMM d, yyyy').parse(widget.controller.text);
       } catch (e) {
-        selectedDate = DateTime.now();
+        selectedDate = null;
       }
-    } else {
-      selectedDate = DateTime.now();
-      widget.controller.text = DateFormat('yyyy-MM-dd').format(selectedDate);
-    }
-  }
-
-  Future<void> selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-        widget.controller.text = DateFormat('yyyy-MM-dd').format(selectedDate);
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           widget.labelText,
-          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
         const SizedBox(height: 4),
         InkWell(
-          onTap: () => selectDate(context),
-          child: InputDecorator(
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: selectedDate ?? DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime(2100),
+              builder: (context, child) {
+                return Theme(
+                  data: theme.copyWith(
+                    colorScheme: theme.colorScheme.copyWith(
+                      primary: AppColors.primary,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null && picked != selectedDate) {
+              setState(() {
+                selectedDate = picked;
+                widget.controller.text = DateFormat(
+                  'MMM d, yyyy',
+                ).format(picked);
+              });
+            }
+          },
+          child: TextFormField(
+            controller: widget.controller,
+            style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+            enabled: false,
             decoration: InputDecoration(
-              hintText: 'Date',
-              enabledBorder: OutlineInputBorder(
+              hintText: widget.hintText,
+              hintStyle: TextStyle(color: theme.hintColor),
+              filled: theme.brightness == Brightness.dark,
+              fillColor:
+                  theme.brightness == Brightness.dark
+                      ? theme.inputDecorationTheme.fillColor ??
+                          theme.colorScheme.surface.withOpacity(0.8)
+                      : null,
+              disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
-                borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+                borderSide: BorderSide(
+                  color:
+                      theme.brightness == Brightness.dark
+                          ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
+                          : Colors.grey,
+                  width: 1.2,
+                ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: const BorderSide(color: AppColors.blue, width: 2.0),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: const BorderSide(color: Colors.red, width: 1.2),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              suffixIcon: Icon(
+                Icons.calendar_today,
+                color: theme.iconTheme.color?.withValues(alpha: 0.7),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(DateFormat('yyyy-MM-dd').format(selectedDate)),
-                const Icon(Icons.calendar_today),
-              ],
-            ),
+            validator: (value) {
+              if (widget.required && (value == null || value.isEmpty)) {
+                return widget.errorText ?? 'This field is required';
+              }
+              return null;
+            },
           ),
         ),
       ],

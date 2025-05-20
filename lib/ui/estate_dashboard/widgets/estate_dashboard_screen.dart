@@ -67,7 +67,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.blue[70],
-                      child: Icon(Icons.home, color: AppColors.blue, size: 30),
+                      child: Icon(
+                        Icons.home,
+                        color: AppColors.primary,
+                        size: 30,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Column(
@@ -76,7 +80,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                         Text(
                           estate.name,
                           style: TextStyle(
-                            color: AppColors.black,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -179,11 +182,17 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.notifications_outlined, color: AppColors.blue),
+                    Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 8),
-                    Text('Latest Notices', style: AppStyles.titleTextMedium),
+                    Text(
+                      'Latest Notices',
+                      style: AppStyles.titleTextMedium(context),
+                    ),
                   ],
                 ),
                 AppTextArrowButton(
@@ -196,9 +205,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
               ],
             ),
-            const Text(
+            Text(
               'Recent announcements from your estate',
-              style: AppStyles.subtitleText,
+              style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 32),
             Column(
@@ -237,11 +246,14 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.groups_outlined, color: AppColors.blue),
+                    Icon(Icons.groups_outlined, color: AppColors.primary),
                     SizedBox(width: 8),
-                    Text('Committee', style: AppStyles.titleTextMedium),
+                    Text(
+                      'Committee',
+                      style: AppStyles.titleTextMedium(context),
+                    ),
                   ],
                 ),
                 AppTextArrowButton(
@@ -254,9 +266,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
               ],
             ),
-            const Text(
+            Text(
               'Quickly reachout to your commitee',
-              style: AppStyles.subtitleText,
+              style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 32),
             if (committeeMembers.isEmpty)
@@ -302,17 +314,17 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.blue),
+                Icon(Icons.info_outline, color: AppColors.primary),
                 SizedBox(width: 8),
-                Text('Overview', style: AppStyles.titleTextMedium),
+                Text('Overview', style: AppStyles.titleTextMedium(context)),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'General information about your estate',
-              style: AppStyles.subtitleText,
+              style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 40),
             Row(
@@ -327,7 +339,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       'TKPARK',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black54,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -342,7 +353,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       membersCount.toString(),
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black54,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

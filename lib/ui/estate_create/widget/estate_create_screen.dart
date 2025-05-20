@@ -41,15 +41,15 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Create a New Estate',
-                  style: AppStyles.titleTextLarge,
+                  style: AppStyles.titleTextLarge(context),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'Set up your estate community with basic information',
-                  style: AppStyles.subtitleText,
+                  style: AppStyles.subtitleText(context),
                 ),
                 const SizedBox(height: 24),
                 AppTextInput(

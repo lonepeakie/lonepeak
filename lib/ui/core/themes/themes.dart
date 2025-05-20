@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const Color blue = Color(0xFF0B73DC);
+  static const Color primary = Color(0xFF0B73DC);
   static const Color black = Color.fromARGB(196, 0, 0, 0);
   static const Color white = Color.fromARGB(255, 249, 252, 254);
   static const Color lightblack = Color.fromARGB(156, 0, 0, 0);
@@ -17,42 +17,100 @@ abstract final class AppThemes {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.blue,
-      primary: AppColors.blue,
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
       secondary: Colors.grey,
       brightness: Brightness.light,
+    ),
+    cardTheme: CardTheme(
+      color: Colors.white,
+      elevation: 0.3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      iconTheme: IconThemeData(color: AppColors.black),
+      titleTextStyle: TextStyle(
+        color: AppColors.black,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+      ),
     ),
   );
 
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
+    scaffoldBackgroundColor: const Color(0xFF121212),
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.blue,
-      primary: AppColors.blue,
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
       secondary: Colors.grey,
       brightness: Brightness.dark,
+      surface: const Color(0xFF121212),
+      onSurface: Colors.white,
+    ),
+    cardTheme: CardTheme(
+      color: const Color(0xFF1E1E1E),
+      elevation: 0.3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: const Color(0xFF1E1E1E),
+      elevation: 0,
+      iconTheme: const IconThemeData(color: Colors.white),
+      titleTextStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+      ),
     ),
   );
 }
 
 abstract final class AppStyles {
-  static const TextStyle titleTextSmall = TextStyle(
+  static TextStyle titleTextSmall(BuildContext context) => TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.bold,
-    color: AppColors.black,
+    color: Theme.of(context).textTheme.titleMedium?.color,
   );
-  static const TextStyle titleTextMedium = TextStyle(
+
+  static TextStyle titleTextMedium(BuildContext context) => TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: AppColors.black,
+    color: Theme.of(context).textTheme.titleLarge?.color,
   );
-  static const TextStyle titleTextLarge = TextStyle(
+
+  static TextStyle titleTextLarge(BuildContext context) => TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
-    color: AppColors.black,
+    color: Theme.of(context).textTheme.titleLarge?.color,
   );
-  static const TextStyle subtitleText = TextStyle(
+
+  static TextStyle subtitleText(BuildContext context) => TextStyle(
     fontSize: 14,
-    color: AppColors.lightblack,
+    color: Theme.of(
+      context,
+    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
   );
 }
