@@ -131,4 +131,34 @@ class EstateFeatures {
 
     return Result.success(null);
   }
+
+  Future<Result<void>> requestToJoinEstate(String estateId) async {
+    final userEmail = _appState.getUserEmail;
+    if (userEmail == null) {
+      return Result.failure('User email is null');
+    }
+
+    final currentUserResult = await _usersRepository.getUser(userEmail);
+    if (currentUserResult.isFailure) {
+      return Result.failure('Failed to get user');
+    }
+    final currentUser = currentUserResult.data;
+
+    final member = Member(
+      email: currentUser?.email ?? '',
+      displayName: currentUser?.displayName ?? '',
+      role: RoleType.resident.name,
+      status: MemberStatus.pending,
+    );
+
+    _appState.setEstateId(estateId);
+    _appState.setUserEmail(currentUser?.email ?? '');
+
+    final result = await _membersRepository.addMember(member);
+    if (result.isFailure) {
+      return Result.failure('Failed to add member');
+    }
+
+    return Result.success(null);
+  }
 }

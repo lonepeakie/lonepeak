@@ -66,4 +66,46 @@ enum RoleType {
   resident,
 }
 
+extension RoleTypeExtension on RoleType {
+  String get name {
+    switch (this) {
+      case RoleType.admin:
+        return 'Admin';
+      case RoleType.president:
+        return 'President';
+      case RoleType.vicepresident:
+        return 'Vice President';
+      case RoleType.secretary:
+        return 'Secretary';
+      case RoleType.treasurer:
+        return 'Treasurer';
+      case RoleType.member:
+        return 'Member';
+      case RoleType.resident:
+        return 'Resident';
+    }
+  }
+
+  static RoleType fromString(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return RoleType.admin;
+      case 'president':
+        return RoleType.president;
+      case 'vice president':
+        return RoleType.vicepresident;
+      case 'secretary':
+        return RoleType.secretary;
+      case 'treasurer':
+        return RoleType.treasurer;
+      case 'member':
+        return RoleType.member;
+      case 'resident':
+        return RoleType.resident;
+      default:
+        throw Exception('Unknown role: $role');
+    }
+  }
+}
+
 enum PermissionName { estate, member }

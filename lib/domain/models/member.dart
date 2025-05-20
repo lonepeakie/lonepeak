@@ -1,24 +1,46 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 
+enum MemberStatus { active, inactive, pending }
+
+extension MemberStatusExtension on MemberStatus {
+  String get name {
+    switch (this) {
+      case MemberStatus.active:
+        return 'Active';
+      case MemberStatus.inactive:
+        return 'Inactive';
+      case MemberStatus.pending:
+        return 'Pending';
+    }
+  }
+
+  static MemberStatus fromName(String name) {
+    switch (name.toLowerCase()) {
+      case 'active':
+        return MemberStatus.active;
+      case 'inactive':
+        return MemberStatus.inactive;
+      case 'pending':
+        return MemberStatus.pending;
+      default:
+        throw ArgumentError('Invalid member status: $name');
+    }
+  }
+}
+
 class Member {
   final String email;
   final String? displayName;
-  final String? mobile;
-  final String? photoUrl;
-  final String? address;
-  final String? eircode;
   final String? role;
+  final MemberStatus status;
   Metadata? metadata;
 
   Member({
     required this.email,
     this.displayName,
-    this.mobile,
-    this.photoUrl,
-    this.address,
-    this.eircode,
     this.role,
+    this.status = MemberStatus.pending,
     this.metadata,
   });
 
@@ -30,11 +52,11 @@ class Member {
     return Member(
       email: snapshot.id,
       displayName: data?['displayName'],
-      mobile: data?['mobile'],
-      photoUrl: data?['photoUrl'],
-      address: data?['address'],
-      eircode: data?['eircode'],
       role: data?['role'],
+      status:
+          data?['status'] != null
+              ? MemberStatusExtension.fromName(data!['status'])
+              : MemberStatus.pending,
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }
@@ -43,11 +65,9 @@ class Member {
     return {
       "email": email,
       if (displayName != null) "displayName": displayName,
-      if (mobile != null) "mobile": mobile,
-      if (photoUrl != null) "photoUrl": photoUrl,
-      if (address != null) "address": address,
-      if (eircode != null) "eircode": eircode,
+
       if (role != null) "role": role,
+      "status": status.name,
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
