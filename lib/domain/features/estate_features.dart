@@ -139,7 +139,7 @@ class EstateFeatures {
     }
 
     final currentUserResult = await _usersRepository.getUser(userEmail);
-    if (currentUserResult.isFailure) {
+    if (currentUserResult.isFailure || currentUserResult.data == null) {
       return Result.failure('Failed to get user');
     }
     final currentUser = currentUserResult.data;
