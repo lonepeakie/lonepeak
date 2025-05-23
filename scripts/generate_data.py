@@ -140,6 +140,7 @@ def generate_dummy_members(count=25):
             "email": email,
             "displayName": display_name,
             "role": role,
+            "status": "active",
             "metadata": {
                 "createdAt": datetime.now(),
                 "updatedAt": datetime.now()

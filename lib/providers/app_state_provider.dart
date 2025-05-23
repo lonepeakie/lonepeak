@@ -32,6 +32,7 @@ class AppState {
        _usersRepository = usersRepository,
        _secureStorage = secureStorage {
     _loadEstateId();
+    loadUserRole();
   }
 
   final AuthRepository _authRepository;
@@ -39,8 +40,10 @@ class AppState {
   final FlutterSecureStorage _secureStorage;
 
   static const String _estateIdKey = 'estate_id';
+  static const String _userRoleKey = 'user_role';
 
   String? _estateId;
+  String? _userRole;
 
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
@@ -99,7 +102,12 @@ class AppState {
   }
 
   Future<Result<void>> setAppData() async {
-    return await setEstateId(null);
+    final estateIdResult = await setEstateId(null);
+    if (estateIdResult.isFailure) {
+      return estateIdResult;
+    }
+
+    return await clearUserRole();
   }
 
   String? getUserId() {
@@ -107,6 +115,43 @@ class AppState {
       return _authRepository.getCurrentUser().data?.email;
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<String?> getUserRole() async {
+    if (_userRole != null) return _userRole;
+
+    return loadUserRole();
+  }
+
+  Future<Result<void>> setUserRole(String role) async {
+    _userRole = role;
+
+    try {
+      await _secureStorage.write(key: _userRoleKey, value: role);
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure('Failed to save user role: $e');
+    }
+  }
+
+  Future<String?> loadUserRole() async {
+    try {
+      _userRole = await _secureStorage.read(key: _userRoleKey);
+      return _userRole;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Result<void>> clearUserRole() async {
+    _userRole = null;
+
+    try {
+      await _secureStorage.delete(key: _userRoleKey);
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure('Failed to clear user role: $e');
     }
   }
 }

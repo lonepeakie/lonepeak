@@ -30,29 +30,19 @@ class Role {
 
 class Permission {
   final String name;
-  final bool hasReadAccess;
-  final bool hasWriteAccess;
+  final bool hasAccess;
 
-  Permission({
-    required this.name,
-    required this.hasReadAccess,
-    required this.hasWriteAccess,
-  });
+  Permission({required this.name, required this.hasAccess});
 
   factory Permission.fromJson(Map<String, dynamic> json) {
     return Permission(
       name: json['name'] as String,
-      hasReadAccess: json['hasReadAccess'] as bool,
-      hasWriteAccess: json['hasWriteAccess'] as bool,
+      hasAccess: json['hasAccess'] as bool,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'hasReadAccess': hasReadAccess,
-      'hasWriteAccess': hasWriteAccess,
-    };
+    return {'name': name, 'hasAccess': hasAccess};
   }
 }
 
@@ -105,6 +95,18 @@ extension RoleTypeExtension on RoleType {
       default:
         throw Exception('Unknown role: $role');
     }
+  }
+
+  static bool hasAdminPrivileges(RoleType? role) {
+    if (role == null) return false;
+
+    final adminRoles = [
+      RoleType.admin,
+      RoleType.president,
+      RoleType.vicepresident,
+    ];
+
+    return adminRoles.contains(role);
   }
 }
 

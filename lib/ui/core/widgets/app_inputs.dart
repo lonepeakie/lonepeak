@@ -197,7 +197,7 @@ class _AppDatePickerState extends State<AppDatePicker> {
               fillColor:
                   theme.brightness == Brightness.dark
                       ? theme.inputDecorationTheme.fillColor ??
-                          theme.colorScheme.surface.withOpacity(0.8)
+                          theme.colorScheme.surface.withValues(alpha: 0.8)
                       : null,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),

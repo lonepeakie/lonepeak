@@ -19,7 +19,7 @@ class EstateSelectViewmodel {
   }
 
   Future<String> getDisplayName() async {
-    final result = await _authRepository.getCurrentUser();
+    final result = _authRepository.getCurrentUser();
     if (result.isFailure) {
       return '';
     }

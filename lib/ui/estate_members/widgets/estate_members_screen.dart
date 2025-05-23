@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/member_tile.dart';
@@ -34,17 +36,16 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModelState = ref.watch(estateMembersViewModelProvider);
-    final allMembers =
-        ref.watch(estateMembersViewModelProvider.notifier).members;
+    final activeMembers =
+        ref.watch(estateMembersViewModelProvider.notifier).activeMembers;
 
-    // Filter members based on search query
     final filteredMembers =
         _searchQuery.isEmpty
-            ? allMembers
-            : allMembers.where((member) {
-              final name = member.displayName?.toLowerCase() ?? '';
+            ? activeMembers
+            : activeMembers.where((member) {
+              final name = member.displayName.toLowerCase();
               final email = member.email.toLowerCase();
-              final role = member.role?.toLowerCase() ?? '';
+              final role = member.role.name.toLowerCase();
               return name.contains(_searchQuery.toLowerCase()) ||
                   email.contains(_searchQuery.toLowerCase()) ||
                   role.contains(_searchQuery.toLowerCase());
@@ -54,33 +55,50 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
       appBar: AppBar(
         title: const AppbarTitle(text: 'Members'),
         actions: [
-          IconButton(icon: const Icon(Icons.person_add), onPressed: () {}),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.admin_panel_settings),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 4,
-                top: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(4.0),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade300,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+          FutureBuilder<bool>(
+            future:
+                ref
+                    .watch(estateMembersViewModelProvider.notifier)
+                    .hasAdminPrivileges(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data == true) {
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.admin_panel_settings),
+                      onPressed: () {
+                        context.go(
+                          '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
+                        );
+                      },
                     ),
-                  ),
-                ),
-              ),
-            ],
+                    Positioned(
+                      right: 4,
+                      top: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade300,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          ref
+                              .watch(estateMembersViewModelProvider.notifier)
+                              .pendingMembersCount
+                              .toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ],
       ),
@@ -153,11 +171,11 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                           itemCount: filteredMembers.length,
                           itemBuilder: (context, index) {
                             final member = filteredMembers[index];
-                            final role = member.role ?? "resident";
+                            final roleName = member.role.name;
                             return MemberTile(
-                              name: member.displayName ?? "Unknown",
+                              name: member.displayName,
                               email: member.email,
-                              role: role,
+                              role: roleName,
                             );
                           },
                         );

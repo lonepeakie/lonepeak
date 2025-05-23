@@ -98,11 +98,11 @@ class NoticeWidget extends ConsumerWidget {
                       color: hasLiked ? AppColors.primary : Colors.grey,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.comment_outlined),
-                    iconSize: 20,
-                    onPressed: () {},
-                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.comment_outlined),
+                  //   iconSize: 20,
+                  //   onPressed: () {},
+                  // ),
                 ],
               ),
           ],

@@ -290,9 +290,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   child: Column(
                     children: [
                       MemberTile(
-                        name: member.displayName ?? "Unknown",
+                        name: member.displayName,
                         email: member.email,
-                        role: member.role ?? "resident",
+                        role: member.role.name,
                         padding: EdgeInsets.zero,
                       ),
                       if (!isLast) const Divider(),

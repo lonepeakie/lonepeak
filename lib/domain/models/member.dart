@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
+import 'package:lonepeak/domain/models/role.dart';
 
 enum MemberStatus { active, inactive, pending }
 
@@ -7,11 +8,11 @@ extension MemberStatusExtension on MemberStatus {
   String get name {
     switch (this) {
       case MemberStatus.active:
-        return 'Active';
+        return 'active';
       case MemberStatus.inactive:
-        return 'Inactive';
+        return 'inactive';
       case MemberStatus.pending:
-        return 'Pending';
+        return 'pending';
     }
   }
 
@@ -31,15 +32,15 @@ extension MemberStatusExtension on MemberStatus {
 
 class Member {
   final String email;
-  final String? displayName;
-  final String? role;
+  final String displayName;
+  final RoleType role;
   final MemberStatus status;
   Metadata? metadata;
 
   Member({
     required this.email,
-    this.displayName,
-    this.role,
+    required this.displayName,
+    required this.role,
     this.status = MemberStatus.pending,
     this.metadata,
   });
@@ -52,7 +53,7 @@ class Member {
     return Member(
       email: snapshot.id,
       displayName: data?['displayName'],
-      role: data?['role'],
+      role: RoleTypeExtension.fromString(data?['role']),
       status:
           data?['status'] != null
               ? MemberStatusExtension.fromName(data!['status'])
@@ -64,9 +65,8 @@ class Member {
   Map<String, dynamic> toFirestore() {
     return {
       "email": email,
-      if (displayName != null) "displayName": displayName,
-
-      if (role != null) "role": role,
+      "displayName": displayName,
+      "role": role.name,
       "status": status.name,
       if (metadata != null) "metadata": metadata!.toJson(),
     };

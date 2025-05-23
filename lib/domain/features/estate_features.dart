@@ -52,7 +52,7 @@ class EstateFeatures {
 
   Future<Result<void>> createEstateAndAddMember(Estate estateData) async {
     // Get the current user
-    final authResult = await _authRepository.getCurrentUser();
+    final authResult = _authRepository.getCurrentUser();
     if (authResult.isFailure) {
       return Result.failure('Failed to get current user');
     }
@@ -78,7 +78,7 @@ class EstateFeatures {
     final member = Member(
       email: currentUser.email,
       displayName: currentUser.displayName,
-      role: RoleType.admin.name,
+      role: RoleType.admin,
       metadata: Metadata(
         createdAt: Timestamp.now(),
         createdBy: currentUser.email,
@@ -104,7 +104,7 @@ class EstateFeatures {
   }
 
   Future<Result<void>> setUserAndEstateId() async {
-    final authResult = await _authRepository.getCurrentUser();
+    final authResult = _authRepository.getCurrentUser();
     if (authResult.isFailure) {
       return Result.failure('Failed to get current user');
     }
@@ -144,7 +144,7 @@ class EstateFeatures {
     final member = Member(
       email: currentUser?.email ?? '',
       displayName: currentUser?.displayName ?? '',
-      role: RoleType.resident.name,
+      role: RoleType.resident,
       status: MemberStatus.pending,
     );
 

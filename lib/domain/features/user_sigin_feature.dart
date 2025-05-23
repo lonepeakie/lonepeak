@@ -42,7 +42,7 @@ class UserSiginFeature {
       return Result.failure(result.error ?? 'Log-in failed');
     }
 
-    result = await _authRepository.getCurrentUser();
+    result = _authRepository.getCurrentUser();
     if (result.isFailure) {
       _log.e('Failed to get current user: ${result.error}');
       await _authRepository.signOut(AuthType.google);
