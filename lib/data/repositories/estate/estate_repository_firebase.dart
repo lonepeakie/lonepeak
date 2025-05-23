@@ -29,10 +29,10 @@ class EstateRepositoryFirebase extends EstateRepository {
   }
 
   @override
-  Future<Result<Estate>> getEstate() {
-    final estateId = _appState.getEstateId;
+  Future<Result<Estate>> getEstate() async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _estateService.getEstate(estateId);
   }
@@ -43,10 +43,10 @@ class EstateRepositoryFirebase extends EstateRepository {
   }
 
   @override
-  Future<Result<void>> updateEstate(Estate estate) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> updateEstate(Estate estate) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     estate.metadata?.updatedAt = Timestamp.now();
 
@@ -54,10 +54,10 @@ class EstateRepositoryFirebase extends EstateRepository {
   }
 
   @override
-  Future<Result<void>> deleteEstate() {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> deleteEstate() async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _estateService.deleteEstate(estateId);
   }

@@ -1,54 +1,112 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_provider.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
+import 'package:lonepeak/utils/result.dart';
 
-final appStateProvider = Provider<AppState>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final usersRepository = ref.watch(usersRepositoryProvider);
-  return AppState(
-    authRepository: authRepository,
-    usersRepository: usersRepository,
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  return const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 });
 
-//TODO: Persist app state
+final appStateProvider = Provider<AppState>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  final usersRepository = ref.read(usersRepositoryProvider);
+  final secureStorage = ref.read(secureStorageProvider);
+  return AppState(
+    authRepository: authRepository,
+    usersRepository: usersRepository,
+    secureStorage: secureStorage,
+  );
+});
+
 class AppState {
   AppState({
     required AuthRepository authRepository,
     required UsersRepository usersRepository,
+    required FlutterSecureStorage secureStorage,
   }) : _authRepository = authRepository,
-       _usersRepository = usersRepository;
+       _usersRepository = usersRepository,
+       _secureStorage = secureStorage {
+    _loadEstateId();
+  }
 
   final AuthRepository _authRepository;
   final UsersRepository _usersRepository;
+  final FlutterSecureStorage _secureStorage;
+
+  static const String _estateIdKey = 'estate_id';
 
   String? _estateId;
-  String? _userEmail;
 
-  Future<void> setEstateId(String estateId) async => _estateId = estateId;
-  Future<void> setUserEmail(String userEmail) async => _userEmail = userEmail;
+  Future<String?> getEstateId() async {
+    if (_estateId != null) return _estateId;
 
-  String? get getEstateId => _estateId;
-  String? get getUserEmail => _userEmail;
+    return _loadEstateId();
+  }
 
-  Future<void> setUserAndEstateId() async {
-    final authResult = await _authRepository.getCurrentUser();
-    final currentUser = authResult.data;
-    _userEmail = currentUser?.email;
+  Future<String?> _loadEstateId() async {
+    try {
+      _estateId = await _secureStorage.read(key: _estateIdKey);
+      return _estateId;
+    } catch (e) {
+      return null;
+    }
+  }
 
-    if (_userEmail == null) {
-      return;
+  Future<Result<void>> setEstateId(String? estateId) async {
+    if (estateId == null) {
+      final authResult = _authRepository.getCurrentUser();
+      if (authResult.isFailure) {
+        return Result.failure('Failed to get current user');
+      }
+      final currentUser = authResult.data;
+
+      final storedUser = await _usersRepository.getUser(currentUser!.email);
+      if (storedUser.isFailure) {
+        return Result.failure('Failed to get user');
+      }
+
+      _estateId = storedUser.data?.estateId;
+    } else {
+      _estateId = estateId;
     }
 
-    final storedUser = await _usersRepository.getUser(_userEmail!);
-    if (storedUser.isFailure) {
-      return;
+    if (_estateId == null) {
+      return Result.failure('Estate ID is null');
     }
 
-    _estateId = storedUser.data?.estateId;
+    try {
+      await _secureStorage.write(key: _estateIdKey, value: _estateId);
+    } catch (e) {
+      return Result.failure('Failed to save estate ID: $e');
+    }
 
-    return;
+    return Result.success(null);
+  }
+
+  Future<Result<void>> clearEstateId() async {
+    _estateId = null;
+    try {
+      await _secureStorage.delete(key: _estateIdKey);
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure('Failed to clear estate ID: $e');
+    }
+  }
+
+  Future<Result<void>> setAppData() async {
+    return await setEstateId(null);
+  }
+
+  String? getUserId() {
+    try {
+      return _authRepository.getCurrentUser().data?.email;
+    } catch (e) {
+      return null;
+    }
   }
 }

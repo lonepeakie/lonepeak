@@ -79,7 +79,6 @@ class UserSiginFeature {
       }
     }
 
-    _appState.setUserEmail(currentUser.email);
     return Result.success(false);
   }
 }

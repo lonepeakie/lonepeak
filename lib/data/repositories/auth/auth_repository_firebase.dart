@@ -54,8 +54,8 @@ class AuthRepositoryFirebase extends AuthRepository {
   }
 
   @override
-  Future<Result<app_user.User>> getCurrentUser() async {
-    final user = await _authService.getCurrentUser();
+  Result<app_user.User> getCurrentUser() {
+    final user = _authService.getCurrentUser();
     if (user == null) {
       _log.w('No user is currently signed in.');
       return Result.failure('No user is currently signed in.');

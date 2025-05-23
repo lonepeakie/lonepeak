@@ -17,76 +17,79 @@ class NoticesRepositoryFirestore extends NoticesRepository {
   final AppState _appState;
 
   @override
-  Future<Result<void>> addNotice(Notice notice) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> addNotice(Notice notice) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
 
+    // Set metadata for new notice
     notice.metadata = Metadata(
-      createdAt: Timestamp.fromDate(DateTime.now()),
-      createdBy: _appState.getUserEmail,
+      createdAt: Timestamp.now(),
+      createdBy: _appState.getUserId() ?? 'Unknown',
+      updatedAt: Timestamp.now(),
     );
+
     return _noticesService.createNotice(estateId, notice);
   }
 
   @override
-  Future<Result<void>> deleteNotice(String id) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> deleteNotice(String id) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _noticesService.deleteNotice(estateId, id);
   }
 
   @override
-  Future<Result<Notice>> getNoticeById(String id) {
-    final estateId = _appState.getEstateId;
+  Future<Result<Notice>> getNoticeById(String id) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _noticesService.getNotice(estateId, id);
   }
 
   @override
-  Future<Result<List<Notice>>> getNotices() {
-    final estateId = _appState.getEstateId;
+  Future<Result<List<Notice>>> getNotices() async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _noticesService.getNotices(estateId);
   }
 
   @override
-  Future<Result<List<Notice>>> getLatestNotices({int limit = 2}) {
-    final estateId = _appState.getEstateId;
+  Future<Result<List<Notice>>> getLatestNotices({int limit = 2}) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
 
     return _noticesService.getLatestNotices(estateId, limit);
   }
 
   @override
-  Future<Result<void>> updateNotice(Notice notice) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> updateNotice(Notice notice) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _noticesService.updateNotice(estateId, notice);
   }
 
   @override
-  Future<Result<Notice>> toggleLike(String noticeId) {
-    final estateId = _appState.getEstateId;
-    final userEmail = _appState.getUserEmail;
+  Future<Result<Notice>> toggleLike(String noticeId) async {
+    final estateId = await _appState.getEstateId();
+    final userEmail = _appState.getUserId();
 
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
 
     if (userEmail == null) {
-      return Future.value(Result.failure('User email is null'));
+      return Result.failure('User email is null');
     }
 
     return _noticesService.likeNotice(estateId, noticeId, userEmail);

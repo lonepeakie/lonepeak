@@ -100,7 +100,6 @@ class EstateFeatures {
     }
 
     _appState.setEstateId(estateId);
-    _appState.setUserEmail(currentUser.email);
     return Result.success(null);
   }
 
@@ -113,8 +112,6 @@ class EstateFeatures {
     if (currentUser == null) {
       return Result.failure('Current user is null');
     }
-
-    _appState.setUserEmail(currentUser.email);
 
     final storedUser = await _usersRepository.getUser(currentUser.email);
     if (storedUser.isFailure) {
@@ -133,7 +130,7 @@ class EstateFeatures {
   }
 
   Future<Result<void>> requestToJoinEstate(String estateId) async {
-    final userEmail = _appState.getUserEmail;
+    final userEmail = _appState.getUserId();
     if (userEmail == null) {
       return Result.failure('User email is null');
     }
@@ -152,7 +149,6 @@ class EstateFeatures {
     );
 
     _appState.setEstateId(estateId);
-    _appState.setUserEmail(currentUser?.email ?? '');
 
     final result = await _membersRepository.addMember(member);
     if (result.isFailure) {

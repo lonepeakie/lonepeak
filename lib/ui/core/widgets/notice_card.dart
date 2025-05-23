@@ -55,9 +55,8 @@ class NoticeWidget extends ConsumerWidget {
             ).format(notice.metadata!.createdAt?.toDate() ?? DateTime.now())
             : 'Unknown date';
 
-    // Get current user email to check if the user has liked this notice
-    final userEmail = ref.read(appStateProvider).getUserEmail ?? '';
-    final hasLiked = notice.likedBy.contains(userEmail);
+    final String? userId = ref.read(appStateProvider).getUserId();
+    final hasLiked = userId != null && notice.likedBy.contains(userId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -16,5 +16,5 @@ abstract class AuthRepository {
   Future<Result<void>> signOut(AuthType authType);
 
   /// Returns the current user.
-  Future<Result<User>> getCurrentUser();
+  Result<User> getCurrentUser();
 }

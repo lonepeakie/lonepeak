@@ -27,7 +27,7 @@ class AuthState extends ChangeNotifier {
     final result = await _authRepository.isAuthenticated();
     if (result.isSuccess) {
       _isAuthenticated = result.data ?? false;
-      _appState.setUserAndEstateId();
+      _appState.setAppData();
     } else {
       _isAuthenticated = false;
     }

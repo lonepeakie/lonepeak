@@ -26,7 +26,7 @@ class AuthService {
     }
   }
 
-  Future<User?> getCurrentUser() async {
+  User? getCurrentUser() {
     try {
       final User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {

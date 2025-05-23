@@ -17,10 +17,10 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   final AppState _appState;
 
   @override
-  Future<Result<void>> addTransaction(TreasuryTransaction transaction) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> addTransaction(TreasuryTransaction transaction) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
 
     // Set metadata for new transaction
@@ -33,37 +33,41 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   }
 
   @override
-  Future<Result<void>> deleteTransaction(String transactionId) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> deleteTransaction(String transactionId) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _treasuryService.deleteTransaction(estateId, transactionId);
   }
 
   @override
-  Future<Result<TreasuryTransaction>> getTransactionById(String transactionId) {
-    final estateId = _appState.getEstateId;
+  Future<Result<TreasuryTransaction>> getTransactionById(
+    String transactionId,
+  ) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _treasuryService.getTransactionById(estateId, transactionId);
   }
 
   @override
-  Future<Result<List<TreasuryTransaction>>> getTransactions() {
-    final estateId = _appState.getEstateId;
+  Future<Result<List<TreasuryTransaction>>> getTransactions() async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
     return _treasuryService.getTransactions(estateId);
   }
 
   @override
-  Future<Result<void>> updateTransaction(TreasuryTransaction transaction) {
-    final estateId = _appState.getEstateId;
+  Future<Result<void>> updateTransaction(
+    TreasuryTransaction transaction,
+  ) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
-      return Future.value(Result.failure('Estate ID is null'));
+      return Result.failure('Estate ID is null');
     }
 
     // Update metadata for transaction
@@ -80,8 +84,8 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   }
 
   @override
-  Future<Result<double>> getCurrentBalance() {
-    final estateId = _appState.getEstateId;
+  Future<Result<double>> getCurrentBalance() async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
@@ -92,8 +96,8 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType({
     DateTime? startDate,
     DateTime? endDate,
-  }) {
-    final estateId = _appState.getEstateId;
+  }) async {
+    final estateId = await _appState.getEstateId();
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
