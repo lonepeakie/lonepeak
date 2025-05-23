@@ -113,4 +113,10 @@ abstract final class AppStyles {
       context,
     ).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
   );
+
+  static TextStyle labelText(BuildContext context) => TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Theme.of(context).colorScheme.onSurfaceVariant,
+  );
 }

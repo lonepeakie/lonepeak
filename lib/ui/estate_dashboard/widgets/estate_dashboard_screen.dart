@@ -124,7 +124,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate documents',
                     icon: Icons.description,
                     onTap: () {
-                      // GoRouter.of(context).go('/documents');
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.estateDocuments);
                     },
                   ),
                   DashboardButton(

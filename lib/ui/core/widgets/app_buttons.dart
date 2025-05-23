@@ -108,8 +108,6 @@ class AppTextArrowButton extends StatelessWidget {
   }
 }
 
-// ...existing code...
-
 class AppButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String buttonText;
@@ -152,6 +150,46 @@ class AppButton extends StatelessWidget {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
+          color: effectiveTextColor,
+        ),
+      ),
+    );
+  }
+}
+
+class AppTextButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String buttonText;
+  final Color? textColor;
+  final EdgeInsetsGeometry? padding;
+
+  const AppTextButton({
+    super.key,
+    required this.onPressed,
+    required this.buttonText,
+    this.textColor,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectivePadding =
+        padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20);
+    final effectiveTextColor =
+        textColor ?? Theme.of(context).colorScheme.primary;
+
+    return TextButton(
+      style: TextButton.styleFrom(
+        foregroundColor: effectiveTextColor,
+        padding: effectivePadding,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        buttonText,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
           color: effectiveTextColor,
         ),
       ),
