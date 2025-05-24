@@ -3,16 +3,18 @@ import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 
 class MemberTile extends StatelessWidget {
   final String name;
-  final String email;
+  final String? email;
   final String role;
   final EdgeInsetsGeometry? padding;
+  final VoidCallback? onTap;
 
   const MemberTile({
     super.key,
     required this.name,
-    required this.email,
+    this.email,
     required this.role,
     this.padding,
+    this.onTap,
   });
 
   @override
@@ -22,6 +24,7 @@ class MemberTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: padding,
+      onTap: onTap,
       leading: CircleAvatar(
         backgroundColor:
             theme.brightness == Brightness.dark
@@ -42,12 +45,17 @@ class MemberTile extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(
-        email,
-        style: TextStyle(
-          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-        ),
-      ),
+      subtitle:
+          email != null && email!.isNotEmpty
+              ? Text(
+                email!,
+                style: TextStyle(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.7,
+                  ),
+                ),
+              )
+              : null,
       trailing: AppChip(label: role, color: roleColor),
     );
   }

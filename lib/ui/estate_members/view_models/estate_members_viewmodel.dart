@@ -105,6 +105,47 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
     await updateMemberStatus(memberEmail, MemberStatus.inactive);
   }
 
+  Future<void> updateMemberRole(String memberEmail, RoleType newRole) async {
+    state = UIStateLoading();
+
+    final memberIndex = _members.indexWhere(
+      (member) => member.email == memberEmail,
+    );
+    if (memberIndex == -1) {
+      state = UIStateFailure('Member not found');
+      return;
+    }
+
+    final currentMember = _members[memberIndex];
+    final updatedMember = Member(
+      email: currentMember.email,
+      displayName: currentMember.displayName,
+      role: newRole,
+      status: currentMember.status,
+      metadata: currentMember.metadata,
+    );
+
+    final result = await _membersRepository.updateMember(updatedMember);
+    if (result.isSuccess) {
+      _members[memberIndex] = updatedMember;
+      state = UIStateSuccess();
+    } else {
+      state = UIStateFailure(result.error ?? 'Failed to update member role');
+    }
+  }
+
+  Future<void> removeMember(String memberEmail) async {
+    state = UIStateLoading();
+
+    final result = await _membersRepository.deleteMember(memberEmail);
+    if (result.isSuccess) {
+      _members.removeWhere((member) => member.email == memberEmail);
+      state = UIStateSuccess();
+    } else {
+      state = UIStateFailure(result.error ?? 'Failed to remove member');
+    }
+  }
+
   Future<bool> hasAdminPrivileges() async {
     final role = await _appState.getUserRole();
     if (role != null) {

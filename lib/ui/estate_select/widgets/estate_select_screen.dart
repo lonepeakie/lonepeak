@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -20,7 +19,6 @@ class EstateSelectScreen extends ConsumerWidget {
             icon: Icon(Icons.logout),
             onPressed: () async {
               await ref.read(estateSelectViewModelProvider).logout();
-              await ref.read(authStateProvider).refreshAuthState();
               if (context.mounted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   context.go(Routes.login);
@@ -125,36 +123,49 @@ class EstateSelectScreen extends ConsumerWidget {
     required VoidCallback onPressed,
     bool isAccent = false,
   }) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        color: theme.cardColor.withAlpha(200),
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [BoxShadow(blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow:
+            isDarkMode
+                ? [BoxShadow(color: Colors.black.withValues(alpha: 0.3))]
+                : [BoxShadow(color: Colors.black12.withValues(alpha: 0.1))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.blue[70],
-            child: Icon(icon, color: AppColors.primary, size: 30),
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 30),
           ),
           const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 5),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
           Text(
             description,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),

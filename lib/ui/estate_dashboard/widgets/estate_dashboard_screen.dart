@@ -63,45 +63,57 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 Center(child: Text('Error: ${state.error}'))
               else
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.blue[70],
-                      child: Icon(
-                        Icons.home,
-                        color: AppColors.primary,
-                        size: 30,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text(
-                          estate.name,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.blue[70],
+                          child: Icon(
+                            Icons.home,
+                            color: AppColors.primary,
+                            size: 30,
                           ),
                         ),
-                        Row(
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.grey,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 2),
                             Text(
-                              '${estate.address} ${estate.city} Co.${estate.county}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
+                              estate.name,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
+                            ),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on,
+                                  color: Colors.grey,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${estate.address} ${estate.city} Co.${estate.county}',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ],
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.person, size: 22),
+                      iconSize: 40,
+                      onPressed: () {
+                        GoRouter.of(context).go(Routes.userProfile);
+                      },
                     ),
                   ],
                 ),
@@ -203,7 +215,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       context,
                     ).go(Routes.estateHome + Routes.estateNotices);
                   },
-                  buttonText: 'View All',
+                  buttonText: '',
                 ),
               ],
             ),
@@ -264,7 +276,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       context,
                     ).go(Routes.estateHome + Routes.estateMembers);
                   },
-                  buttonText: 'View All',
+                  buttonText: '',
                 ),
               ],
             ),

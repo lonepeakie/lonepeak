@@ -4,6 +4,7 @@ abstract final class Routes {
   static const welcome = '/welcome';
   static const estateHome = '/estate-home';
   static const estateSelect = '/estate-select';
+  static const userProfile = '/user-profile';
   static const estateCreate = '/$estateCreateRelative';
   static const estateCreateRelative = 'estate-create';
   static const estateJoin = '/$estateJoinRelative';
@@ -12,8 +13,6 @@ abstract final class Routes {
   static const estateMembersRelative = 'estate-members';
   static const estateMembersPending = '/$estateMembersPendingRelative';
   static const estateMembersPendingRelative = 'pending-members';
-  // static const estateDashboard = '/$estateDashboardRelative';
-  // static const estateDashboardRelative = 'estate-dashboard';
   static const estateNotices = '/$estateNoticesRelative';
   static const estateNoticesRelative = 'estate-notices';
   static const estateTreasury = '/$estateTreasuryRelative';

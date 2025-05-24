@@ -61,13 +61,24 @@ class User {
     );
   }
 
+  User copyWithEmptyEstateId({Metadata? metadata}) {
+    return User(
+      displayName: displayName,
+      email: email,
+      mobile: mobile,
+      photoUrl: photoUrl,
+      estateId: null,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
       "displayName": displayName,
       "email": email,
       if (mobile != null) "mobile": mobile,
       if (photoUrl != null) "photoUrl": photoUrl,
-      if (estateId != null) "estateId": estateId,
+      "estateId": estateId,
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }

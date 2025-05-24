@@ -6,6 +6,7 @@ import 'package:lonepeak/data/repositories/auth/auth_type.dart';
 import 'package:lonepeak/data/repositories/users/users_provider.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/utils/result.dart';
 
@@ -13,11 +14,13 @@ final userSiginFeatureProvider = Provider<UserSiginFeature>((ref) {
   final authRepository = ref.read(authRepositoryProvider);
   final usersRepository = ref.read(usersRepositoryProvider);
   final appState = ref.read(appStateProvider);
+  final authState = ref.read(authStateProvider);
 
   return UserSiginFeature(
     authRepository: authRepository,
     usersRepository: usersRepository,
     appState: appState,
+    authState: authState,
   );
 });
 
@@ -26,13 +29,17 @@ class UserSiginFeature {
     required AuthRepository authRepository,
     required UsersRepository usersRepository,
     required AppState appState,
+    required AuthState authState,
   }) : _authRepository = authRepository,
        _usersRepository = usersRepository,
+       _authState = authState,
        _appState = appState;
 
   final AuthRepository _authRepository;
   final UsersRepository _usersRepository;
   final AppState _appState;
+  final AuthState _authState;
+
   final _log = Logger(printer: PrefixedLogPrinter('UserSiginFeature'));
 
   Future<Result<bool>> logInAndAddUserIfNotExists() async {
@@ -79,6 +86,36 @@ class UserSiginFeature {
       }
     }
 
+    _authState.refreshAuthState();
+
     return Result.success(false);
+  }
+
+  Future<Result<bool>> logOut() async {
+    final result = await _authRepository.signOut(AuthType.google);
+    if (result.isFailure) {
+      _log.e('Log-out failed: ${result.error}');
+      return Result.failure(result.error ?? 'Log-out failed');
+    }
+
+    final clearEstateResult = await _appState.clearEstateId();
+    if (clearEstateResult.isFailure) {
+      _log.e('Failed to clear estate ID: ${clearEstateResult.error}');
+      return Result.failure(
+        clearEstateResult.error ?? 'Failed to clear estate ID',
+      );
+    }
+
+    final clearRoleResult = await _appState.clearUserRole();
+    if (clearRoleResult.isFailure) {
+      _log.e('Failed to clear user role: ${clearRoleResult.error}');
+      return Result.failure(
+        clearRoleResult.error ?? 'Failed to clear user role',
+      );
+    }
+
+    _authState.refreshAuthState();
+
+    return Result.success(true);
   }
 }

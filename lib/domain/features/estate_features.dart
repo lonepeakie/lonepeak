@@ -157,4 +157,52 @@ class EstateFeatures {
 
     return Result.success(null);
   }
+
+  Future<Result<void>> exitEstate() async {
+    final userEmail = _appState.getUserId();
+    if (userEmail == null) {
+      return Result.failure('User email is null');
+    }
+
+    final memberResult = await _membersRepository.getMemberById(userEmail);
+    if (memberResult.isFailure) {
+      return Result.failure('Failed to remove member');
+    }
+
+    final member = memberResult.data;
+    if (member == null) {
+      return Result.failure('Member not found');
+    }
+
+    final updatedMember = member.copyWith(
+      status: MemberStatus.inactive,
+      metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
+    );
+
+    final updateResult = await _membersRepository.updateMember(updatedMember);
+    if (updateResult.isFailure) {
+      return Result.failure('Failed to update member status');
+    }
+
+    final user = await _usersRepository.getUser(userEmail);
+    if (user.isFailure || user.data == null) {
+      return Result.failure('Failed to get user');
+    }
+
+    final updatedUser = user.data!.copyWithEmptyEstateId(
+      metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
+    );
+    print('Updated user: ${updatedUser.toFirestore()}');
+    final userUpdateResult = await _usersRepository.updateUser(updatedUser);
+    if (userUpdateResult.isFailure) {
+      return Result.failure('Failed to update user');
+    }
+
+    final clearEstateResult = await _appState.clearEstateId();
+    if (clearEstateResult.isFailure) {
+      return Result.failure('Failed to clear estate ID');
+    }
+
+    return Result.success(null);
+  }
 }

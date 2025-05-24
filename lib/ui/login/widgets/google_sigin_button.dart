@@ -23,9 +23,9 @@ class GoogleSignInButton extends ConsumerWidget {
                     await ref.read(loginViewModelProvider.notifier).logIn();
                 await ref.read(authStateProvider).refreshAuthState();
                 if (success) {
-                  if (context.mounted) {
-                    context.go(Routes.estateSelect);
-                  }
+                  // if (context.mounted) {
+                  //   context.go(Routes.estateSelect);
+                  // }
                 } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

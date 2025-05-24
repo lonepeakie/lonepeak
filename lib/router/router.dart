@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create_screen.dart';
@@ -13,19 +14,26 @@ import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/estate_treasury_screen.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/estate_documents_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
+import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
 import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.watch(authStateProvider);
 
-  redirect(BuildContext context, GoRouterState state) {
+  Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isAuthenticated = routerNotifier.isAuthenticated;
     final isLoginPage = state.matchedLocation == Routes.login;
     final isWelcomePage = state.matchedLocation == Routes.welcome;
+    final appState = ref.read(appStateProvider);
 
-    //TODO: Add logic to check if the user belongs to an estate and redirect accordingly
     if (isAuthenticated && (isLoginPage || isWelcomePage)) {
-      return Routes.estateSelect;
+      final estateId = await appState.getEstateId();
+
+      if (estateId != null && estateId.isNotEmpty) {
+        return Routes.estateHome;
+      } else {
+        return Routes.estateSelect;
+      }
     } else if (!isAuthenticated && !isLoginPage && !isWelcomePage) {
       return Routes.login;
     }
@@ -108,6 +116,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: Routes.userProfile,
+        builder: (context, state) {
+          return const UserProfileScreen();
+        },
       ),
     ],
   );

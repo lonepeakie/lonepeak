@@ -1,21 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
-import 'package:lonepeak/data/repositories/auth/auth_type.dart';
+import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 
 final estateSelectViewModelProvider = Provider<EstateSelectViewmodel>((ref) {
-  final authRepository = ref.read(authRepositoryProvider);
-  return EstateSelectViewmodel(authRepository: authRepository);
+  return EstateSelectViewmodel(
+    authRepository: ref.read(authRepositoryProvider),
+    userSiginFeature: ref.read(userSiginFeatureProvider),
+  );
 });
 
 class EstateSelectViewmodel {
-  EstateSelectViewmodel({required AuthRepository authRepository})
-    : _authRepository = authRepository;
+  EstateSelectViewmodel({
+    required AuthRepository authRepository,
+    required UserSiginFeature userSiginFeature,
+  }) : _authRepository = authRepository,
+       _userSiginFeature = userSiginFeature;
 
   final AuthRepository _authRepository;
+  final UserSiginFeature _userSiginFeature;
 
   Future<void> logout() async {
-    await _authRepository.signOut(AuthType.google);
+    await _userSiginFeature.logOut();
   }
 
   Future<String> getDisplayName() async {
