@@ -76,14 +76,16 @@ class AppElevatedAccentButton extends StatelessWidget {
   }
 }
 
-class AppTextArrowButton extends StatelessWidget {
+class AppTextIconButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final String buttonText;
+  final String? buttonText;
+  final IconData icon;
 
-  const AppTextArrowButton({
+  const AppTextIconButton({
     super.key,
     required this.onPressed,
-    required this.buttonText,
+    required this.icon,
+    this.buttonText,
   });
 
   @override
@@ -93,17 +95,35 @@ class AppTextArrowButton extends StatelessWidget {
       onPressed: onPressed,
       child: Row(
         children: [
-          Text(
-            buttonText,
-            style: TextStyle(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              fontSize: 14,
+          if (buttonText != null)
+            Text(
+              buttonText!,
+              style: TextStyle(
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.7,
+                ),
+                fontSize: 14,
+              ),
             ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.arrow_forward_ios, size: 14),
+          Icon(icon, size: 18),
         ],
       ),
+    );
+  }
+}
+
+class AppIconButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  const AppIconButton({super.key, required this.onPressed, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 22, color: theme.colorScheme.primary),
     );
   }
 }

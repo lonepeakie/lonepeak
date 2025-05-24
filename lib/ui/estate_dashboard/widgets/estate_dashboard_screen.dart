@@ -209,13 +209,13 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     ),
                   ],
                 ),
-                AppTextArrowButton(
+                AppTextIconButton(
                   onPressed: () {
                     GoRouter.of(
                       context,
                     ).go(Routes.estateHome + Routes.estateNotices);
                   },
-                  buttonText: '',
+                  icon: Icons.arrow_forward_ios,
                 ),
               ],
             ),
@@ -270,13 +270,13 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     ),
                   ],
                 ),
-                AppTextArrowButton(
+                AppTextIconButton(
                   onPressed: () {
                     GoRouter.of(
                       context,
                     ).go(Routes.estateHome + Routes.estateMembers);
                   },
-                  buttonText: '',
+                  icon: Icons.arrow_forward_ios,
                 ),
               ],
             ),
@@ -303,7 +303,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     children: [
                       MemberTile(
                         name: member.displayName,
-                        email: member.email,
                         role: member.role.name,
                         padding: EdgeInsets.zero,
                       ),
