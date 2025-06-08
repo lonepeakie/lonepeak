@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
+import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -123,11 +124,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         ),
                         style: FilledButton.styleFrom(
                           foregroundColor: Colors.white,
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                          side: BorderSide(color: Colors.red),
                           minimumSize: const Size(double.infinity, 48),
-                          backgroundColor: Theme.of(context).colorScheme.error,
+                          backgroundColor: Colors.red,
                         ),
                       ),
                     ],
@@ -211,7 +210,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   ),
                 ),
               ),
-              ElevatedButton(
+              AppElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
                   final success =
@@ -222,10 +221,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     context.go(Routes.welcome);
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text('Logout', style: TextStyle(color: Colors.white)),
+                buttonText: 'Logout',
+                backgroundColor: Colors.red,
               ),
             ],
           ),
@@ -259,7 +256,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   ),
                 ),
               ),
-              ElevatedButton(
+              AppElevatedButton(
                 onPressed: () async {
                   final success =
                       await ref
@@ -269,10 +266,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     context.go(Routes.estateSelect);
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-                child: Text('Exit', style: TextStyle(color: Colors.white)),
+                buttonText: 'Exit',
               ),
             ],
           ),

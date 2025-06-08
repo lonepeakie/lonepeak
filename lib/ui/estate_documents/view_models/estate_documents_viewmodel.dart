@@ -107,14 +107,10 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
     state = UIStateSuccess(); // Trigger UI update
   }
 
-  Future<void> createFolder(String name, String? description) async {
+  Future<void> createFolder(String name) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.createFolder(
-      name,
-      description,
-      _currentFolderId,
-    );
+    final result = await _documentFeatures.createFolder(name, _currentFolderId);
     if (result.isSuccess) {
       // Reload documents to include the new folder
       await loadDocuments(folderId: _currentFolderId);
@@ -231,42 +227,6 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
       return DocumentType.excel;
     } else {
       return DocumentType.other;
-    }
-  }
-
-  Future<bool> checkPermission(
-    String documentId,
-    DocumentPermission permission,
-  ) async {
-    final result = await _documentFeatures.checkUserPermission(
-      documentId,
-      permission,
-    );
-    return result.isSuccess && result.data == true;
-  }
-
-  Future<void> updateDocumentPermissions(
-    String documentId,
-    DocumentPermissions permissions,
-  ) async {
-    state = UIStateLoading();
-
-    final result = await _documentFeatures.updateDocumentPermissions(
-      documentId,
-      permissions,
-    );
-    if (result.isSuccess) {
-      // If the document is selected, update the selected document
-      if (_selectedDocument?.id == documentId) {
-        final docResult = await _documentFeatures.getDocumentById(documentId);
-        if (docResult.isSuccess) {
-          _selectedDocument = docResult.data;
-        }
-      }
-
-      state = UIStateSuccess();
-    } else {
-      state = UIStateFailure(result.error ?? 'Failed to update permissions');
     }
   }
 }

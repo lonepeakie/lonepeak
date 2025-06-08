@@ -107,49 +107,6 @@ class DocumentDetails extends StatelessWidget {
           const SizedBox(height: 16),
         ],
 
-        // Permissions
-        Text('Permissions', style: AppStyles.labelText(context)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            _PermissionChip(
-              label: 'View',
-              count:
-                  document.permissions.usersWithViewAccess.contains('*')
-                      ? 'All'
-                      : document.permissions.usersWithViewAccess.length
-                          .toString(),
-            ),
-            _PermissionChip(
-              label: 'Edit',
-              count:
-                  document.permissions.usersWithEditAccess.contains('*')
-                      ? 'All'
-                      : document.permissions.usersWithEditAccess.length
-                          .toString(),
-            ),
-            if (document.type ==
-                DocumentType.folder) // Only show upload for folders
-              _PermissionChip(
-                label: 'Upload',
-                count:
-                    document.permissions.usersWithUploadAccess.contains('*')
-                        ? 'All'
-                        : document.permissions.usersWithUploadAccess.length
-                            .toString(),
-              ),
-            _PermissionChip(
-              label: 'Delete',
-              count:
-                  document.permissions.usersWithDeleteAccess.contains('*')
-                      ? 'All'
-                      : document.permissions.usersWithDeleteAccess.length
-                          .toString(),
-            ),
-          ],
-        ),
         const SizedBox(height: 24),
 
         // Actions

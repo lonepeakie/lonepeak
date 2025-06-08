@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lonepeak/domain/models/document.dart';
-import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class DocumentTile extends StatelessWidget {
   final Document document;
@@ -84,7 +83,9 @@ class DocumentTile extends StatelessWidget {
       ),
       onTap: onTap,
       selected: isSelected,
-      selectedTileColor: theme.colorScheme.primaryContainer.withOpacity(0.1),
+      selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+        alpha: 0.1,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side:

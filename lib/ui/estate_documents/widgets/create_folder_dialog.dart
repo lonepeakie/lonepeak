@@ -4,10 +4,9 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 
 class CreateFolderDialog extends StatefulWidget {
-  final Function(String name, String? description) onCreateFolder;
+  final Function(String name) onCreateFolder;
 
-  const CreateFolderDialog({Key? key, required this.onCreateFolder})
-    : super(key: key);
+  const CreateFolderDialog({super.key, required this.onCreateFolder});
 
   @override
   State<CreateFolderDialog> createState() => _CreateFolderDialogState();
@@ -16,12 +15,10 @@ class CreateFolderDialog extends StatefulWidget {
 class _CreateFolderDialogState extends State<CreateFolderDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -43,7 +40,7 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Enter a name and optional description for your new folder.',
+                'Enter a name of your new folder.',
                 style: AppStyles.subtitleText(context),
               ),
               const SizedBox(height: 24),
@@ -53,13 +50,6 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
                 hintText: 'e.g., Legal Documents',
                 required: true,
                 errorText: 'Folder name is required',
-              ),
-              const SizedBox(height: 16),
-              AppTextInput(
-                controller: _descriptionController,
-                labelText: 'Description (Optional)',
-                hintText: 'Enter a description for this folder',
-                maxLines: 3,
               ),
               const SizedBox(height: 24),
               Row(
@@ -73,12 +63,7 @@ class _CreateFolderDialogState extends State<CreateFolderDialog> {
                   AppElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        widget.onCreateFolder(
-                          _nameController.text,
-                          _descriptionController.text.isNotEmpty
-                              ? _descriptionController.text
-                              : null,
-                        );
+                        widget.onCreateFolder(_nameController.text);
                         Navigator.of(context).pop();
                       }
                     },

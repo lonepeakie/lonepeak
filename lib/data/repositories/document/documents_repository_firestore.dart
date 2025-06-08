@@ -59,7 +59,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('Estate ID is null');
     }
 
-    // Update metadata for document
     if (document.metadata != null) {
       document.metadata!.updatedAt = Timestamp.now();
     } else {
@@ -79,11 +78,7 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
   }
 
   @override
-  Future<Result<Document>> createFolder(
-    String name,
-    String? description,
-    String? parentId,
-  ) async {
+  Future<Result<Document>> createFolder(String name, String? parentId) async {
     final estateId = await _appState.getEstateId();
     if (estateId == null) {
       return Result.failure('Estate ID is null');
@@ -94,19 +89,9 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('User email is null');
     }
 
-    // Create default permissions for the folder - everyone can view, creator can edit/upload/delete
-    final permissions = DocumentPermissions(
-      usersWithViewAccess: ['*'], // Everyone can view
-      usersWithEditAccess: [userEmail],
-      usersWithUploadAccess: [userEmail],
-      usersWithDeleteAccess: [userEmail],
-    );
-
     final folder = Document.folder(
       name: name,
-      description: description,
       parentId: parentId,
-      permissions: permissions,
       metadata: Metadata(
         createdAt: Timestamp.now(),
         createdBy: userEmail,
@@ -129,39 +114,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('Estate ID is null');
     }
     return _documentsService.searchDocuments(estateId, query);
-  }
-
-  @override
-  Future<Result<void>> updateDocumentPermissions(
-    String id,
-    DocumentPermissions permissions,
-  ) async {
-    final estateId = await _appState.getEstateId();
-    if (estateId == null) {
-      return Result.failure('Estate ID is null');
-    }
-
-    // Get the current document
-    final documentResult = await getDocumentById(id);
-    if (documentResult.isFailure) {
-      return Result.failure('Failed to get document');
-    }
-
-    final document = documentResult.data!;
-    final updatedDocument = Document(
-      id: document.id,
-      name: document.name,
-      description: document.description,
-      type: document.type,
-      fileUrl: document.fileUrl,
-      parentId: document.parentId,
-      permissions: permissions,
-      thumbnailUrl: document.thumbnailUrl,
-      size: document.size,
-      metadata: document.metadata,
-    );
-
-    return updateDocument(updatedDocument);
   }
 
   @override
@@ -192,7 +144,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
 
     // Get upload data
     final uploadData = uploadResult.data!;
-    final userId = _appState.getUserId() ?? 'unknown';
 
     // Create document record with the file data
     final document = Document(
@@ -201,12 +152,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       type: type,
       fileUrl: uploadData['fileUrl'],
       parentId: parentId,
-      permissions: DocumentPermissions(
-        usersWithViewAccess: [userId],
-        usersWithEditAccess: [userId],
-        usersWithUploadAccess: [userId],
-        usersWithDeleteAccess: [userId],
-      ),
       thumbnailUrl: uploadData['thumbnailUrl'],
       size: uploadData['size'],
       metadata: Metadata(

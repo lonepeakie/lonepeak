@@ -39,69 +39,15 @@ extension DocumentTypeExtension on DocumentType {
   }
 }
 
-enum DocumentPermission { view, edit, upload, delete }
-
-class DocumentPermissions {
-  final List<String> usersWithViewAccess;
-  final List<String> usersWithEditAccess;
-  final List<String> usersWithUploadAccess;
-  final List<String> usersWithDeleteAccess;
-
-  DocumentPermissions({
-    this.usersWithViewAccess = const [],
-    this.usersWithEditAccess = const [],
-    this.usersWithUploadAccess = const [],
-    this.usersWithDeleteAccess = const [],
-  });
-
-  factory DocumentPermissions.fromJson(Map<String, dynamic>? json) {
-    if (json == null) {
-      return DocumentPermissions();
-    }
-    return DocumentPermissions(
-      usersWithViewAccess: List<String>.from(json['view'] ?? []),
-      usersWithEditAccess: List<String>.from(json['edit'] ?? []),
-      usersWithUploadAccess: List<String>.from(json['upload'] ?? []),
-      usersWithDeleteAccess: List<String>.from(json['delete'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'view': usersWithViewAccess,
-      'edit': usersWithEditAccess,
-      'upload': usersWithUploadAccess,
-      'delete': usersWithDeleteAccess,
-    };
-  }
-
-  bool canView(String userEmail) {
-    return usersWithViewAccess.contains(userEmail);
-  }
-
-  bool canEdit(String userEmail) {
-    return usersWithEditAccess.contains(userEmail);
-  }
-
-  bool canUpload(String userEmail) {
-    return usersWithUploadAccess.contains(userEmail);
-  }
-
-  bool canDelete(String userEmail) {
-    return usersWithDeleteAccess.contains(userEmail);
-  }
-}
-
 class Document {
   final String? id;
   final String name;
   final String? description;
   final DocumentType type;
   final String? fileUrl;
-  final String? parentId; // null for root folder
-  final DocumentPermissions permissions;
+  final String? parentId;
   final String? thumbnailUrl;
-  final int size; // in bytes
+  final int size;
   Metadata? metadata;
 
   Document({
@@ -111,7 +57,6 @@ class Document {
     required this.type,
     this.fileUrl,
     this.parentId,
-    required this.permissions,
     this.thumbnailUrl,
     this.size = 0,
     this.metadata,
@@ -122,7 +67,6 @@ class Document {
     required String name,
     String? description,
     String? parentId,
-    required DocumentPermissions permissions,
     Metadata? metadata,
   }) {
     return Document(
@@ -131,7 +75,6 @@ class Document {
       description: description,
       type: DocumentType.folder,
       parentId: parentId,
-      permissions: permissions,
       size: 0,
       metadata: metadata,
     );
@@ -149,7 +92,6 @@ class Document {
       type: DocumentTypeExtension.fromString(data?['type'] ?? 'other'),
       fileUrl: data?['fileUrl'],
       parentId: data?['parentId'],
-      permissions: DocumentPermissions.fromJson(data?['permissions']),
       thumbnailUrl: data?['thumbnailUrl'],
       size: data?['size'] ?? 0,
       metadata: Metadata.fromJson(data?['metadata']),
@@ -163,7 +105,6 @@ class Document {
       "type": type.name.toLowerCase(),
       if (fileUrl != null) "fileUrl": fileUrl,
       if (parentId != null) "parentId": parentId,
-      "permissions": permissions.toJson(),
       if (thumbnailUrl != null) "thumbnailUrl": thumbnailUrl,
       "size": size,
       if (metadata != null) "metadata": metadata!.toJson(),

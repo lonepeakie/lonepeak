@@ -8,16 +8,8 @@ abstract class DocumentsRepository {
   Future<Result<void>> addDocument(Document document);
   Future<Result<void>> updateDocument(Document document);
   Future<Result<void>> deleteDocument(String id);
-  Future<Result<Document>> createFolder(
-    String name,
-    String? description,
-    String? parentId,
-  );
+  Future<Result<Document>> createFolder(String name, String? parentId);
   Future<Result<List<Document>>> searchDocuments(String query);
-  Future<Result<void>> updateDocumentPermissions(
-    String id,
-    DocumentPermissions permissions,
-  );
   Future<Result<Document>> uploadFile(
     File file,
     String fileName,

@@ -5,22 +5,26 @@ class AppElevatedButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String buttonText;
   final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
 
   const AppElevatedButton({
     super.key,
     required this.onPressed,
     required this.buttonText,
     this.padding,
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20);
+    final effectiveBackgroundColor =
+        backgroundColor ?? Theme.of(context).colorScheme.primary;
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: effectiveBackgroundColor,
         side: BorderSide.none,
         padding: effectivePadding,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),

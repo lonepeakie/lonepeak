@@ -5,13 +5,9 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 
 class DocumentPermissionsDialog extends StatefulWidget {
   final Document document;
-  final void Function(DocumentPermissions) onSave;
 
-  const DocumentPermissionsDialog({
-    Key? key,
-    required this.document,
-    required this.onSave,
-  }) : super(key: key);
+  const DocumentPermissionsDialog({Key? key, required this.document})
+    : super(key: key);
 
   @override
   State<DocumentPermissionsDialog> createState() =>
@@ -19,26 +15,10 @@ class DocumentPermissionsDialog extends StatefulWidget {
 }
 
 class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
-  late DocumentPermissions _permissions;
-
   @override
   void initState() {
     super.initState();
     // Create a copy of the permissions
-    _permissions = DocumentPermissions(
-      usersWithViewAccess: List.from(
-        widget.document.permissions.usersWithViewAccess,
-      ),
-      usersWithEditAccess: List.from(
-        widget.document.permissions.usersWithEditAccess,
-      ),
-      usersWithUploadAccess: List.from(
-        widget.document.permissions.usersWithUploadAccess,
-      ),
-      usersWithDeleteAccess: List.from(
-        widget.document.permissions.usersWithDeleteAccess,
-      ),
-    );
   }
 
   @override
@@ -65,94 +45,6 @@ class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
             const SizedBox(height: 24),
 
             // View permission
-            _PermissionSwitch(
-              label: 'Everyone can view',
-              value: _permissions.usersWithViewAccess.contains('*'),
-              onChanged: (value) {
-                setState(() {
-                  if (value) {
-                    _permissions.usersWithViewAccess.clear();
-                    _permissions.usersWithViewAccess.add('*');
-                  } else {
-                    _permissions.usersWithViewAccess.remove('*');
-                    // Add the creator to maintain at least one user with access
-                    if (widget.document.metadata?.createdBy != null) {
-                      _permissions.usersWithViewAccess.add(
-                        widget.document.metadata!.createdBy!,
-                      );
-                    }
-                  }
-                });
-              },
-            ),
-
-            // Edit permission
-            _PermissionSwitch(
-              label: 'Everyone can edit',
-              value: _permissions.usersWithEditAccess.contains('*'),
-              onChanged: (value) {
-                setState(() {
-                  if (value) {
-                    _permissions.usersWithEditAccess.clear();
-                    _permissions.usersWithEditAccess.add('*');
-                  } else {
-                    _permissions.usersWithEditAccess.remove('*');
-                    // Add the creator to maintain at least one user with access
-                    if (widget.document.metadata?.createdBy != null) {
-                      _permissions.usersWithEditAccess.add(
-                        widget.document.metadata!.createdBy!,
-                      );
-                    }
-                  }
-                });
-              },
-            ),
-
-            // Upload permission (only applicable for folders)
-            if (widget.document.type == DocumentType.folder)
-              _PermissionSwitch(
-                label: 'Everyone can upload',
-                value: _permissions.usersWithUploadAccess.contains('*'),
-                onChanged: (value) {
-                  setState(() {
-                    if (value) {
-                      _permissions.usersWithUploadAccess.clear();
-                      _permissions.usersWithUploadAccess.add('*');
-                    } else {
-                      _permissions.usersWithUploadAccess.remove('*');
-                      // Add the creator to maintain at least one user with access
-                      if (widget.document.metadata?.createdBy != null) {
-                        _permissions.usersWithUploadAccess.add(
-                          widget.document.metadata!.createdBy!,
-                        );
-                      }
-                    }
-                  });
-                },
-              ),
-
-            // Delete permission
-            _PermissionSwitch(
-              label: 'Everyone can delete',
-              value: _permissions.usersWithDeleteAccess.contains('*'),
-              onChanged: (value) {
-                setState(() {
-                  if (value) {
-                    _permissions.usersWithDeleteAccess.clear();
-                    _permissions.usersWithDeleteAccess.add('*');
-                  } else {
-                    _permissions.usersWithDeleteAccess.remove('*');
-                    // Add the creator to maintain at least one user with access
-                    if (widget.document.metadata?.createdBy != null) {
-                      _permissions.usersWithDeleteAccess.add(
-                        widget.document.metadata!.createdBy!,
-                      );
-                    }
-                  }
-                });
-              },
-            ),
-
             const SizedBox(height: 16),
             Divider(),
             const SizedBox(height: 16),
@@ -197,7 +89,6 @@ class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
                 const SizedBox(width: 16),
                 AppElevatedButton(
                   onPressed: () {
-                    widget.onSave(_permissions);
                     Navigator.of(context).pop();
                   },
                   buttonText: 'Save',

@@ -7,12 +7,10 @@ import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/estate_documents/view_models/estate_documents_viewmodel.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/create_folder_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_breadcrumbs.dart';
-import 'package:lonepeak/ui/estate_documents/widgets/document_details.dart';
-import 'package:lonepeak/ui/estate_documents/widgets/document_permissions_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_tile.dart';
 
 class EstateDocumentsScreen extends ConsumerStatefulWidget {
-  const EstateDocumentsScreen({Key? key}) : super(key: key);
+  const EstateDocumentsScreen({super.key});
 
   @override
   ConsumerState<EstateDocumentsScreen> createState() =>
@@ -42,15 +40,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     final state = ref.watch(estateDocumentsViewModelProvider);
     final viewModel = ref.read(estateDocumentsViewModelProvider.notifier);
     final documents = viewModel.documents;
-    final selectedDocument = viewModel.selectedDocument;
     final breadcrumbs = viewModel.breadcrumbs;
-    final theme = Theme.of(context);
-
-    // Check for screen width to adjust layout
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isNarrow = screenWidth < 700;
-    final useStack =
-        screenWidth < 500; // For very narrow screens, use stacked layout
 
     return Scaffold(
       appBar: AppBar(
@@ -69,85 +59,50 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
               ? const Center(child: CircularProgressIndicator())
               : state is UIStateFailure
               ? Center(child: Text('Error: ${state.error}'))
-              : useStack && selectedDocument != null
-              // For very narrow screens, show only details when a document is selected
-              ? _buildFullScreenDetails(selectedDocument)
-              : Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              : Column(
                 children: [
-                  // Documents list(left side)
-                  Expanded(
-                    flex: isNarrow ? 3 : 2,
-                    child: Column(
-                      children: [
-                        // Breadcrumb navigation
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: DocumentBreadcrumbs(
-                            breadcrumbs: breadcrumbs,
-                            onBreadcrumbTap: (doc) {
-                              viewModel.navigateToFolder(doc);
-                            },
-                            onHomePressed: () {
-                              viewModel.loadDocuments();
-                            },
-                          ),
-                        ),
-
-                        // Documents list
-                        Expanded(
-                          child:
-                              documents.isEmpty
-                                  ? _buildEmptyState()
-                                  : ListView.builder(
-                                    padding: const EdgeInsets.all(16),
-                                    itemCount: documents.length,
-                                    itemBuilder: (context, index) {
-                                      final document = documents[index];
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 8.0,
-                                        ),
-                                        child: DocumentTile(
-                                          document: document,
-                                          isSelected:
-                                              selectedDocument?.id ==
-                                              document.id,
-                                          onTap: () {
-                                            if (document.type ==
-                                                DocumentType.folder) {
-                                              viewModel.navigateToFolder(
-                                                document,
-                                              );
-                                            } else {
-                                              viewModel.selectDocument(
-                                                document,
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                        ),
-                      ],
+                  // Breadcrumb navigation
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: DocumentBreadcrumbs(
+                      breadcrumbs: breadcrumbs,
+                      onBreadcrumbTap: (doc) {
+                        viewModel.navigateToFolder(doc);
+                      },
+                      onHomePressed: () {
+                        viewModel.loadDocuments();
+                      },
                     ),
                   ),
 
-                  // Divider
-                  Container(width: 1, color: theme.colorScheme.outlineVariant),
-
-                  // Details panel (right side)
+                  // Documents list
                   Expanded(
-                    flex: isNarrow ? 2 : 1,
-                    child: FractionallySizedBox(
-                      widthFactor:
-                          0.95, // Prevents overflow by using 95% of available width
-                      child:
-                          selectedDocument != null
-                              ? _buildDetailsPanel(selectedDocument)
-                              : _buildEmptyDetailsPanel(),
-                    ),
+                    child:
+                        documents.isEmpty
+                            ? _buildEmptyState()
+                            : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: documents.length,
+                              itemBuilder: (context, index) {
+                                final document = documents[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: DocumentTile(
+                                    document: document,
+                                    isSelected: false, // No selection needed
+                                    onTap: () {
+                                      if (document.type ==
+                                          DocumentType.folder) {
+                                        viewModel.navigateToFolder(document);
+                                      } else {
+                                        // Show a quick preview or actions for files
+                                        _showFileOptions(context, document);
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                   ),
                 ],
               ),
@@ -179,136 +134,53 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => _showCreateFolderDialog(context),
-                icon: const Icon(Icons.create_new_folder),
-                label: const Text('New Folder'),
-              ),
-              const SizedBox(width: 16),
-              OutlinedButton.icon(
-                onPressed: () => _handleFileUpload(),
-                icon: const Icon(Icons.upload_file),
-                label: const Text('Upload File'),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // If screen is too narrow, stack the buttons vertically
+              if (constraints.maxWidth < 300) {
+                return Column(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showCreateFolderDialog(context),
+                      icon: const Icon(Icons.create_new_folder),
+                      label: const Text('New Folder'),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _handleFileUpload(),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload File'),
+                    ),
+                  ],
+                );
+              } else {
+                // Otherwise use the row layout
+                return Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 12,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showCreateFolderDialog(context),
+                      icon: const Icon(Icons.create_new_folder),
+                      label: const Text('New Folder'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _handleFileUpload(),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload File'),
+                    ),
+                  ],
+                );
+              }
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDetailsPanel(Document document) {
-    final viewModel = ref.read(estateDocumentsViewModelProvider.notifier);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    viewModel.clearSelection();
-                  },
-                ),
-              ],
-            ),
-            DocumentDetails(
-              document: document,
-              onEdit: () => _showPermissionsDialog(context, document),
-              onDelete: () => _confirmDelete(context, document),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyDetailsPanel() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.description_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No document selected',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Select a document to view details',
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Full screen details view for narrow screens
-  Widget _buildFullScreenDetails(Document document) {
-    final viewModel = ref.read(estateDocumentsViewModelProvider.notifier);
-
-    return Column(
-      children: [
-        // Back button and document name
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => viewModel.clearSelection(),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  document.name,
-                  style: AppStyles.titleTextSmall(context),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Document details
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: DocumentDetails(
-              document: document,
-              onEdit: () => _showPermissionsDialog(context, document),
-              onDelete: () => _confirmDelete(context, document),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // Methods for document details panel have been removed as they're no longer needed
 
   void _showCreateOptions(BuildContext context) {
     showModalBottomSheet(
@@ -356,10 +228,10 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
       context: context,
       builder: (context) {
         return CreateFolderDialog(
-          onCreateFolder: (name, description) {
+          onCreateFolder: (name) {
             ref
                 .read(estateDocumentsViewModelProvider.notifier)
-                .createFolder(name, description);
+                .createFolder(name);
           },
         );
       },
@@ -437,21 +309,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     );
   }
 
-  void _showPermissionsDialog(BuildContext context, Document document) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return DocumentPermissionsDialog(
-          document: document,
-          onSave: (permissions) {
-            ref
-                .read(estateDocumentsViewModelProvider.notifier)
-                .updateDocumentPermissions(document.id!, permissions);
-          },
-        );
-      },
-    );
-  }
+  // Permission dialog removed as it's no longer needed
 
   void _showSearchDialog(BuildContext context) {
     showDialog(
@@ -489,6 +347,59 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
               child: const Text('Search'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showFileOptions(BuildContext context, Document document) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.download_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text('Download File'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Implement download functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Downloading file...')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: const Text('Delete File'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(context, document);
+                },
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  document.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
