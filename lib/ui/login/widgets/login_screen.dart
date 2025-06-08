@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/login/widgets/google_sigin_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,8 +11,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Color(0xFFF5F7FB),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -22,37 +23,47 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.blue[70],
+                  radius: 48,
+                  backgroundColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.1,
+                  ),
                   child: Icon(
                     Icons.home_outlined,
-                    color: AppColors.primary,
-                    size: 40,
+                    color: theme.colorScheme.primary,
+                    size: 48,
                   ),
                 ),
                 SizedBox(height: 16),
                 Text(
                   'MyEstate',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: theme.textTheme.titleLarge?.color,
                   ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Managing communities, simplified.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(
+                      alpha: 0.7,
+                    ),
+                  ),
                 ),
                 SizedBox(height: 56),
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withAlpha(25),
+                        color:
+                            theme.brightness == Brightness.dark
+                                ? Colors.black.withValues(alpha: 0.2)
+                                : Colors.grey.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: Offset(0, 4),
                       ),
@@ -69,6 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginForm() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -77,14 +90,17 @@ class _LoginScreenState extends State<LoginScreen> {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: theme.textTheme.titleLarge?.color,
           ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 8),
         Text(
-          'Login / SignUp access your account',
-          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+          'Login / Signup to access your account',
+          style: TextStyle(
+            fontSize: 14,
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+          ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 64),

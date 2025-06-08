@@ -1,32 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 64), // Increased padding to move content down
+              SizedBox(height: 64),
               Row(
                 children: [
-                  Icon(Icons.home_outlined, color: AppColors.primary, size: 32),
+                  Icon(
+                    Icons.home_outlined,
+                    color: theme.colorScheme.primary,
+                    size: 32,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'MyEstate',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: theme.textTheme.titleLarge?.color,
                     ),
                   ),
                 ],
@@ -37,19 +42,25 @@ class WelcomeScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: theme.textTheme.headlineLarge?.color,
                 ),
               ),
               SizedBox(height: 16),
               Text(
                 'A comprehensive platform for estate management, designed to simplify community administration and foster collaboration.',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.7,
+                  ),
+                ),
               ),
               SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () => context.go(Routes.login),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0B73DC),
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -63,11 +74,14 @@ class WelcomeScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: theme.colorScheme.onPrimary,
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ],
                 ),
               ),
@@ -118,14 +132,20 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color:
+                isDarkMode
+                    ? Colors.black.withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 4),
           ),
@@ -139,13 +159,16 @@ class _FeatureCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: theme.textTheme.titleMedium?.color,
             ),
           ),
           SizedBox(height: 8),
           Text(
             description,
-            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),

@@ -10,7 +10,7 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(ProviderScope(child: const MainApp()));
+  runApp(const ProviderScope(child: MainApp()));
 }
 
 class MainApp extends ConsumerWidget {
@@ -24,7 +24,7 @@ class MainApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppThemes.light,
       darkTheme: AppThemes.dark,
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       routerConfig: router,
     );
   }

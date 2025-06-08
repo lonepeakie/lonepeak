@@ -16,6 +16,7 @@ abstract final class AppColors {
 abstract final class AppThemes {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
+    scaffoldBackgroundColor: Color(0xFFF5F7FB),
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
@@ -27,6 +28,8 @@ abstract final class AppThemes {
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
     ),
+    cardColor: Colors.white,
+    // cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -58,13 +61,14 @@ abstract final class AppThemes {
       secondary: Colors.grey,
       brightness: Brightness.dark,
       surface: const Color(0xFF121212),
-      onSurface: Colors.white,
+      onSurface: Colors.white.withAlpha(225),
     ),
     cardTheme: CardTheme(
       color: const Color(0xFF1E1E1E),
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
     ),
+    cardColor: const Color(0xFF1E1E1E),
     appBarTheme: AppBarTheme(
       backgroundColor: const Color(0xFF1E1E1E),
       elevation: 0,

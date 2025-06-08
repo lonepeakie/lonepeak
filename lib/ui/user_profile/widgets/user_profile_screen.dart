@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
 
@@ -49,9 +48,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       const SizedBox(height: 20),
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: .1,
-                        ),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: .1),
                         child:
                             user?.photoUrl != null
                                 ? ClipRRect(
@@ -66,15 +65,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                 : Icon(
                                   Icons.person,
                                   size: 50,
-                                  color: AppColors.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                       ),
                       const SizedBox(height: 20),
                       Text(
                         user?.displayName ?? 'User',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -96,22 +96,38 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                       ElevatedButton.icon(
                         onPressed: _confirmExitEstate,
                         icon: const Icon(Icons.exit_to_app),
-                        label: const Text('Exit Estate'),
+                        label: const Text(
+                          'Exit Estate',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: AppColors.primary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           minimumSize: const Size(double.infinity, 48),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      OutlinedButton.icon(
+                      FilledButton.icon(
                         onPressed: _confirmLogout,
                         icon: const Icon(Icons.logout),
-                        label: const Text('Logout'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
+                        label: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                           minimumSize: const Size(double.infinity, 48),
+                          backgroundColor: Theme.of(context).colorScheme.error,
                         ),
                       ),
                     ],
@@ -127,6 +143,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     String value,
     IconData icon,
   ) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -134,10 +151,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            child: Icon(icon, color: AppColors.primary),
+            child: Icon(icon, color: theme.colorScheme.primary),
           ),
           const SizedBox(width: 16),
           Column(
@@ -145,13 +162,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(
+                    alpha: 0.6,
+                  ),
+                ),
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
+                  color: theme.textTheme.bodyLarge?.color,
                 ),
               ),
             ],
@@ -166,14 +189,29 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to logout?'),
+            title: Text(
+              'Logout',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
+            ),
+            content: Text(
+              'Are you sure you want to logout?',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
                   final success =
@@ -184,7 +222,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     context.go(Routes.welcome);
                   }
                 },
-                child: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: Text('Logout', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -196,16 +237,29 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Exit Estate'),
-            content: const Text(
+            title: Text(
+              'Exit Estate',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
+            ),
+            content: Text(
               'Are you sure you want to exit this estate? You\'ll need to join or create a new estate afterwards.',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () async {
                   final success =
                       await ref
@@ -215,7 +269,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     context.go(Routes.estateSelect);
                   }
                 },
-                child: const Text('Exit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: Text('Exit', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
