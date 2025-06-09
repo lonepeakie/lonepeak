@@ -45,7 +45,7 @@ class Document {
   final String? description;
   final DocumentType type;
   final String? fileUrl;
-  final String? parentId;
+  final String parentId;
   final String? thumbnailUrl;
   final int size;
   Metadata? metadata;
@@ -56,7 +56,7 @@ class Document {
     this.description,
     required this.type,
     this.fileUrl,
-    this.parentId,
+    required this.parentId,
     this.thumbnailUrl,
     this.size = 0,
     this.metadata,
@@ -74,7 +74,7 @@ class Document {
       name: name,
       description: description,
       type: DocumentType.folder,
-      parentId: parentId,
+      parentId: parentId ?? "root",
       size: 0,
       metadata: metadata,
     );
@@ -104,7 +104,7 @@ class Document {
       if (description != null) "description": description,
       "type": type.name.toLowerCase(),
       if (fileUrl != null) "fileUrl": fileUrl,
-      if (parentId != null) "parentId": parentId,
+      "parentId": parentId,
       if (thumbnailUrl != null) "thumbnailUrl": thumbnailUrl,
       "size": size,
       if (metadata != null) "metadata": metadata!.toJson(),

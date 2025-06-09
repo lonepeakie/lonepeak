@@ -151,7 +151,7 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       description: description,
       type: type,
       fileUrl: uploadData['fileUrl'],
-      parentId: parentId,
+      parentId: parentId ?? 'root',
       thumbnailUrl: uploadData['thumbnailUrl'],
       size: uploadData['size'],
       metadata: Metadata(

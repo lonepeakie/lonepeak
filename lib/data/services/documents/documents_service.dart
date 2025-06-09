@@ -16,7 +16,6 @@ class DocumentsService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('DocumentsService'));
 
-  // Collection reference helper
   CollectionReference<Document> _getDocumentsCollection(String estateId) {
     return _db
         .collection('estates')
@@ -49,16 +48,17 @@ class DocumentsService {
       if (parentId != null) {
         query = query.where('parentId', isEqualTo: parentId);
       } else {
-        query = query.where('parentId', isNull: true);
+        query = query.where('parentId', isEqualTo: "root");
       }
 
       final snapshot = await query.get();
       final documents =
           snapshot.docs.map((doc) {
-            // Merge document ID into the document data
             final docWithId = doc.data();
             return docWithId;
           }).toList();
+
+      _log.i('Retrieved ${documents.length} documents for estate $estateId');
 
       return Result.success(documents);
     } catch (e) {
@@ -173,9 +173,7 @@ class DocumentsService {
           .child('estates')
           .child(estateId)
           .child('documents')
-          .child(
-            DateTime.now().millisecondsSinceEpoch.toString() + '_' + fileName,
-          );
+          .child('${DateTime.now().millisecondsSinceEpoch}_$fileName');
 
       // Upload file
       final uploadTask = storageRef.putFile(
