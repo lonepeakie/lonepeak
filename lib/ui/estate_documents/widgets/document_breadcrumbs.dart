@@ -7,11 +7,11 @@ class DocumentBreadcrumbs extends StatelessWidget {
   final VoidCallback onHomePressed;
 
   const DocumentBreadcrumbs({
-    Key? key,
+    super.key,
     required this.breadcrumbs,
     required this.onBreadcrumbTap,
     required this.onHomePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +22,13 @@ class DocumentBreadcrumbs extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          // Home button
           InkWell(
             onTap: onHomePressed,
             borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -52,7 +51,6 @@ class DocumentBreadcrumbs extends StatelessWidget {
             ),
           ),
 
-          // Breadcrumbs
           if (breadcrumbs.isNotEmpty)
             ...breadcrumbs.asMap().entries.map((entry) {
               final index = entry.key;
@@ -81,7 +79,7 @@ class DocumentBreadcrumbs extends StatelessWidget {
                         color:
                             isLast
                                 ? theme.colorScheme.primaryContainer
-                                : theme.colorScheme.surfaceVariant,
+                                : theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(

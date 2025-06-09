@@ -12,11 +12,11 @@ class DocumentDetails extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const DocumentDetails({
-    Key? key,
+    super.key,
     required this.document,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -198,52 +198,4 @@ class DocumentDetails extends StatelessWidget {
   double log(num x) => ln(x) / ln(1024);
   double ln(num x) => log10(x) / log10(e);
   double log10(num x) => log(x) / ln(10);
-}
-
-class _PermissionChip extends StatelessWidget {
-  final String label;
-  final String count;
-
-  const _PermissionChip({required this.label, required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 3),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              count,
-              style: TextStyle(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -8,12 +8,12 @@ class DocumentTile extends StatelessWidget {
   final bool isSelected;
 
   const DocumentTile({
-    Key? key,
+    super.key,
     required this.document,
     required this.onTap,
     this.onDelete,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class DocumentTile extends StatelessWidget {
             color:
                 isSelected
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.surfaceVariant,
+                    : theme.colorScheme.surfaceContainerHighest,
             width: 1,
           ),
         ),
@@ -109,7 +109,6 @@ class DocumentTile extends StatelessWidget {
       case DocumentType.excel:
         return Icons.table_chart;
       case DocumentType.other:
-      default:
         return Icons.insert_drive_file;
     }
   }
