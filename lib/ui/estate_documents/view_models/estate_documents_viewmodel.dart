@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:lonepeak/domain/features/document_features.dart';
+import 'package:lonepeak/data/repositories/document/documents_provider.dart';
+import 'package:lonepeak/data/repositories/document/documents_repository.dart';
 import 'package:lonepeak/domain/models/document.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/utils/log_printer.dart';
@@ -10,19 +11,19 @@ import 'package:lonepeak/utils/log_printer.dart';
 final estateDocumentsViewModelProvider =
     StateNotifierProvider<EstateDocumentsViewModel, UIState>(
       (ref) => EstateDocumentsViewModel(
-        documentFeatures: ref.read(documentFeaturesProvider),
+        documentsRepository: ref.read(documentsRepositoryProvider),
       ),
     );
 
 class EstateDocumentsViewModel extends StateNotifier<UIState> {
-  EstateDocumentsViewModel({required DocumentFeatures documentFeatures})
-    : _documentFeatures = documentFeatures,
+  EstateDocumentsViewModel({required DocumentsRepository documentsRepository})
+    : _documentsRepository = documentsRepository,
       super(UIStateInitial()) {
     // Initialize with root documents
     loadDocuments();
   }
 
-  final DocumentFeatures _documentFeatures;
+  final DocumentsRepository _documentsRepository;
   final _log = Logger(printer: PrefixedLogPrinter('EstateDocumentsViewModel'));
 
   List<Document> _documents = [];
@@ -42,7 +43,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
     _currentFolderId = folderId;
     _log.i("Loading documents for folderId: $folderId");
 
-    final result = await _documentFeatures.getDocuments(parentId: folderId);
+    final result = await _documentsRepository.getDocuments(parentId: folderId);
     if (result.isSuccess) {
       _documents = result.data ?? [];
       _documents.sort((a, b) {
@@ -82,7 +83,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
         currentAncestorId != "root" &&
         safetyCount < maxDepth) {
       _log.d('Fetching document for breadcrumb: ID $currentAncestorId');
-      final docResult = await _documentFeatures.getDocumentById(
+      final docResult = await _documentsRepository.getDocumentById(
         currentAncestorId,
       );
 
@@ -164,7 +165,10 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> createFolder(String name) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.createFolder(name, _currentFolderId);
+    final result = await _documentsRepository.createFolder(
+      name,
+      _currentFolderId,
+    );
     if (result.isSuccess) {
       // Reload documents to include the new folder
       await loadDocuments(folderId: _currentFolderId);
@@ -176,7 +180,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> uploadDocument(Document document) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.addDocument(document);
+    final result = await _documentsRepository.addDocument(document);
     if (result.isSuccess) {
       // Reload documents to include the new document
       await loadDocuments(folderId: _currentFolderId);
@@ -188,7 +192,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> deleteDocument(String documentId) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.deleteDocument(documentId);
+    final result = await _documentsRepository.deleteDocument(documentId);
     if (result.isSuccess) {
       // If we just deleted the selected document, clear selection
       if (_selectedDocument?.id == documentId) {
@@ -211,7 +215,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
 
     state = UIStateLoading();
 
-    final result = await _documentFeatures.searchDocuments(query);
+    final result = await _documentsRepository.searchDocuments(query);
     if (result.isSuccess) {
       _documents = result.data ?? [];
       state = UIStateSuccess();
@@ -246,7 +250,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
       );
 
       // Upload file
-      final uploadResult = await _documentFeatures.uploadFile(
+      final uploadResult = await _documentsRepository.uploadFile(
         File(file.path!),
         file.name,
         documentType,
