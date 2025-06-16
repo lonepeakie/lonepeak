@@ -16,7 +16,7 @@ class EstateSelectScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await ref.read(estateSelectViewModelProvider).logout();
               if (context.mounted) {
@@ -131,10 +131,9 @@ class EstateSelectScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.cardColor.withAlpha(200),
         borderRadius: BorderRadius.circular(10),
-        boxShadow:
-            isDarkMode
-                ? [BoxShadow(color: Colors.black.withValues(alpha: 0.3))]
-                : [BoxShadow(color: Colors.black12.withValues(alpha: 0.1))],
+        boxShadow: isDarkMode
+            ? [BoxShadow(color: Colors.black.withValues(alpha: 0.3))]
+            : [BoxShadow(color: Colors.black12.withValues(alpha: 0.1))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -171,9 +170,9 @@ class EstateSelectScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           isAccent
               ? AppElevatedAccentButton(
-                buttonText: buttonText,
-                onPressed: onPressed,
-              )
+                  buttonText: buttonText,
+                  onPressed: onPressed,
+                )
               : AppElevatedButton(buttonText: buttonText, onPressed: onPressed),
         ],
       ),

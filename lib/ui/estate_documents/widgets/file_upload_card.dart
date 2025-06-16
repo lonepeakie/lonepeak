@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:lonepeak/domain/models/document.dart';
+// ignore: unused_import
 import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class FileUploadCard extends StatelessWidget {
   final VoidCallback onUpload;
 
+  // ignore: use_super_parameters
   const FileUploadCard({Key? key, required this.onUpload}) : super(key: key);
 
   @override

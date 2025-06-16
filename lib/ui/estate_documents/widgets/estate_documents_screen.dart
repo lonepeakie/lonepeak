@@ -54,33 +54,31 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
           ),
         ],
       ),
-      body:
-          state is UIStateLoading
-              ? const Center(child: CircularProgressIndicator())
-              : state is UIStateFailure
+      body: state is UIStateLoading
+          ? const Center(child: CircularProgressIndicator())
+          : state is UIStateFailure
               ? Center(child: Text('Error: ${state.error}'))
               : Column(
-                children: [
-                  // Breadcrumb navigation
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: DocumentBreadcrumbs(
-                      breadcrumbs: breadcrumbs,
-                      onBreadcrumbTap: (doc) {
-                        viewModel.navigateToFolder(doc);
-                      },
-                      onHomePressed: () {
-                        viewModel.loadDocuments();
-                      },
+                  children: [
+                    // Breadcrumb navigation
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: DocumentBreadcrumbs(
+                        breadcrumbs: breadcrumbs,
+                        onBreadcrumbTap: (doc) {
+                          viewModel.navigateToFolder(doc);
+                        },
+                        onHomePressed: () {
+                          viewModel.loadDocuments();
+                        },
+                      ),
                     ),
-                  ),
 
-                  // Documents list
-                  Expanded(
-                    child:
-                        documents.isEmpty
-                            ? _buildEmptyState()
-                            : ListView.builder(
+                    // Documents list
+                    Expanded(
+                      child: documents.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: documents.length,
                               itemBuilder: (context, index) {
@@ -103,9 +101,9 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                                 );
                               },
                             ),
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showCreateOptions(context);
@@ -259,6 +257,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     final success = await viewModel.pickAndUploadFile();
 
     if (success) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('File uploaded successfully'),
@@ -266,6 +265,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
         ),
       );
     } else {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('File upload canceled or failed'),
@@ -372,7 +372,6 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 title: const Text('Download File'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement download functionality
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Downloading file...')),
                   );

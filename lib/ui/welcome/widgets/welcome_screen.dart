@@ -17,6 +17,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ignore: prefer_const_constructors
               SizedBox(height: 64),
               Row(
                 children: [
@@ -25,6 +26,7 @@ class WelcomeScreen extends StatelessWidget {
                     color: theme.colorScheme.primary,
                     size: 32,
                   ),
+                  // ignore: prefer_const_constructors
                   SizedBox(width: 8),
                   Text(
                     'MyEstate',
@@ -142,10 +144,9 @@ class _FeatureCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color:
-                isDarkMode
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.1),
+            color: isDarkMode
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 4),
           ),

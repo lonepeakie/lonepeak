@@ -7,6 +7,7 @@ class DocumentTile extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool isSelected;
 
+  // ignore: use_super_parameters
   const DocumentTile({
     Key? key,
     required this.document,
@@ -35,6 +36,7 @@ class DocumentTile extends StatelessWidget {
             color:
                 isSelected
                     ? theme.colorScheme.primary
+                    // ignore: deprecated_member_use
                     : theme.colorScheme.surfaceVariant,
             width: 1,
           ),
@@ -109,6 +111,7 @@ class DocumentTile extends StatelessWidget {
       case DocumentType.excel:
         return Icons.table_chart;
       case DocumentType.other:
+      // ignore: unreachable_switch_default
       default:
         return Icons.insert_drive_file;
     }

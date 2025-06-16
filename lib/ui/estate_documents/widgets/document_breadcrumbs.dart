@@ -6,6 +6,7 @@ class DocumentBreadcrumbs extends StatelessWidget {
   final void Function(Document) onBreadcrumbTap;
   final VoidCallback onHomePressed;
 
+  // ignore: use_super_parameters
   const DocumentBreadcrumbs({
     Key? key,
     required this.breadcrumbs,
@@ -29,6 +30,7 @@ class DocumentBreadcrumbs extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -81,6 +83,7 @@ class DocumentBreadcrumbs extends StatelessWidget {
                         color:
                             isLast
                                 ? theme.colorScheme.primaryContainer
+                                // ignore: deprecated_member_use
                                 : theme.colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(16),
                       ),

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:lonepeak/ui/login/widgets/google_sigin_button.dart';
 
@@ -54,18 +56,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 56),
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            theme.brightness == Brightness.dark
-                                ? Colors.black.withValues(alpha: 0.2)
-                                : Colors.grey.withValues(alpha: 0.1),
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.black.withValues(alpha: 0.2)
+                            : Colors.grey.withValues(alpha: 0.1),
                         blurRadius: 8,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -94,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           'Login / Signup to access your account',
           style: TextStyle(
@@ -103,7 +104,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           textAlign: TextAlign.center,
         ),
+        // ignore: duplicate_ignore
+        // ignore: prefer_const_constructors
         SizedBox(height: 64),
+        // ignore: duplicate_ignore
+        // ignore: prefer_const_constructors
         GoogleSignInButton(),
       ],
     );

@@ -35,7 +35,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: AppbarTitle(text: 'Notices'),
+        title: const AppbarTitle(text: 'Notices'),
         actions: [
           AppbarActionButton(
             icon: Icons.notification_add,
@@ -134,39 +134,37 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                       const SizedBox(height: 16),
                       Wrap(
                         spacing: 8.0,
-                        children:
-                            NoticeType.values.map((type) {
-                              final chipColor = NoticeTypeUI.getCategoryColor(
-                                type,
-                              );
-                              final chipLabel =
-                                  type.name[0].toUpperCase() +
-                                  type.name.substring(1);
-                              return ChoiceChip(
-                                label: Text(
-                                  chipLabel,
-                                  style: TextStyle(
-                                    color: chipColor,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                selected: selectedType == type,
-                                backgroundColor: chipColor.withAlpha(50),
-                                selectedColor: chipColor.withAlpha(50),
-                                side: BorderSide.none,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                onSelected: (isSelected) {
-                                  if (isSelected) {
-                                    setState(() {
-                                      selectedType = type;
-                                    });
-                                  }
-                                },
-                              );
-                            }).toList(),
+                        children: NoticeType.values.map((type) {
+                          final chipColor = NoticeTypeUI.getCategoryColor(
+                            type,
+                          );
+                          final chipLabel = type.name[0].toUpperCase() +
+                              type.name.substring(1);
+                          return ChoiceChip(
+                            label: Text(
+                              chipLabel,
+                              style: TextStyle(
+                                color: chipColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            selected: selectedType == type,
+                            backgroundColor: chipColor.withAlpha(50),
+                            selectedColor: chipColor.withAlpha(50),
+                            side: BorderSide.none,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            onSelected: (isSelected) {
+                              if (isSelected) {
+                                setState(() {
+                                  selectedType = type;
+                                });
+                              }
+                            },
+                          );
+                        }).toList(),
                       ),
                       const SizedBox(height: 32),
                       Row(

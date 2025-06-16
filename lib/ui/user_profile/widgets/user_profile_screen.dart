@@ -1,275 +1,613 @@
+// lib/ui/user_profile/widgets/user_profile_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
+import 'package:lonepeak/providers/auth_state_provider.dart';
+import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen_args.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
-  const UserProfileScreen({super.key});
+  final UserProfileScreenArgs args;
+
+  const UserProfileScreen({super.key, required this.args});
 
   @override
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  late TextEditingController _displayNameController;
+  late TextEditingController _emailController;
+  bool _isEditingPersonalInfo = false;
+  bool _isLoading = false;
+  bool _isDirty = false;
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(userProfileViewModelProvider.notifier).getUserProfile(),
-    );
+    final initialUser = widget.args.user;
+    _displayNameController =
+        TextEditingController(text: initialUser.displayName);
+    _emailController = TextEditingController(text: initialUser.email);
+
+    _displayNameController.addListener(_onTextChanged);
+    _emailController.addListener(_onTextChanged);
+  }
+
+  Color _generateAvatarColor(String name) {
+    if (name.isEmpty) return Colors.grey;
+    final int hash = name.hashCode.abs();
+    final double hue = (hash % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.7, 0.5).toColor();
+  }
+
+  void _onTextChanged() {
+    final authState = ref.read(authStateProvider);
+    final currentUser = authState.currentUser ?? widget.args.user;
+    final hasChanged =
+        _displayNameController.text.trim() != currentUser.displayName ||
+            _emailController.text.trim() != currentUser.email;
+
+    setState(() {
+      _isDirty = hasChanged;
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(userProfileViewModelProvider);
-    final user = ref.watch(userProfileViewModelProvider.notifier).user;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => GoRouter.of(context).go(Routes.estateHome),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child:
-              state is UIStateLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : state is UIStateFailure
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: .1),
-                        child:
-                            user?.photoUrl != null
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Image.network(
-                                    user!.photoUrl!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                                : Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        user?.displayName ?? 'User',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.titleLarge?.color,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 40),
-                      _buildInfoTile(
-                        context,
-                        'Email',
-                        user?.email ?? 'N/A',
-                        Icons.email,
-                      ),
-                      const Divider(),
-                      _buildInfoTile(
-                        context,
-                        'Phone',
-                        user?.mobile ?? 'Not provided',
-                        Icons.phone,
-                      ),
-                      const SizedBox(height: 40),
-                      ElevatedButton.icon(
-                        onPressed: _confirmExitEstate,
-                        icon: const Icon(Icons.exit_to_app),
-                        label: const Text(
-                          'Exit Estate',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _confirmLogout,
-                        icon: const Icon(Icons.logout),
-                        label: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: FilledButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: BorderSide(color: Colors.red),
-                          minimumSize: const Size(double.infinity, 48),
-                          backgroundColor: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-        ),
-      ),
-    );
+  void dispose() {
+    _displayNameController.removeListener(_onTextChanged);
+    _emailController.removeListener(_onTextChanged);
+    _displayNameController.dispose();
+    _emailController.dispose();
+    super.dispose();
   }
 
-  Widget _buildInfoTile(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-  ) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Icon(icon, color: theme.colorScheme.primary),
+  void _cancelEdit() {
+    final authState = ref.read(authStateProvider);
+    final currentUser = authState.currentUser ?? widget.args.user;
+
+    _displayNameController.text = currentUser.displayName;
+    _emailController.text = currentUser.email;
+    setState(() {
+      _isEditingPersonalInfo = false;
+      _isDirty = false;
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_isEditingPersonalInfo || !_isDirty) return;
+    final newDisplayName = _displayNameController.text.trim();
+    final newEmail = _emailController.text.trim();
+    final originalEmail =
+        (ref.read(authStateProvider).currentUser ?? widget.args.user).email;
+    FocusScope.of(context).unfocus();
+
+    if (newDisplayName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Display name cannot be empty')),
+      );
+      return;
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(newEmail)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email format')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final result = await ref.read(authStateProvider).updateProfile(
+            newDisplayName,
+            newEmail,
+          );
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        String successMessage = 'Profile updated successfully';
+        if (newEmail != originalEmail) {
+          successMessage += '\nA verification link has been sent to $newEmail.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(successMessage),
+            duration: const Duration(seconds: 5),
           ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.textTheme.bodyMedium?.color?.withValues(
-                    alpha: 0.6,
-                  ),
-                ),
+        );
+
+        setState(() {
+          _isEditingPersonalInfo = false;
+          _isDirty = false;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Error: ${result.error ?? "An unknown error occurred"}'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showSaveConfirmationDialog() {
+    FocusScope.of(context).unfocus();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Changes"),
+        content: const Text("Are you sure you want to save the changes?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _saveProfile();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textTheme.bodyLarge?.color,
-                ),
-              ),
-            ],
+            ),
+            child: const Text("Yes"),
           ),
         ],
       ),
     );
   }
 
-  void _confirmLogout() {
+  void _showExitEstateDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(
-              'Logout',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.titleLarge?.color,
-              ),
-            ),
-            content: Text(
-              'Are you sure you want to logout?',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-              AppElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  final success =
-                      await ref
-                          .read(userProfileViewModelProvider.notifier)
-                          .logout();
-                  if (success && context.mounted) {
-                    context.go(Routes.welcome);
-                  }
-                },
-                buttonText: 'Logout',
-                backgroundColor: Colors.red,
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text("Exit Estate"),
+        content: const Text("Are you sure you want to exit this estate?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Exited Estate')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text("Confirm"),
+          ),
+        ],
+      ),
     );
   }
 
-  void _confirmExitEstate() {
+  void _showLogoutDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(
-              'Exit Estate',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.titleLarge?.color,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(authStateProvider).logout();
+              GoRouter.of(context).go(Routes.login);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE55D5D),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            content: Text(
-              'Are you sure you want to exit this estate? You\'ll need to join or create a new estate afterwards.',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String nameForAvatar = _displayNameController.text;
+    final Color avatarColor = _generateAvatarColor(nameForAvatar);
+
+    final currentEstate = widget.args.estate;
+    final fullAddress =
+        '${currentEstate.address}, ${currentEstate.city}, Co. ${currentEstate.county}';
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color cardColor = isDarkMode ? Colors.grey[850]! : Colors.white;
+    final Color textColor = isDarkMode ? Colors.white : Colors.black;
+    final Color subtitleColor =
+        isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
+    final Color fieldBackgroundColor =
+        isDarkMode ? Colors.grey[700]! : Colors.grey[200]!;
+    final Color fieldTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: textColor),
+          onPressed: () {
+            if (GoRouter.of(context).canPop()) {
+              GoRouter.of(context).pop();
+            } else {
+              GoRouter.of(context).go(Routes.estateHome);
+            }
+          },
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Profile",
+                style: TextStyle(
+                    color: textColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
+            Text("Manage your account settings",
+                style: TextStyle(color: subtitleColor, fontSize: 14)),
+          ],
+        ),
+        toolbarHeight: 80,
+        actions: _isEditingPersonalInfo
+            ? [
+                TextButton(
+                  onPressed: _cancelEdit,
+                  child: const Text("Cancel"),
+                ),
+                const SizedBox(width: 8),
+              ]
+            : null,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionCard(
+                    context: context,
+                    icon: Icons.person,
+                    title: "Personal Information",
+                    subtitle: "Your personal account information",
+                    cardColor: cardColor,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    trailing: ElevatedButton.icon(
+                      onPressed: _isEditingPersonalInfo
+                          ? (_isDirty ? _showSaveConfirmationDialog : null)
+                          : () => setState(() => _isEditingPersonalInfo = true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isDarkMode ? Colors.grey[700] : Colors.grey[200],
+                        foregroundColor: textColor,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        minimumSize: Size.zero,
+                        disabledBackgroundColor:
+                            isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                      ),
+                      icon: Icon(
+                        _isEditingPersonalInfo ? Icons.check : Icons.edit,
+                        size: 18,
+                        color: _isEditingPersonalInfo && !_isDirty
+                            ? textColor.withAlpha(128)
+                            : textColor,
+                      ),
+                      label: Text(
+                        _isEditingPersonalInfo ? "Save" : "Edit",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _isEditingPersonalInfo && !_isDirty
+                              ? textColor.withAlpha(128)
+                              : textColor,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: CircleAvatar(
+                            radius: 40,
+                            backgroundColor: avatarColor,
+                            child: Text(
+                              nameForAvatar.isNotEmpty
+                                  ? nameForAvatar[0].toUpperCase()
+                                  : "",
+                              style: const TextStyle(
+                                fontSize: 40,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Text(
+                            "Avatar is generated from your name",
+                            style:
+                                TextStyle(fontSize: 13, color: subtitleColor),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Display Name",
+                          style: TextStyle(fontSize: 14, color: subtitleColor),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildEditableField(
+                          context,
+                          _displayNameController,
+                          "Display Name",
+                          fieldBackgroundColor,
+                          fieldTextColor,
+                          _isEditingPersonalInfo,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Email Address",
+                          style: TextStyle(fontSize: 14, color: subtitleColor),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildEditableField(
+                          context,
+                          _emailController,
+                          "Email Address",
+                          fieldBackgroundColor,
+                          fieldTextColor,
+                          _isEditingPersonalInfo,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionCard(
+                    context: context,
+                    icon: Icons.home,
+                    title: "Current Estate",
+                    subtitle: "The estate you are currently managing",
+                    cardColor: cardColor,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Estate Name",
+                            style:
+                                TextStyle(fontSize: 14, color: subtitleColor)),
+                        const SizedBox(height: 8),
+                        _buildReadOnlyField(context, currentEstate.name,
+                            fieldBackgroundColor, fieldTextColor),
+                        const SizedBox(height: 16),
+                        Text("Address",
+                            style:
+                                TextStyle(fontSize: 14, color: subtitleColor)),
+                        const SizedBox(height: 8),
+                        _buildReadOnlyField(context, fullAddress,
+                            fieldBackgroundColor, fieldTextColor),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _showExitEstateDialog,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[600],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            icon: const Icon(Icons.arrow_forward),
+                            label: const Text("Exit Estate",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w500)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionCard(
+                    context: context,
+                    icon: Icons.settings,
+                    title: "Account Actions",
+                    subtitle: "Manage your account and session",
+                    cardColor: cardColor,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _showLogoutDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE55D5D),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.logout),
+                        label: const Text("Logout",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500)),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+    );
+  }
+
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color cardColor,
+    required Color textColor,
+    required Color subtitleColor,
+    required Widget child,
+    Widget? trailing,
+  }) {
+    return Card(
+      color: cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shadowColor: Colors.black.withAlpha(26),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 24, color: textColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(fontSize: 13, color: subtitleColor),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              AppElevatedButton(
-                onPressed: () async {
-                  final success =
-                      await ref
-                          .read(userProfileViewModelProvider.notifier)
-                          .exitEstate();
-                  if (success && context.mounted) {
-                    context.go(Routes.estateSelect);
-                  }
-                },
-                buttonText: 'Exit',
-              ),
-            ],
+                if (trailing != null) trailing,
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyField(
+    BuildContext context,
+    String value,
+    Color bgColor,
+    Color textColor,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        value,
+        style: TextStyle(
+          fontSize: 16,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditableField(
+    BuildContext context,
+    TextEditingController controller,
+    String hintText,
+    Color bgColor,
+    Color textColor,
+    bool isEnabled, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: isEnabled,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        fontSize: 16,
+        color: textColor,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: textColor.withAlpha(153)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
+        filled: true,
+        fillColor: bgColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: isEnabled
+              ? BorderSide(color: Theme.of(context).primaryColor)
+              : BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: isEnabled
+                ? Theme.of(context).primaryColor.withAlpha(100)
+                : Colors.transparent,
           ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        isDense: true,
+      ),
     );
   }
 }

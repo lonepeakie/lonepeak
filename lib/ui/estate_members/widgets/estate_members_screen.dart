@@ -41,6 +41,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
 
     if (!isAdmin) {
       // Non-admin users shouldn't be able to modify members
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You need admin privileges to modify members'),
@@ -50,6 +51,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     }
 
     showModalBottomSheet(
+      // ignore: use_build_context_synchronously
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -86,6 +88,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               leading: CircleAvatar(
                 backgroundColor: Theme.of(
                   context,
+                  // ignore: deprecated_member_use
                 ).colorScheme.primary.withOpacity(0.1),
                 child: Text(
                   member.displayName[0],

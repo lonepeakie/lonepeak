@@ -5,31 +5,25 @@ abstract final class AppColors {
   static const Color black = Color.fromARGB(196, 0, 0, 0);
   static const Color white = Color.fromARGB(255, 249, 252, 254);
   static const Color lightblack = Color.fromARGB(156, 0, 0, 0);
-  static const Color black50 = Color.from(
-    alpha: 0.5,
-    red: 0,
-    green: 0,
-    blue: 0,
-  );
+  static const Color black50 = Color.fromARGB(128, 0, 0, 0); // 0.5 alpha
 }
 
 abstract final class AppThemes {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
-    scaffoldBackgroundColor: Color(0xFFF5F7FB),
+    scaffoldBackgroundColor: const Color(0xFFF5F7FB),
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
       secondary: Colors.grey,
       brightness: Brightness.light,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
     ),
     cardColor: Colors.white,
-    // cardColor: Colors.white,
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -63,17 +57,17 @@ abstract final class AppThemes {
       surface: const Color(0xFF121212),
       onSurface: Colors.white.withAlpha(225),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFF1E1E1E),
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
     ),
     cardColor: const Color(0xFF1E1E1E),
-    appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF1E1E1E),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF1E1E1E),
       elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.white),
-      titleTextStyle: const TextStyle(
+      iconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
         color: Colors.white,
         fontSize: 20,
         fontWeight: FontWeight.bold,
@@ -113,9 +107,8 @@ abstract final class AppStyles {
 
   static TextStyle subtitleText(BuildContext context) => TextStyle(
     fontSize: 14,
-    color: Theme.of(
-      context,
-    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+    // ignore: deprecated_member_use
+    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
   );
 
   static TextStyle labelText(BuildContext context) => TextStyle(
