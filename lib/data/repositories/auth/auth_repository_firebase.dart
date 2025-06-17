@@ -7,7 +7,7 @@ import 'package:lonepeak/domain/models/user.dart' as app_user;
 
 class AuthRepositoryFirebase extends AuthRepository {
   AuthRepositoryFirebase({required AuthService authService})
-    : _authService = authService;
+      : _authService = authService;
 
   final AuthService _authService;
 

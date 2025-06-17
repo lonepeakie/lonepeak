@@ -6,7 +6,7 @@ import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 class PendingMembersScreen extends ConsumerStatefulWidget {
-  const PendingMembersScreen({super.key});
+  const PendingMembersScreen({super.key, required String estateId});
 
   @override
   ConsumerState<PendingMembersScreen> createState() =>

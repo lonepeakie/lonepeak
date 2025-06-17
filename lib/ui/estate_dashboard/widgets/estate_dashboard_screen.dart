@@ -75,7 +75,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                           CircleAvatar(
                             radius: 30,
                             backgroundColor: Colors.blue[70],
-                            child: Icon(
+                            child: const Icon(
                               Icons.home,
                               color: AppColors.primary,
                               size: 30,
@@ -164,9 +164,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate documents',
                     icon: Icons.description,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateDocuments);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateDocuments,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -174,9 +177,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate notices',
                     icon: Icons.notifications,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateNotices);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateNotices,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -184,9 +190,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate members',
                     icon: Icons.groups,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateMembers);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateMembers,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -194,9 +203,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate treasury',
                     icon: Icons.account_balance_wallet,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateTreasury);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateTreasury,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                 ],
@@ -226,7 +238,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.notifications_outlined,
                       color: AppColors.primary,
                     ),
@@ -239,9 +251,15 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
                 AppTextIconButton(
                   onPressed: () {
-                    GoRouter.of(
-                      context,
-                    ).go(Routes.estateHome + Routes.estateNotices);
+                    final estateId = ref
+                        .read(estateDashboardViewModelProvider.notifier)
+                        .estate
+                        .id;
+                    if (estateId != null) {
+                      GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateNotices,
+                          extra: estateId);
+                    }
                   },
                   icon: Icons.arrow_forward_ios,
                 ),
@@ -299,9 +317,15 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
                 AppTextIconButton(
                   onPressed: () {
-                    GoRouter.of(
-                      context,
-                    ).go(Routes.estateHome + Routes.estateMembers);
+                    final estateId = ref
+                        .read(estateDashboardViewModelProvider.notifier)
+                        .estate
+                        .id;
+                    if (estateId != null) {
+                      GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateMembers,
+                          extra: estateId);
+                    }
                   },
                   icon: Icons.arrow_forward_ios,
                 ),

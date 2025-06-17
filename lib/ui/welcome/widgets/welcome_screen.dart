@@ -17,8 +17,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ignore: prefer_const_constructors
-              SizedBox(height: 64),
+              const SizedBox(height: 64),
               Row(
                 children: [
                   Icon(
@@ -26,8 +25,7 @@ class WelcomeScreen extends StatelessWidget {
                     color: theme.colorScheme.primary,
                     size: 32,
                   ),
-                  // ignore: prefer_const_constructors
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     'MyEstate',
                     style: TextStyle(
@@ -38,7 +36,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               Text(
                 'Manage your estate\ncommunity with ease',
                 style: TextStyle(
@@ -47,23 +45,22 @@ class WelcomeScreen extends StatelessWidget {
                   color: theme.textTheme.headlineLarge?.color,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'A comprehensive platform for estate management, designed to simplify community administration and foster collaboration.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: theme.textTheme.bodyMedium?.color?.withValues(
-                    alpha: 0.7,
-                  ),
+                  color: theme.textTheme.bodyMedium?.color?.withAlpha(179),
                 ),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () => context.go(Routes.login),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -79,7 +76,7 @@ class WelcomeScreen extends StatelessWidget {
                         color: theme.colorScheme.onPrimary,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Icon(
                       Icons.arrow_forward,
                       color: theme.colorScheme.onPrimary,
@@ -87,14 +84,14 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 48),
+              const SizedBox(height: 48),
               GridView.count(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                children: [
+                children: const [
                   _FeatureCard(
                     title: 'Document Management',
                     description:
@@ -117,7 +114,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -138,17 +135,17 @@ class _FeatureCard extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.grey.withValues(alpha: 0.1),
+                ? Colors.black.withAlpha(51)
+                : Colors.grey.withAlpha(25),
             blurRadius: 8,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -163,12 +160,12 @@ class _FeatureCard extends StatelessWidget {
               color: theme.textTheme.titleMedium?.color,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             description,
             style: TextStyle(
               fontSize: 14,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              color: theme.textTheme.bodyMedium?.color?.withAlpha(179),
             ),
           ),
         ],

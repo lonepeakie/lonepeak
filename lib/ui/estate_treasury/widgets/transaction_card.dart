@@ -6,9 +6,14 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 
 class TransactionCard extends ConsumerWidget {
-  const TransactionCard({super.key, required this.transaction});
+  const TransactionCard({
+    super.key,
+    required this.transaction,
+    required this.estateId,
+  });
 
   final TreasuryTransaction transaction;
+  final String estateId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -126,7 +131,7 @@ class TransactionCard extends ConsumerWidget {
               onPressed: () {
                 if (transaction.id != null) {
                   ref
-                      .read(treasuryViewModelProvider.notifier)
+                      .read(treasuryViewModelProvider(estateId).notifier)
                       .deleteTransaction(transaction.id!)
                       .then((result) {
                     if (context.mounted) {

@@ -10,7 +10,7 @@ import 'package:lonepeak/ui/estate_documents/widgets/document_breadcrumbs.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_tile.dart';
 
 class EstateDocumentsScreen extends ConsumerStatefulWidget {
-  const EstateDocumentsScreen({super.key});
+  const EstateDocumentsScreen({super.key, required String estateId});
 
   @override
   ConsumerState<EstateDocumentsScreen> createState() =>

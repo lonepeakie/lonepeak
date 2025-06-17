@@ -28,9 +28,9 @@ class AppState {
     required AuthRepository authRepository,
     required UsersRepository usersRepository,
     required FlutterSecureStorage secureStorage,
-  }) : _authRepository = authRepository,
-       _usersRepository = usersRepository,
-       _secureStorage = secureStorage {
+  })  : _authRepository = authRepository,
+        _usersRepository = usersRepository,
+        _secureStorage = secureStorage {
     _loadEstateId();
     loadUserRole();
   }
@@ -45,7 +45,6 @@ class AppState {
   String? _estateId;
   String? _userRole;
 
-  // Estate ID methods
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
     return _loadEstateId();
@@ -63,8 +62,9 @@ class AppState {
   Future<Result<void>> setEstateId(String? estateId) async {
     if (estateId == null) {
       final authResult = _authRepository.getCurrentUser();
-      if (authResult.isFailure)
+      if (authResult.isFailure) {
         return Result.failure('Failed to get current user');
+      }
 
       final currentUser = authResult.data;
       final storedUser = await _usersRepository.getUser(currentUser!.email);
@@ -96,7 +96,6 @@ class AppState {
     }
   }
 
-  // Role methods
   Future<Result<void>> setAppData() async {
     final estateIdResult = await setEstateId(null);
     if (estateIdResult.isFailure) return estateIdResult;

@@ -1,3 +1,5 @@
+// lib/ui/estate_treasury/widgets/estate_treasury_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -7,10 +9,12 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
+import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions_bottom_sheet.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
 
 class EstateTreasuryScreen extends ConsumerStatefulWidget {
-  const EstateTreasuryScreen({super.key});
+  final String estateId;
+  const EstateTreasuryScreen({super.key, required this.estateId});
 
   @override
   ConsumerState<EstateTreasuryScreen> createState() =>
@@ -22,21 +26,41 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-      () => ref.read(treasuryViewModelProvider.notifier).loadTransactions(),
+      () => ref
+          .read(treasuryViewModelProvider(widget.estateId).notifier)
+          .loadTransactions(),
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) =>
+          FilterTransactionsBottomSheet(estateId: widget.estateId),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final treasuryState = ref.watch(treasuryViewModelProvider);
+    final treasuryState = ref.watch(treasuryViewModelProvider(widget.estateId));
+    final areFiltersActive = !treasuryState.filters.isClear;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Treasury'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_alt_outlined),
-            onPressed: () {},
+          Badge(
+            isLabelVisible: areFiltersActive,
+            child: IconButton(
+              icon: Icon(
+                areFiltersActive ? Icons.filter_alt : Icons.filter_alt_outlined,
+              ),
+              onPressed: () => _showFilterBottomSheet(context),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.download_outlined),
@@ -61,6 +85,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       const SizedBox(height: 24),
                       _buildRecentTransactionsContainer(
                         treasuryState.transactions,
+                        areFiltersActive,
                       ),
                     ],
                   ),
@@ -99,23 +124,49 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
 
   Widget _buildRecentTransactionsContainer(
     List<TreasuryTransaction> transactions,
+    bool areFiltersActive,
   ) {
     return SizedBox(
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Recent Transactions', style: AppStyles.titleTextSmall(context)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                areFiltersActive ? 'Filtered Results' : 'Recent Transactions',
+                style: AppStyles.titleTextSmall(context),
+              ),
+              if (areFiltersActive)
+                TextButton(
+                  onPressed: () => ref
+                      .read(treasuryViewModelProvider(widget.estateId).notifier)
+                      .clearFilters(),
+                  child: const Text('Clear Filters'),
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           transactions.isEmpty
-              ? const Center(child: Text('No transactions found'))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Text(
+                      areFiltersActive
+                          ? 'No transactions match your filters.'
+                          : 'No transactions found.',
+                    ),
+                  ),
+                )
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: transactions.length,
                   itemBuilder: (context, index) {
                     final transaction = transactions[index];
-                    return TransactionCard(transaction: transaction);
+                    return TransactionCard(
+                        transaction: transaction, estateId: widget.estateId);
                   },
                 ),
         ],
@@ -138,7 +189,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           title: titleController.text,
           amount: double.parse(amountController.text),
           type: selectedType,
-          date: DateTime.parse(dateController.text),
+          date: DateFormat('yyyy-MM-dd').parse(dateController.text),
           description: descriptionController.text.isEmpty
               ? null
               : descriptionController.text,
@@ -146,7 +197,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         );
 
         ref
-            .read(treasuryViewModelProvider.notifier)
+            .read(treasuryViewModelProvider(widget.estateId).notifier)
             .addTransaction(newTransaction)
             .then((result) {
           if (result.isSuccess) {
@@ -215,8 +266,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Income/Expense toggle
                       Row(
                         children: [
                           const Text('Transaction is: '),
@@ -318,7 +367,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

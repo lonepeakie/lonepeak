@@ -12,7 +12,7 @@ import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateNoticesScreen extends ConsumerStatefulWidget {
-  const EstateNoticesScreen({super.key});
+  const EstateNoticesScreen({super.key, required String estateId});
 
   @override
   ConsumerState<EstateNoticesScreen> createState() =>

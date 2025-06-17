@@ -1,5 +1,3 @@
-// lib/providers/auth_state_provider.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -57,7 +55,6 @@ class AuthState extends ChangeNotifier {
     }
   }
 
-  // NOTE: This method now correctly calls the implemented repository method.
   Future<Result<User>> updateProfile(String displayName, String email) async {
     final result = await _authRepository.updateProfile(displayName, email);
     if (result.isSuccess) {
@@ -78,7 +75,6 @@ class AuthState extends ChangeNotifier {
     await _checkAuthState();
   }
 
-  // NOTE: This method now correctly calls the implemented repository method.
   Future<void> refreshUserData() async {
     final result = await _authRepository.refreshUserData();
     if (result.isSuccess) {

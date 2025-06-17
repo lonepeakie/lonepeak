@@ -13,83 +13,66 @@ extension TransactionTypeExtension on TransactionType {
       case TransactionType.utilities:
         return 'Utilities';
       case TransactionType.rental:
-        return 'Rental';
+        return 'Rental Income';
       case TransactionType.fees:
-        return 'Annual Fees';
+        return 'Fees';
       case TransactionType.other:
         return 'Other';
-    }
-  }
-
-  String get iconData {
-    switch (this) {
-      case TransactionType.maintenance:
-        return 'construction';
-      case TransactionType.insurance:
-        return 'shield';
-      case TransactionType.utilities:
-        return 'power';
-      case TransactionType.rental:
-        return 'home';
-      case TransactionType.fees:
-        return 'payments';
-      case TransactionType.other:
-        return 'more_horiz';
     }
   }
 }
 
 class TreasuryTransaction {
-  String? id;
-  String title;
-  TransactionType type;
-  double amount;
-  DateTime date;
-  String? description;
-  bool isIncome;
+  final String? id;
+  final String title;
+  final double amount;
+  final TransactionType type;
+  final DateTime date;
+  final String? description;
+  final bool isIncome;
   Metadata? metadata;
 
   TreasuryTransaction({
     this.id,
     required this.title,
-    required this.type,
     required this.amount,
+    required this.type,
     required this.date,
     this.description,
     required this.isIncome,
     this.metadata,
   });
 
-  factory TreasuryTransaction.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data() as Map<String, dynamic>;
+  factory TreasuryTransaction.fromJson(
+    Map<String, dynamic> json, {
+    required String id,
+  }) {
     return TreasuryTransaction(
-      id: snapshot.id,
-      title: data['title'] ?? '',
+      id: id,
+      title: json['title'] as String,
+      amount: (json['amount'] as num).toDouble(),
       type: TransactionType.values.firstWhere(
-        (e) => e.toString() == data['type'],
+        (e) => e.name == json['type'],
         orElse: () => TransactionType.other,
       ),
-      amount: (data['amount'] ?? 0).toDouble(),
-      date: (data['date'] as Timestamp).toDate(),
-      description: data['description'],
-      isIncome: data['isIncome'] ?? false,
-      metadata: Metadata.fromJson(data['metadata']),
+      date: (json['date'] as Timestamp).toDate(),
+      description: json['description'] as String?,
+      isIncome: json['isIncome'] as bool,
+      metadata: json['metadata'] != null
+          ? Metadata.fromJson(json['metadata'])
+          : null,
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toJson() {
     return {
       'title': title,
-      'type': type.toString(),
       'amount': amount,
+      'type': type.name,
       'date': Timestamp.fromDate(date),
       'description': description,
       'isIncome': isIncome,
-      'metadata': metadata?.toJson() ??
-          {'createdAt': Timestamp.now(), 'updatedAt': Timestamp.now()},
+      'metadata': metadata?.toJson(),
     };
   }
 }
