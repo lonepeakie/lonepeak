@@ -38,11 +38,11 @@ class EstateFeatures {
     required AuthRepository authRepository,
     required UsersRepository usersRepository,
     required AppState appState,
-  }) : _estateRepository = estateRepository,
-       _membersRepository = membersRepository,
-       _authRepository = authRepository,
-       _usersRepository = usersRepository,
-       _appState = appState;
+  })  : _estateRepository = estateRepository,
+        _membersRepository = membersRepository,
+        _authRepository = authRepository,
+        _usersRepository = usersRepository,
+        _appState = appState;
 
   final EstateRepository _estateRepository;
   final MembersRepository _membersRepository;
@@ -51,7 +51,6 @@ class EstateFeatures {
   final AppState _appState;
 
   Future<Result<void>> createEstateAndAddMember(Estate estateData) async {
-    // Get the current user
     final authResult = _authRepository.getCurrentUser();
     if (authResult.isFailure) {
       return Result.failure('Failed to get current user');
@@ -61,7 +60,6 @@ class EstateFeatures {
       return Result.failure('Current user is null');
     }
 
-    // Create the estate
     estateData.metadata = Metadata(
       createdAt: Timestamp.now(),
       createdBy: currentUser.email,
@@ -74,7 +72,6 @@ class EstateFeatures {
     final String estateId = estateResult.data as String;
     _appState.setEstateId(estateId);
 
-    // Create the member
     final member = Member(
       email: currentUser.email,
       displayName: currentUser.displayName,
@@ -85,15 +82,12 @@ class EstateFeatures {
       ),
     );
 
-    // Add the member
     final memberResult = await _membersRepository.addMember(member);
     if (memberResult.isFailure) {
-      // If adding the member fails, delete the estate
       final estateDeleteResult = await _estateRepository.deleteEstate();
       if (estateDeleteResult.isFailure) {
         return Result.failure(
-          'Failed to delete estate after member addition failure',
-        );
+            'Failed to delete estate after member addition failure');
       }
 
       return Result.failure('Failed to add member');
@@ -192,8 +186,7 @@ class EstateFeatures {
     final updatedUser = user.data!.copyWithEmptyEstateId(
       metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
     );
-    // ignore: avoid_print
-    print('Updated user: ${updatedUser.toFirestore()}');
+
     final userUpdateResult = await _usersRepository.updateUser(updatedUser);
     if (userUpdateResult.isFailure) {
       return Result.failure('Failed to update user');

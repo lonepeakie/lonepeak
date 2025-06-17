@@ -134,64 +134,61 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   void _showChangeRoleDialog(BuildContext context, Member member) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Change Role'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView(
-                shrinkWrap: true,
-                children:
-                    RoleType.values
-                        .map(
-                          (role) => ListTile(
-                            title: Text(role.name),
-                            selected: member.role == role,
-                            onTap: () {
-                              Navigator.of(context).pop();
-                              Navigator.of(context).pop();
-                              _updateMemberRole(member, role);
-                            },
-                          ),
-                        )
-                        .toList(),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Change Role'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: RoleType.values
+                .map(
+                  (role) => ListTile(
+                    title: Text(role.name),
+                    selected: member.role == role,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      _updateMemberRole(member, role);
+                    },
+                  ),
+                )
+                .toList(),
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
     );
   }
 
   void _showRemoveMemberConfirmation(BuildContext context, Member member) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Remove Member'),
-            content: Text(
-              'Are you sure you want to remove ${member.displayName}?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  _removeMember(member);
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Remove'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Member'),
+        content: Text(
+          'Are you sure you want to remove ${member.displayName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+              _removeMember(member);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -252,27 +249,25 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     final activeMembers =
         ref.watch(estateMembersViewModelProvider.notifier).activeMembers;
 
-    final filteredMembers =
-        _searchQuery.isEmpty
-            ? activeMembers
-            : activeMembers.where((member) {
-              final name = member.displayName.toLowerCase();
-              final email = member.email.toLowerCase();
-              final role = member.role.name.toLowerCase();
-              return name.contains(_searchQuery.toLowerCase()) ||
-                  email.contains(_searchQuery.toLowerCase()) ||
-                  role.contains(_searchQuery.toLowerCase());
-            }).toList();
+    final filteredMembers = _searchQuery.isEmpty
+        ? activeMembers
+        : activeMembers.where((member) {
+            final name = member.displayName.toLowerCase();
+            final email = member.email.toLowerCase();
+            final role = member.role.name.toLowerCase();
+            return name.contains(_searchQuery.toLowerCase()) ||
+                email.contains(_searchQuery.toLowerCase()) ||
+                role.contains(_searchQuery.toLowerCase());
+          }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const AppbarTitle(text: 'Members'),
         actions: [
           FutureBuilder<bool>(
-            future:
-                ref
-                    .watch(estateMembersViewModelProvider.notifier)
-                    .hasAdminPrivileges(),
+            future: ref
+                .watch(estateMembersViewModelProvider.notifier)
+                .hasAdminPrivileges(),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data == true) {
                 return Stack(
@@ -328,18 +323,17 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  suffixIcon:
-                      _searchQuery.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                          : null,
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -374,26 +368,26 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                   } else {
                     return filteredMembers.isEmpty
                         ? Center(
-                          child: Text(
-                            _searchQuery.isEmpty
-                                ? 'No members found'
-                                : 'No matching members found',
-                          ),
-                        )
+                            child: Text(
+                              _searchQuery.isEmpty
+                                  ? 'No members found'
+                                  : 'No matching members found',
+                            ),
+                          )
                         : ListView.builder(
-                          itemCount: filteredMembers.length,
-                          itemBuilder: (context, index) {
-                            final member = filteredMembers[index];
-                            final roleName = member.role.name;
-                            return MemberTile(
-                              name: member.displayName,
-                              email: member.email,
-                              role: roleName,
-                              onTap:
-                                  () => _showMemberActionSheet(context, member),
-                            );
-                          },
-                        );
+                            itemCount: filteredMembers.length,
+                            itemBuilder: (context, index) {
+                              final member = filteredMembers[index];
+                              final roleName = member.role.name;
+                              return MemberTile(
+                                name: member.displayName,
+                                email: member.email,
+                                role: roleName,
+                                onTap: () =>
+                                    _showMemberActionSheet(context, member),
+                              );
+                            },
+                          );
                   }
                 },
               ),

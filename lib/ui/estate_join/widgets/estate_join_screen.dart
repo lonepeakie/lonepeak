@@ -38,17 +38,16 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
     final availableEstates =
         ref.watch(estateJoinViewModelProvider.notifier).availableEstates;
 
-    final filteredEstates =
-        _searchQuery.isEmpty
-            ? availableEstates
-            : availableEstates.where((estate) {
-              final name = estate.name.toLowerCase();
-              final city = estate.city.toLowerCase();
-              final county = estate.county.toLowerCase();
-              return name.contains(_searchQuery.toLowerCase()) ||
-                  city.contains(_searchQuery.toLowerCase()) ||
-                  county.contains(_searchQuery.toLowerCase());
-            }).toList();
+    final filteredEstates = _searchQuery.isEmpty
+        ? availableEstates
+        : availableEstates.where((estate) {
+            final name = estate.name.toLowerCase();
+            final city = estate.city.toLowerCase();
+            final county = estate.county.toLowerCase();
+            return name.contains(_searchQuery.toLowerCase()) ||
+                city.contains(_searchQuery.toLowerCase()) ||
+                county.contains(_searchQuery.toLowerCase());
+          }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -80,18 +79,17 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  suffixIcon:
-                      _searchQuery.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                          : null,
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -126,27 +124,26 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                     } else {
                       return filteredEstates.isEmpty
                           ? Center(
-                            child: Text(
-                              _searchQuery.isEmpty
-                                  ? 'No members found'
-                                  : 'No matching members found',
-                            ),
-                          )
+                              child: Text(
+                                _searchQuery.isEmpty
+                                    ? 'No members found'
+                                    : 'No matching members found',
+                              ),
+                            )
                           : ListView.builder(
-                            itemCount: filteredEstates.length,
-                            itemBuilder: (context, index) {
-                              final estate = filteredEstates[index];
-                              return EstateTile(
-                                estate: estate,
-                                onTap:
-                                    () => _showJoinConfirmationDialog(
-                                      context,
-                                      estate.id ?? '',
-                                      estate.name,
-                                    ),
-                              );
-                            },
-                          );
+                              itemCount: filteredEstates.length,
+                              itemBuilder: (context, index) {
+                                final estate = filteredEstates[index];
+                                return EstateTile(
+                                  estate: estate,
+                                  onTap: () => _showJoinConfirmationDialog(
+                                    context,
+                                    estate.id ?? '',
+                                    estate.name,
+                                  ),
+                                );
+                              },
+                            );
                     }
                   },
                 ),

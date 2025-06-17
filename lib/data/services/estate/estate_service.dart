@@ -39,13 +39,12 @@ class EstateService {
         )
         .add(estateData)
         .then((docRef) async {
-          _log.i('Estate created successfully with ID: ${docRef.id}');
-          return Result.success(docRef.id);
-        })
-        .catchError((error) {
-          _log.e('Error creating estate: $error');
-          return Result<String>.failure('Failed to create estate: $error');
-        });
+      _log.i('Estate created successfully with ID: ${docRef.id}');
+      return Result.success(docRef.id);
+    }).catchError((error) {
+      _log.e('Error creating estate: $error');
+      return Result<String>.failure('Failed to create estate: $error');
+    });
   }
 
   Future<Result<Estate>> getEstate(String estateId) async {
@@ -73,16 +72,15 @@ class EstateService {
 
   Future<Result<List<Estate>>> getPublicEstates() async {
     try {
-      final querySnapshot =
-          await _db
-              .collection('estates')
-              .withConverter(
-                fromFirestore: Estate.fromFirestore,
-                toFirestore: (Estate estate, options) => estate.toFirestore(),
-              )
-              // In a real application, you'd have a field to indicate if an estate is public/joinable
-              // For now, we're just getting all estates
-              .get();
+      final querySnapshot = await _db
+          .collection('estates')
+          .withConverter(
+            fromFirestore: Estate.fromFirestore,
+            toFirestore: (Estate estate, options) => estate.toFirestore(),
+          )
+          // In a real application, you'd have a field to indicate if an estate is public/joinable
+          // For now, we're just getting all estates
+          .get();
 
       final estates = querySnapshot.docs.map((doc) => doc.data()).toList();
 

@@ -21,10 +21,9 @@ class TreasuryService {
       final snapshot =
           await transactionsRef.orderBy('date', descending: true).get();
 
-      final transactions =
-          snapshot.docs
-              .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
-              .toList();
+      final transactions = snapshot.docs
+          .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
+          .toList();
 
       return Result.success(transactions);
     } catch (e) {
@@ -148,10 +147,9 @@ class TreasuryService {
       }
 
       final snapshot = await query.get();
-      final transactions =
-          snapshot.docs
-              .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
-              .toList();
+      final transactions = snapshot.docs
+          .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
+          .toList();
 
       final summary = <TransactionType, double>{};
 

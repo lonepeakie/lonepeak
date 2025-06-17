@@ -48,24 +48,23 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           ),
         ],
       ),
-      body:
-          treasuryState.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : treasuryState.errorMessage != null
+      body: treasuryState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : treasuryState.errorMessage != null
               ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
               : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCurrentBalanceCard(treasuryState.currentBalance),
-                    const SizedBox(height: 24),
-                    _buildRecentTransactionsContainer(
-                      treasuryState.transactions,
-                    ),
-                  ],
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCurrentBalanceCard(treasuryState.currentBalance),
+                      const SizedBox(height: 24),
+                      _buildRecentTransactionsContainer(
+                        treasuryState.transactions,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
     );
   }
 
@@ -111,14 +110,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           transactions.isEmpty
               ? const Center(child: Text('No transactions found'))
               : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = transactions[index];
-                  return TransactionCard(transaction: transaction);
-                },
-              ),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: transactions.length,
+                  itemBuilder: (context, index) {
+                    final transaction = transactions[index];
+                    return TransactionCard(transaction: transaction);
+                  },
+                ),
         ],
       ),
     );
@@ -140,10 +139,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           amount: double.parse(amountController.text),
           type: selectedType,
           date: DateTime.parse(dateController.text),
-          description:
-              descriptionController.text.isEmpty
-                  ? null
-                  : descriptionController.text,
+          description: descriptionController.text.isEmpty
+              ? null
+              : descriptionController.text,
           isIncome: isIncome,
         );
 
@@ -151,23 +149,23 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             .read(treasuryViewModelProvider.notifier)
             .addTransaction(newTransaction)
             .then((result) {
-              if (result.isSuccess) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transaction added successfully'),
-                    ),
-                  );
-                }
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${result.error}')),
-                  );
-                }
-              }
-            });
+          if (result.isSuccess) {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Transaction added successfully'),
+                ),
+              );
+            }
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: ${result.error}')),
+              );
+            }
+          }
+        });
       }
     }
 
@@ -303,15 +301,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         initialValue: selectedType,
                         required: true,
                         errorText: 'Please select a transaction type',
-                        items:
-                            TransactionType.values
-                                .map(
-                                  (type) => DropdownItem<TransactionType>(
-                                    value: type,
-                                    label: type.displayName,
-                                  ),
-                                )
-                                .toList(),
+                        items: TransactionType.values
+                            .map(
+                              (type) => DropdownItem<TransactionType>(
+                                value: type,
+                                label: type.displayName,
+                              ),
+                            )
+                            .toList(),
                         onChanged: (TransactionType? newValue) {
                           if (newValue != null) {
                             setState(() {

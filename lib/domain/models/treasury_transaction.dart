@@ -88,8 +88,7 @@ class TreasuryTransaction {
       'date': Timestamp.fromDate(date),
       'description': description,
       'isIncome': isIncome,
-      'metadata':
-          metadata?.toJson() ??
+      'metadata': metadata?.toJson() ??
           {'createdAt': Timestamp.now(), 'updatedAt': Timestamp.now()},
     };
   }

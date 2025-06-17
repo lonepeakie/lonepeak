@@ -8,15 +8,15 @@ import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateCreateViewModelProvider =
     StateNotifierProvider<EstateCreateViewmodel, UIState>((ref) {
-      return EstateCreateViewmodel(
-        estateFeatures: ref.read(estateFeaturesProvider),
-      );
-    });
+  return EstateCreateViewmodel(
+    estateFeatures: ref.read(estateFeaturesProvider),
+  );
+});
 
 class EstateCreateViewmodel extends StateNotifier<UIState> {
   EstateCreateViewmodel({required EstateFeatures estateFeatures})
-    : _estateFeatures = estateFeatures,
-      super(UIStateInitial());
+      : _estateFeatures = estateFeatures,
+        super(UIStateInitial());
 
   final EstateFeatures _estateFeatures;
   final _log = Logger(printer: PrefixedLogPrinter('EstateCreateViewModel'));

@@ -45,9 +45,9 @@ class AppState {
   String? _estateId;
   String? _userRole;
 
+  // Estate ID methods
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
-
     return _loadEstateId();
   }
 
@@ -63,24 +63,19 @@ class AppState {
   Future<Result<void>> setEstateId(String? estateId) async {
     if (estateId == null) {
       final authResult = _authRepository.getCurrentUser();
-      if (authResult.isFailure) {
+      if (authResult.isFailure)
         return Result.failure('Failed to get current user');
-      }
-      final currentUser = authResult.data;
 
+      final currentUser = authResult.data;
       final storedUser = await _usersRepository.getUser(currentUser!.email);
-      if (storedUser.isFailure) {
-        return Result.failure('Failed to get user');
-      }
+      if (storedUser.isFailure) return Result.failure('Failed to get user');
 
       _estateId = storedUser.data?.estateId;
     } else {
       _estateId = estateId;
     }
 
-    if (_estateId == null) {
-      return Result.failure('Estate ID is null');
-    }
+    if (_estateId == null) return Result.failure('Estate ID is null');
 
     try {
       await _secureStorage.write(key: _estateIdKey, value: _estateId);
@@ -101,12 +96,10 @@ class AppState {
     }
   }
 
+  // Role methods
   Future<Result<void>> setAppData() async {
     final estateIdResult = await setEstateId(null);
-    if (estateIdResult.isFailure) {
-      return estateIdResult;
-    }
-
+    if (estateIdResult.isFailure) return estateIdResult;
     return await clearUserRole();
   }
 
@@ -120,13 +113,11 @@ class AppState {
 
   Future<String?> getUserRole() async {
     if (_userRole != null) return _userRole;
-
     return loadUserRole();
   }
 
   Future<Result<void>> setUserRole(String role) async {
     _userRole = role;
-
     try {
       await _secureStorage.write(key: _userRoleKey, value: role);
       return Result.success(null);
@@ -146,7 +137,6 @@ class AppState {
 
   Future<Result<void>> clearUserRole() async {
     _userRole = null;
-
     try {
       await _secureStorage.delete(key: _userRoleKey);
       return Result.success(null);

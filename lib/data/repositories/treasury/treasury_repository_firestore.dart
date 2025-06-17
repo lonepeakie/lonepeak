@@ -10,8 +10,8 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   TreasuryRepositoryFirestore({
     required AppState appState,
     required TreasuryService treasuryService,
-  }) : _treasuryService = treasuryService,
-       _appState = appState;
+  })  : _treasuryService = treasuryService,
+        _appState = appState;
 
   final TreasuryService _treasuryService;
   final AppState _appState;

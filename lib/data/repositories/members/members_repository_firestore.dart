@@ -10,8 +10,8 @@ class MembersRepositoryFirestore extends MembersRepository {
   MembersRepositoryFirestore({
     required AppState appState,
     required MembersService membersService,
-  }) : _membersService = membersService,
-       _appState = appState;
+  })  : _membersService = membersService,
+        _appState = appState;
 
   final MembersService _membersService;
   final AppState _appState;

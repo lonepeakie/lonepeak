@@ -10,8 +10,8 @@ class NoticesRepositoryFirestore extends NoticesRepository {
   NoticesRepositoryFirestore({
     required NoticesService noticesService,
     required AppState appState,
-  }) : _noticesService = noticesService,
-       _appState = appState;
+  })  : _noticesService = noticesService,
+        _appState = appState;
 
   final NoticesService _noticesService;
   final AppState _appState;

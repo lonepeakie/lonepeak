@@ -9,11 +9,11 @@ import 'package:lonepeak/utils/log_printer.dart';
 
 final estateJoinViewModelProvider =
     StateNotifierProvider<EstateJoinViewModel, UIState>(
-      (ref) => EstateJoinViewModel(
-        estateRepository: ref.read(estateRepositoryProvider),
-        estateFeatures: ref.read(estateFeaturesProvider),
-      ),
-    );
+  (ref) => EstateJoinViewModel(
+    estateRepository: ref.read(estateRepositoryProvider),
+    estateFeatures: ref.read(estateFeaturesProvider),
+  ),
+);
 
 class EstateJoinViewModel extends StateNotifier<UIState> {
   final EstateRepository _estateRepository;
@@ -31,9 +31,9 @@ class EstateJoinViewModel extends StateNotifier<UIState> {
   EstateJoinViewModel({
     required EstateRepository estateRepository,
     required EstateFeatures estateFeatures,
-  }) : _estateRepository = estateRepository,
-       _estateFeatures = estateFeatures,
-       super(UIStateInitial()) {
+  })  : _estateRepository = estateRepository,
+        _estateFeatures = estateFeatures,
+        super(UIStateInitial()) {
     loadAvailableEstates();
   }
 

@@ -22,9 +22,9 @@ class LoginViewModel extends StateNotifier<UIState> {
   LoginViewModel({
     required UserSiginFeature userSiginFeature,
     required AuthRepository authRepository,
-  }) : _authRepository = authRepository,
-       _userSiginFeature = userSiginFeature,
-       super(UIStateInitial());
+  })  : _authRepository = authRepository,
+        _userSiginFeature = userSiginFeature,
+        super(UIStateInitial());
 
   final AuthRepository _authRepository;
   final UserSiginFeature _userSiginFeature;

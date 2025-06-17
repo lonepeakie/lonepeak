@@ -27,27 +27,24 @@ class DocumentTile extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? theme.colorScheme.primaryContainer
-                  : theme.colorScheme.surface,
+          color: isSelected
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color:
-                isSelected
-                    ? theme.colorScheme.primary
-                    // ignore: deprecated_member_use
-                    : theme.colorScheme.surfaceVariant,
+            color: isSelected
+                ? theme.colorScheme.primary
+                // ignore: deprecated_member_use
+                : theme.colorScheme.surfaceVariant,
             width: 1,
           ),
         ),
         child: Center(
           child: Icon(
             icon,
-            color:
-                isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurfaceVariant,
             size: 24,
           ),
         ),
@@ -59,18 +56,17 @@ class DocumentTile extends StatelessWidget {
           fontWeight: isFolder ? FontWeight.w600 : FontWeight.normal,
         ),
       ),
-      subtitle:
-          document.description != null
-              ? Text(
-                document.description!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 12,
-                ),
-              )
-              : null,
+      subtitle: document.description != null
+          ? Text(
+              document.description!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            )
+          : null,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -90,10 +86,9 @@ class DocumentTile extends StatelessWidget {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side:
-            isSelected
-                ? BorderSide(color: theme.colorScheme.primary, width: 1)
-                : BorderSide.none,
+        side: isSelected
+            ? BorderSide(color: theme.colorScheme.primary, width: 1)
+            : BorderSide.none,
       ),
     );
   }

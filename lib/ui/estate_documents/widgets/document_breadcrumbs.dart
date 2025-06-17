@@ -6,7 +6,6 @@ class DocumentBreadcrumbs extends StatelessWidget {
   final void Function(Document) onBreadcrumbTap;
   final VoidCallback onHomePressed;
 
-  // ignore: use_super_parameters
   const DocumentBreadcrumbs({
     Key? key,
     required this.breadcrumbs,
@@ -30,8 +29,7 @@ class DocumentBreadcrumbs extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                // ignore: deprecated_member_use
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -63,14 +61,11 @@ class DocumentBreadcrumbs extends StatelessWidget {
 
               return Row(
                 children: [
-                  // Separator
                   Icon(
                     Icons.chevron_right,
                     size: 18,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-
-                  // Breadcrumb
                   InkWell(
                     onTap: isLast ? null : () => onBreadcrumbTap(breadcrumb),
                     borderRadius: BorderRadius.circular(16),
@@ -80,20 +75,17 @@ class DocumentBreadcrumbs extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            isLast
-                                ? theme.colorScheme.primaryContainer
-                                // ignore: deprecated_member_use
-                                : theme.colorScheme.surfaceVariant,
+                        color: isLast
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         breadcrumb.name,
                         style: TextStyle(
-                          color:
-                              isLast
-                                  ? theme.colorScheme.onPrimaryContainer
-                                  : theme.colorScheme.onSurfaceVariant,
+                          color: isLast
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight:
                               isLast ? FontWeight.w600 : FontWeight.normal,

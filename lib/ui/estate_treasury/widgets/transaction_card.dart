@@ -15,10 +15,9 @@ class TransactionCard extends ConsumerWidget {
     final amountColor = transaction.isIncome ? Colors.green : Colors.red;
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
     final dateFormatter = DateFormat('yyyy-MM-dd');
-    final amountString =
-        transaction.isIncome
-            ? '+${formatter.format(transaction.amount)}'
-            : '-${formatter.format(transaction.amount)}';
+    final amountString = transaction.isIncome
+        ? '+${formatter.format(transaction.amount)}'
+        : '-${formatter.format(transaction.amount)}';
     final categoryColor = _getCategoryColor(transaction.type);
     final theme = Theme.of(context);
 
@@ -61,10 +60,9 @@ class TransactionCard extends ConsumerWidget {
                 Text(
                   dateFormatter.format(transaction.date),
                   style: TextStyle(
-                    color:
-                        theme.brightness == Brightness.dark
-                            ? Colors.grey.shade400
-                            : Colors.grey,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.grey.shade400
+                        : Colors.grey,
                     fontSize: 12,
                   ),
                 ),
@@ -85,19 +83,18 @@ class TransactionCard extends ConsumerWidget {
               elevation: 1,
               padding: const EdgeInsets.all(0),
               onSelected: (value) => _handleMenuAction(context, value, ref),
-              itemBuilder:
-                  (BuildContext context) => [
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete'),
-                        ],
-                      ),
-                    ),
-                  ],
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Delete'),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -132,21 +129,21 @@ class TransactionCard extends ConsumerWidget {
                       .read(treasuryViewModelProvider.notifier)
                       .deleteTransaction(transaction.id!)
                       .then((result) {
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                          if (result.isFailure && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${result.error}')),
-                            );
-                          }
-                        } else if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Transaction deleted successfully'),
-                            ),
-                          );
-                        }
-                      });
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      if (result.isFailure && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: ${result.error}')),
+                        );
+                      }
+                    } else if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Transaction deleted successfully'),
+                        ),
+                      );
+                    }
+                  });
                 } else {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(

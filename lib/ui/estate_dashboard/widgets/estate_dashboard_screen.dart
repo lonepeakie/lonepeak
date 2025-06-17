@@ -1,5 +1,3 @@
-// lib/ui/estate_dashboard/estate_dashboard_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -53,8 +51,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     final estate = ref.watch(estateDashboardViewModelProvider.notifier).estate;
     final membersCount =
         ref.watch(estateDashboardViewModelProvider.notifier).membersCount;
-
-    // This watch ensures the dashboard rebuilds with fresh user data
     final authState = ref.watch(authStateProvider);
     final User? currentUser = authState.currentUser;
 
@@ -130,7 +126,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       onPressed: () {
                         if (currentUser != null &&
                             (estate.id?.isNotEmpty ?? false)) {
-                          // Using .push() adds the screen to the stack without interrupting the router
                           GoRouter.of(context).push(
                             Routes.userProfile,
                             extra: UserProfileScreenArgs(

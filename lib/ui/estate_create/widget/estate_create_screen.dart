@@ -78,15 +78,14 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                   labelText: 'County',
                   required: true,
                   errorText: 'County is required',
-                  items:
-                      Constants.counties
-                          .map(
-                            (county) => DropdownItem<String>(
-                              value: county,
-                              label: "Co. $county",
-                            ),
-                          )
-                          .toList(),
+                  items: Constants.counties
+                      .map(
+                        (county) => DropdownItem<String>(
+                          value: county,
+                          label: "Co. $county",
+                        ),
+                      )
+                      .toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
                       setState(() {

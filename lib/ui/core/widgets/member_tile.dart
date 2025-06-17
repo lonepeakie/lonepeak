@@ -26,10 +26,9 @@ class MemberTile extends StatelessWidget {
       contentPadding: padding,
       onTap: onTap,
       leading: CircleAvatar(
-        backgroundColor:
-            theme.brightness == Brightness.dark
-                ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                : theme.colorScheme.primary.withValues(alpha: 0.1),
+        backgroundColor: theme.brightness == Brightness.dark
+            ? theme.colorScheme.primary.withValues(alpha: 0.2)
+            : theme.colorScheme.primary.withValues(alpha: 0.1),
         child: Text(
           name[0],
           style: TextStyle(
@@ -45,17 +44,16 @@ class MemberTile extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle:
-          email != null && email!.isNotEmpty
-              ? Text(
-                email!,
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withValues(
-                    alpha: 0.7,
-                  ),
+      subtitle: email != null && email!.isNotEmpty
+          ? Text(
+              email!,
+              style: TextStyle(
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.7,
                 ),
-              )
-              : null,
+              ),
+            )
+          : null,
       trailing: AppChip(label: role, color: roleColor),
     );
   }

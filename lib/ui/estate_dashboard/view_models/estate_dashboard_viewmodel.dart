@@ -12,22 +12,22 @@ import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateDashboardViewModelProvider =
     StateNotifierProvider<EstateDashboardViewmodel, UIState>(
-      (ref) => EstateDashboardViewmodel(
-        estateRepository: ref.read(estateRepositoryProvider),
-        membersRepository: ref.read(membersRepositoryProvider),
-        noticesRepository: ref.read(noticesRepositoryProvider),
-      ),
-    );
+  (ref) => EstateDashboardViewmodel(
+    estateRepository: ref.read(estateRepositoryProvider),
+    membersRepository: ref.read(membersRepositoryProvider),
+    noticesRepository: ref.read(noticesRepositoryProvider),
+  ),
+);
 
 class EstateDashboardViewmodel extends StateNotifier<UIState> {
   EstateDashboardViewmodel({
     required EstateRepository estateRepository,
     required MembersRepository membersRepository,
     required NoticesRepository noticesRepository,
-  }) : _estateRepository = estateRepository,
-       _membersRepository = membersRepository,
-       _noticesRepository = noticesRepository,
-       super(UIStateInitial());
+  })  : _estateRepository = estateRepository,
+        _membersRepository = membersRepository,
+        _noticesRepository = noticesRepository,
+        super(UIStateInitial());
 
   final EstateRepository _estateRepository;
   final MembersRepository _membersRepository;

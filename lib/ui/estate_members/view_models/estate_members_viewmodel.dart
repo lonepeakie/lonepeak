@@ -8,19 +8,19 @@ import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateMembersViewModelProvider =
     StateNotifierProvider<EstateMembersViewmodel, UIState>((ref) {
-      return EstateMembersViewmodel(
-        membersRepository: ref.read(membersRepositoryProvider),
-        appState: ref.read(appStateProvider),
-      );
-    });
+  return EstateMembersViewmodel(
+    membersRepository: ref.read(membersRepositoryProvider),
+    appState: ref.read(appStateProvider),
+  );
+});
 
 class EstateMembersViewmodel extends StateNotifier<UIState> {
   EstateMembersViewmodel({
     required MembersRepository membersRepository,
     required AppState appState,
-  }) : _membersRepository = membersRepository,
-       _appState = appState,
-       super(UIStateInitial());
+  })  : _membersRepository = membersRepository,
+        _appState = appState,
+        super(UIStateInitial());
 
   final MembersRepository _membersRepository;
   final AppState _appState;
@@ -28,10 +28,9 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
   List<Member> _members = [];
   List<Member> get activeMembers =>
       _members.where((member) => member.status == MemberStatus.active).toList();
-  List<Member> get pendingMembers =>
-      _members
-          .where((member) => member.status == MemberStatus.pending)
-          .toList();
+  List<Member> get pendingMembers => _members
+      .where((member) => member.status == MemberStatus.pending)
+      .toList();
   int get pendingMembersCount =>
       _members.where((member) => member.status == MemberStatus.pending).length;
 

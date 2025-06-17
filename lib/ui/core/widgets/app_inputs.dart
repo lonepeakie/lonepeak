@@ -32,8 +32,7 @@ class _AppTextInputState extends State<AppTextInput> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final validator =
-        widget.validator ??
+    final validator = widget.validator ??
         (value) {
           if (widget.required && (value == null || value.trim().isEmpty)) {
             return widget.errorText ?? 'This field is required';
@@ -63,18 +62,16 @@ class _AppTextInputState extends State<AppTextInput> {
             hintText: widget.hintText,
             hintStyle: TextStyle(color: theme.hintColor),
             filled: theme.brightness == Brightness.dark,
-            fillColor:
-                theme.brightness == Brightness.dark
-                    ? theme.inputDecorationTheme.fillColor ??
-                        theme.colorScheme.surface.withValues(alpha: 0.8)
-                    : null,
+            fillColor: theme.brightness == Brightness.dark
+                ? theme.inputDecorationTheme.fillColor ??
+                    theme.colorScheme.surface.withValues(alpha: 0.8)
+                : null,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
-                color:
-                    theme.brightness == Brightness.dark
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
-                        : Colors.grey,
+                color: theme.brightness == Brightness.dark
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
+                    : Colors.grey,
                 width: 1.2,
               ),
             ),
@@ -194,18 +191,16 @@ class _AppDatePickerState extends State<AppDatePicker> {
               hintText: widget.hintText,
               hintStyle: TextStyle(color: theme.hintColor),
               filled: theme.brightness == Brightness.dark,
-              fillColor:
-                  theme.brightness == Brightness.dark
-                      ? theme.inputDecorationTheme.fillColor ??
-                          theme.colorScheme.surface.withValues(alpha: 0.8)
-                      : null,
+              fillColor: theme.brightness == Brightness.dark
+                  ? theme.inputDecorationTheme.fillColor ??
+                      theme.colorScheme.surface.withValues(alpha: 0.8)
+                  : null,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide(
-                  color:
-                      theme.brightness == Brightness.dark
-                          ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
-                          : Colors.grey,
+                  color: theme.brightness == Brightness.dark
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
+                      : Colors.grey,
                   width: 1.2,
                 ),
               ),
@@ -251,8 +246,7 @@ class AppDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormField<T>(
       initialValue: initialValue,
-      validator:
-          validator ??
+      validator: validator ??
           (value) {
             if (required && value == null) {
               return errorText ?? 'Please select a value';
@@ -290,19 +284,18 @@ class AppDropdown<T> extends StatelessWidget {
                   state.didChange(newValue);
                   onChanged(newValue);
                 },
-                items:
-                    items.map((DropdownItem<T> item) {
-                      return DropdownMenuItem<T>(
-                        value: item.value,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            item.label,
-                            style: const TextStyle(fontSize: 15),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                items: items.map((DropdownItem<T> item) {
+                  return DropdownMenuItem<T>(
+                    value: item.value,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        item.label,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
             if (state.hasError)

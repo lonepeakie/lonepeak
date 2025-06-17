@@ -59,5 +59,4 @@ class DefaultFirebaseOptions {
     projectId: 'lonepeak-194b2',
     storageBucket: 'lonepeak-194b2.firebasestorage.app',
   );
-
 }

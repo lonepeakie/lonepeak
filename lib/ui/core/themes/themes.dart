@@ -10,110 +10,117 @@ abstract final class AppColors {
 
 abstract final class AppThemes {
   static ThemeData get light => ThemeData(
-    useMaterial3: true,
-    scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      primary: AppColors.primary,
-      secondary: Colors.grey,
-      brightness: Brightness.light,
-    ),
-    cardTheme: CardThemeData(
-      color: Colors.white,
-      elevation: 0.3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-    ),
-    cardColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      iconTheme: IconThemeData(color: AppColors.black),
-      titleTextStyle: TextStyle(
-        color: AppColors.black,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: const BorderSide(color: Colors.grey, width: 1.2),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
-      ),
-    ),
-  );
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: Colors.grey,
+          brightness: Brightness.light,
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0.3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        cardColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: AppColors.black),
+          titleTextStyle: TextStyle(
+            color: AppColors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+          ),
+        ),
+      );
 
   static ThemeData get dark => ThemeData(
-    useMaterial3: true,
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      primary: AppColors.primary,
-      secondary: Colors.grey,
-      brightness: Brightness.dark,
-      surface: const Color(0xFF121212),
-      onSurface: Colors.white.withAlpha(225),
-    ),
-    cardTheme: CardThemeData(
-      color: const Color(0xFF1E1E1E),
-      elevation: 0.3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-    ),
-    cardColor: const Color(0xFF1E1E1E),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1E1E1E),
-      elevation: 0,
-      iconTheme: IconThemeData(color: Colors.white),
-      titleTextStyle: TextStyle(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: const BorderSide(color: Colors.grey, width: 1.2),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
-      ),
-    ),
-  );
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: Colors.grey,
+          brightness: Brightness.dark,
+          surface: const Color(0xFF121212),
+          onSurface: Colors.white,
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF1E1E1E),
+          elevation: 0.3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        cardColor: const Color(0xFF1E1E1E),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E1E1E),
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: Colors.grey, width: 1.2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+          ),
+        ),
+      );
 }
 
 abstract final class AppStyles {
   static TextStyle titleTextSmall(BuildContext context) => TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.titleMedium?.color,
-  );
+        fontSize: 17,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).textTheme.titleMedium?.color,
+      );
 
   static TextStyle titleTextMedium(BuildContext context) => TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.titleLarge?.color,
-  );
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).textTheme.titleLarge?.color,
+      );
 
   static TextStyle titleTextLarge(BuildContext context) => TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: Theme.of(context).textTheme.titleLarge?.color,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).textTheme.titleLarge?.color,
+      );
 
   static TextStyle subtitleText(BuildContext context) => TextStyle(
-    fontSize: 14,
-    // ignore: deprecated_member_use
-    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
-  );
+        fontSize: 14,
+        color: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.color
+            ?.withAlpha(204), // 80% opacity
+      );
 
   static TextStyle labelText(BuildContext context) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: Theme.of(context).colorScheme.onSurfaceVariant,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      );
 }

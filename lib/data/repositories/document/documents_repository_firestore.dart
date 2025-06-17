@@ -11,8 +11,8 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
   DocumentsRepositoryFirestore({
     required DocumentsService documentsService,
     required AppState appState,
-  }) : _documentsService = documentsService,
-       _appState = appState;
+  })  : _documentsService = documentsService,
+        _appState = appState;
 
   final DocumentsService _documentsService;
   final AppState _appState;

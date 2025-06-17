@@ -58,38 +58,40 @@ class _PendingMembersScreenState extends ConsumerState<PendingMembersScreen> {
               return pendingMembers.isEmpty
                   ? const Center(child: Text('No pending membership requests'))
                   : ListView.builder(
-                    itemCount: pendingMembers.length,
-                    itemBuilder: (context, index) {
-                      final member = pendingMembers[index];
-                      return PendingMemberTile(
-                        member: member,
-                        onApprove: () async {
-                          await viewModel.approveMember(member.email);
-                          if (mounted) {
-                            // ignore: use_build_context_synchronously
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${member.displayName} approved'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        },
-                        onReject: () async {
-                          await viewModel.rejectMember(member.email);
-                          if (mounted) {
-                            // ignore: use_build_context_synchronously
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${member.displayName} rejected'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  );
+                      itemCount: pendingMembers.length,
+                      itemBuilder: (context, index) {
+                        final member = pendingMembers[index];
+                        return PendingMemberTile(
+                          member: member,
+                          onApprove: () async {
+                            await viewModel.approveMember(member.email);
+                            if (mounted) {
+                              // ignore: use_build_context_synchronously
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('${member.displayName} approved'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          },
+                          onReject: () async {
+                            await viewModel.rejectMember(member.email);
+                            if (mounted) {
+                              // ignore: use_build_context_synchronously
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('${member.displayName} rejected'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
             }
           },
         ),
@@ -113,10 +115,9 @@ class PendingMemberTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Extract first letter for the avatar
-    final String avatarText =
-        member.displayName.isNotEmpty
-            ? member.displayName[0].toUpperCase()
-            : 'U';
+    final String avatarText = member.displayName.isNotEmpty
+        ? member.displayName[0].toUpperCase()
+        : 'U';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

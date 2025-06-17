@@ -6,9 +6,9 @@ import 'package:lonepeak/utils/result.dart';
 
 final treasuryViewModelProvider =
     StateNotifierProvider<TreasuryViewModel, TreasuryState>((ref) {
-      final treasuryRepository = ref.watch(treasuryRepositoryProvider);
-      return TreasuryViewModel(treasuryRepository: treasuryRepository);
-    });
+  final treasuryRepository = ref.watch(treasuryRepositoryProvider);
+  return TreasuryViewModel(treasuryRepository: treasuryRepository);
+});
 
 class TreasuryState {
   final bool isLoading;
@@ -44,8 +44,8 @@ class TreasuryState {
 
 class TreasuryViewModel extends StateNotifier<TreasuryState> {
   TreasuryViewModel({required TreasuryRepository treasuryRepository})
-    : _treasuryRepository = treasuryRepository,
-      super(TreasuryState());
+      : _treasuryRepository = treasuryRepository,
+        super(TreasuryState());
 
   final TreasuryRepository _treasuryRepository;
 
@@ -85,11 +85,11 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     );
 
     // Load expense breakdown for the current month
-    final expensesResult = await _treasuryRepository
-        .getTransactionSummaryByType(
-          startDate: firstDayOfMonth,
-          endDate: lastDayOfMonth,
-        );
+    final expensesResult =
+        await _treasuryRepository.getTransactionSummaryByType(
+      startDate: firstDayOfMonth,
+      endDate: lastDayOfMonth,
+    );
 
     if (expensesResult.isFailure) {
       state = state.copyWith(
