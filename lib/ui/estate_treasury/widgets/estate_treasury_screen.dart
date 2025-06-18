@@ -1,5 +1,3 @@
-// lib/ui/estate_treasury/widgets/estate_treasury_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,11 +23,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref
-          .read(treasuryViewModelProvider(widget.estateId).notifier)
-          .loadTransactions(),
-    );
   }
 
   void _showFilterBottomSheet(BuildContext context) {
@@ -62,34 +55,44 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
               onPressed: () => _showFilterBottomSheet(context),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.download_outlined),
-            onPressed: () {},
-          ),
           AppbarActionButton(
             icon: Icons.add,
             onPressed: () => _showAddTransactionBottomSheet(context),
           ),
         ],
       ),
-      body: treasuryState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : treasuryState.errorMessage != null
-              ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildCurrentBalanceCard(treasuryState.currentBalance),
-                      const SizedBox(height: 24),
-                      _buildRecentTransactionsContainer(
-                        treasuryState.transactions,
-                        areFiltersActive,
-                      ),
-                    ],
-                  ),
-                ),
+      body: _buildBody(treasuryState, areFiltersActive),
+    );
+  }
+
+  Widget _buildBody(TreasuryState treasuryState, bool areFiltersActive) {
+    if (treasuryState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (treasuryState.errorMessage != null) {
+      return Center(child: Text('Error: ${treasuryState.errorMessage}'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => ref
+          .read(treasuryViewModelProvider(widget.estateId).notifier)
+          .loadTransactions(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCurrentBalanceCard(treasuryState.currentBalance),
+            const SizedBox(height: 24),
+            _buildTransactionsList(
+              treasuryState.transactions,
+              areFiltersActive,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -122,55 +125,52 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Widget _buildRecentTransactionsContainer(
+  Widget _buildTransactionsList(
     List<TreasuryTransaction> transactions,
     bool areFiltersActive,
   ) {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                areFiltersActive ? 'Filtered Results' : 'Recent Transactions',
-                style: AppStyles.titleTextSmall(context),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              areFiltersActive ? 'Filtered Results' : 'Recent Transactions',
+              style: AppStyles.titleTextSmall(context),
+            ),
+            if (areFiltersActive)
+              TextButton(
+                onPressed: () => ref
+                    .read(treasuryViewModelProvider(widget.estateId).notifier)
+                    .clearFilters(),
+                child: const Text('Clear Filters'),
               ),
-              if (areFiltersActive)
-                TextButton(
-                  onPressed: () => ref
-                      .read(treasuryViewModelProvider(widget.estateId).notifier)
-                      .clearFilters(),
-                  child: const Text('Clear Filters'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          transactions.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Text(
-                      areFiltersActive
-                          ? 'No transactions match your filters.'
-                          : 'No transactions found.',
-                    ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        transactions.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Text(
+                    areFiltersActive
+                        ? 'No transactions match your filters.'
+                        : 'No transactions found.',
                   ),
-                )
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: transactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = transactions[index];
-                    return TransactionCard(
-                        transaction: transaction, estateId: widget.estateId);
-                  },
                 ),
-        ],
-      ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                itemBuilder: (context, index) {
+                  final transaction = transactions[index];
+                  return TransactionCard(
+                      transaction: transaction, estateId: widget.estateId);
+                },
+              ),
+      ],
     );
   }
 
@@ -183,16 +183,18 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     TransactionType selectedType = TransactionType.other;
     bool isIncome = false;
 
+    final DateFormat parserFormat = DateFormat('MMM d, yyyy');
+
     void submitForm() {
       if (formKey.currentState!.validate()) {
         final newTransaction = TreasuryTransaction(
           title: titleController.text,
           amount: double.parse(amountController.text),
           type: selectedType,
-          date: DateFormat('yyyy-MM-dd').parse(dateController.text),
-          description: descriptionController.text.isEmpty
+          date: parserFormat.parse(dateController.text),
+          description: descriptionController.text.trim().isEmpty
               ? null
-              : descriptionController.text,
+              : descriptionController.text.trim(),
           isIncome: isIncome,
         );
 
@@ -200,21 +202,16 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             .read(treasuryViewModelProvider(widget.estateId).notifier)
             .addTransaction(newTransaction)
             .then((result) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop();
           if (result.isSuccess) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Transaction added successfully'),
-                ),
-              );
-            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Transaction added successfully')),
+            );
           } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: ${result.error}')),
-              );
-            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${result.error}')),
+            );
           }
         });
       }
@@ -226,7 +223,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) {
+      builder: (modalContext) {
         return StatefulBuilder(
           builder: (context, setState) {
             return Padding(
@@ -234,7 +231,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                 left: 16,
                 right: 16,
                 top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 16,
               ),
               child: SingleChildScrollView(
                 child: Form(
@@ -246,7 +243,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SizedBox(width: 24),
+                          const SizedBox(width: 48),
                           Text(
                             'Add Transaction',
                             style: AppStyles.titleTextSmall(context),
@@ -257,14 +254,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Text(
-                          'Add a new financial transaction to the estate treasury.',
-                          style: AppStyles.subtitleText(context),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
                       const SizedBox(height: 24),
                       Row(
                         children: [
@@ -274,14 +263,12 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                             child: ToggleButtons(
                               isSelected: [!isIncome, isIncome],
                               onPressed: (int index) {
-                                setState(() {
-                                  isIncome = index == 1;
-                                });
+                                setState(() => isIncome = index == 1);
                               },
                               borderRadius: BorderRadius.circular(8),
                               selectedColor: Colors.white,
                               fillColor: isIncome ? Colors.green : Colors.red,
-                              constraints: const BoxConstraints(minHeight: 32),
+                              constraints: const BoxConstraints(minHeight: 36),
                               children: const [
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 16),
@@ -302,7 +289,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         labelText: 'Title',
                         hintText: 'e.g. Community garden Repair',
                         required: true,
-                        errorText: 'Title is required',
                       ),
                       const SizedBox(height: 16),
                       AppTextInput(
@@ -310,17 +296,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         labelText: 'Amount',
                         hintText: 'e.g. 150.00',
                         required: true,
-                        errorText: 'Amount is required',
                         keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                            decimal: true),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter an amount';
                           }
                           try {
-                            final amount = double.parse(value);
-                            if (amount <= 0) {
+                            if (double.parse(value) <= 0) {
                               return 'Amount must be greater than 0';
                             }
                           } catch (e) {
@@ -335,7 +318,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         labelText: 'Transaction Date',
                         hintText: 'Select a date',
                         required: true,
-                        errorText: 'Please select a date',
                       ),
                       const SizedBox(height: 16),
                       AppTextInput(
@@ -348,23 +330,16 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       AppDropdown<TransactionType>(
                         labelText: 'Transaction Type',
                         initialValue: selectedType,
-                        required: true,
-                        errorText: 'Please select a transaction type',
                         items: TransactionType.values
-                            .map(
-                              (type) => DropdownItem<TransactionType>(
-                                value: type,
-                                label: type.displayName,
-                              ),
-                            )
+                            .map((type) => DropdownItem(
+                                value: type, label: type.displayName))
                             .toList(),
-                        onChanged: (TransactionType? newValue) {
+                        onChanged: (newValue) {
                           if (newValue != null) {
-                            setState(() {
-                              selectedType = newValue;
-                            });
+                            setState(() => selectedType = newValue);
                           }
                         },
+                        required: true,
                       ),
                       const SizedBox(height: 32),
                       Row(
@@ -372,15 +347,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         children: [
                           AppElevatedButton(
                             onPressed: submitForm,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 12,
-                            ),
-                            buttonText: 'Add',
+                            buttonText: 'Add Transaction',
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -23,18 +24,20 @@ class _FilterTransactionsBottomSheetState
   TransactionType? _selectedType;
   bool? _isIncome;
 
+  final DateFormat _parserFormat = DateFormat('MMM d, yyyy');
+
   @override
   void initState() {
     super.initState();
     final currentFilters =
         ref.read(treasuryViewModelProvider(widget.estateId)).filters;
+
     if (currentFilters.startDate != null) {
       _startDateController.text =
-          currentFilters.startDate!.toIso8601String().split('T').first;
+          _parserFormat.format(currentFilters.startDate!);
     }
     if (currentFilters.endDate != null) {
-      _endDateController.text =
-          currentFilters.endDate!.toIso8601String().split('T').first;
+      _endDateController.text = _parserFormat.format(currentFilters.endDate!);
     }
     _selectedType = currentFilters.type;
     _isIncome = currentFilters.isIncome;
@@ -50,10 +53,10 @@ class _FilterTransactionsBottomSheetState
   void _applyFilters() {
     final newFilters = TransactionFilters(
       startDate: _startDateController.text.isNotEmpty
-          ? DateTime.parse(_startDateController.text)
+          ? _parserFormat.parse(_startDateController.text)
           : null,
       endDate: _endDateController.text.isNotEmpty
-          ? DateTime.parse(_endDateController.text)
+          ? _parserFormat.parse(_endDateController.text)
           : null,
       type: _selectedType,
       isIncome: _isIncome,
@@ -127,9 +130,10 @@ class _FilterTransactionsBottomSheetState
               labelText: 'Transaction Type',
               initialValue: _selectedType,
               items: [
-                const DropdownItem(value: null, label: 'All Types'),
+                const DropdownItem<TransactionType?>(
+                    value: null, label: 'All Types'),
                 ...TransactionType.values.map(
-                  (type) => DropdownItem<TransactionType>(
+                  (type) => DropdownItem<TransactionType?>(
                     value: type,
                     label: type.displayName,
                   ),
@@ -142,7 +146,7 @@ class _FilterTransactionsBottomSheetState
             const SizedBox(height: 24),
             Row(
               children: [
-                Text('Show:', style: AppStyles.subtitleText(context)),
+                const Text('Show:'),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ToggleButtons(

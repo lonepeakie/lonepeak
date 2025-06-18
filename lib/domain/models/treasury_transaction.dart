@@ -1,5 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lonepeak/domain/models/metadata.dart';
+
+class Metadata {
+  Map<String, dynamic> toJson() => {};
+  static Metadata fromJson(Map<String, dynamic> json) => Metadata();
+}
 
 enum TransactionType { maintenance, insurance, utilities, rental, fees, other }
 
@@ -30,7 +34,7 @@ class TreasuryTransaction {
   final DateTime date;
   final String? description;
   final bool isIncome;
-  Metadata? metadata;
+  final Metadata? metadata;
 
   TreasuryTransaction({
     this.id,
@@ -58,9 +62,8 @@ class TreasuryTransaction {
       date: (json['date'] as Timestamp).toDate(),
       description: json['description'] as String?,
       isIncome: json['isIncome'] as bool,
-      metadata: json['metadata'] != null
-          ? Metadata.fromJson(json['metadata'])
-          : null,
+      metadata:
+          json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
     );
   }
 
@@ -74,5 +77,58 @@ class TreasuryTransaction {
       'isIncome': isIncome,
       'metadata': metadata?.toJson(),
     };
+  }
+
+  TreasuryTransaction copyWith({
+    String? id,
+    String? title,
+    double? amount,
+    TransactionType? type,
+    DateTime? date,
+    String? description,
+    bool? isIncome,
+    Metadata? metadata,
+  }) {
+    return TreasuryTransaction(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      date: date ?? this.date,
+      description: description ?? this.description,
+      isIncome: isIncome ?? this.isIncome,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+}
+
+class TransactionFilters {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final TransactionType? type;
+  final bool? isIncome;
+
+  const TransactionFilters({
+    this.startDate,
+    this.endDate,
+    this.type,
+    this.isIncome,
+  });
+
+  bool get isClear =>
+      startDate == null && endDate == null && type == null && isIncome == null;
+
+  TransactionFilters copyWith({
+    DateTime? startDate,
+    DateTime? endDate,
+    TransactionType? type,
+    bool? isIncome,
+  }) {
+    return TransactionFilters(
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      type: type ?? this.type,
+      isIncome: isIncome ?? this.isIncome,
+    );
   }
 }
