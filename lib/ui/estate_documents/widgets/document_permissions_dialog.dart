@@ -6,8 +6,9 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 class DocumentPermissionsDialog extends StatefulWidget {
   final Document document;
 
+  // ignore: use_super_parameters
   const DocumentPermissionsDialog({Key? key, required this.document})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<DocumentPermissionsDialog> createState() =>
@@ -46,13 +47,14 @@ class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
 
             // View permission
             const SizedBox(height: 16),
-            Divider(),
+            const Divider(),
             const SizedBox(height: 16),
 
             // Note
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -102,6 +104,7 @@ class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
   }
 }
 
+// ignore: unused_element
 class _PermissionSwitch extends StatelessWidget {
   final String label;
   final bool value;

@@ -4,15 +4,15 @@ import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateHomeViewModelProvider =
     StateNotifierProvider<EstateHomeViewmodel, UIState>((ref) {
-      return EstateHomeViewmodel(
-        estateFeatures: ref.read(estateFeaturesProvider),
-      );
-    });
+  return EstateHomeViewmodel(
+    estateFeatures: ref.read(estateFeaturesProvider),
+  );
+});
 
 class EstateHomeViewmodel extends StateNotifier<UIState> {
   EstateHomeViewmodel({required EstateFeatures estateFeatures})
-    : _estateFeatures = estateFeatures,
-      super(UIStateInitial());
+      : _estateFeatures = estateFeatures,
+        super(UIStateInitial());
 
   final EstateFeatures _estateFeatures;
 

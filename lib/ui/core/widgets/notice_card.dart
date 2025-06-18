@@ -48,12 +48,11 @@ class NoticeWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final IconData categoryIcon = NoticeTypeUI.getCategoryIcon(notice.type);
     final Color categoryColor = NoticeTypeUI.getCategoryColor(notice.type);
-    final String formattedDate =
-        notice.metadata?.createdAt != null
-            ? DateFormat(
-              'MMM d, y h:mm a',
-            ).format(notice.metadata!.createdAt?.toDate() ?? DateTime.now())
-            : 'Unknown date';
+    final String formattedDate = notice.metadata?.createdAt != null
+        ? DateFormat(
+            'MMM d, y h:mm a',
+          ).format(notice.metadata!.createdAt?.toDate() ?? DateTime.now())
+        : 'Unknown date';
 
     final String? userId = ref.read(appStateProvider).getUserId();
     final hasLiked = userId != null && notice.likedBy.contains(userId);
@@ -68,8 +67,7 @@ class NoticeWidget extends ConsumerWidget {
             Text(notice.title, style: AppStyles.titleTextSmall(context)),
             const Spacer(),
             AppChip(
-              label:
-                  notice.type.name[0].toUpperCase() +
+              label: notice.type.name[0].toUpperCase() +
                   notice.type.name.substring(1),
               color: categoryColor,
             ),

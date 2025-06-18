@@ -6,15 +6,15 @@ import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateNoticesViewModelProvider =
     StateNotifierProvider<EstateNoticesViewmodel, UIState>(
-      (ref) => EstateNoticesViewmodel(
-        noticesRepository: ref.watch(noticesRepositoryProvider),
-      ),
-    );
+  (ref) => EstateNoticesViewmodel(
+    noticesRepository: ref.watch(noticesRepositoryProvider),
+  ),
+);
 
 class EstateNoticesViewmodel extends StateNotifier<UIState> {
   EstateNoticesViewmodel({required NoticesRepository noticesRepository})
-    : _noticesRepository = noticesRepository,
-      super(UIStateInitial());
+      : _noticesRepository = noticesRepository,
+        super(UIStateInitial());
 
   final NoticesRepository _noticesRepository;
 

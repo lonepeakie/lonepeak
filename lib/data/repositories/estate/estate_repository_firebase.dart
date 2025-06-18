@@ -17,8 +17,8 @@ class EstateRepositoryFirebase extends EstateRepository {
   EstateRepositoryFirebase({
     required EstateService estateService,
     required AppState appState,
-  }) : _estateService = estateService,
-       _appState = appState;
+  })  : _estateService = estateService,
+        _appState = appState;
 
   final EstateService _estateService;
   final AppState _appState;

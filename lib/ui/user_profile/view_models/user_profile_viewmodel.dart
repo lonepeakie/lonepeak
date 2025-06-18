@@ -1,91 +1,207 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/users/users_provider.dart';
-import 'package:lonepeak/data/repositories/users/users_repository.dart';
-import 'package:lonepeak/domain/features/estate_features.dart';
-import 'package:lonepeak/domain/features/user_sigin_feature.dart';
-import 'package:lonepeak/domain/models/user.dart';
-import 'package:lonepeak/providers/app_state_provider.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
+import 'package:flutter/material.dart';
 
-final userProfileViewModelProvider =
-    StateNotifierProvider<UserProfileViewModel, UIState>((ref) {
-      return UserProfileViewModel(
-        userSiginFeature: ref.read(userSiginFeatureProvider),
-        usersRepository: ref.read(usersRepositoryProvider),
-        estateFeatures: ref.read(estateFeaturesProvider),
-        appState: ref.read(appStateProvider),
-      );
-    });
+class UserProfileScreen extends StatelessWidget {
+  final String? name;
+  final String? email;
+  final String? phone;
+  final String? estateName;
+  final String? profileImageUrl;
 
-class UserProfileViewModel extends StateNotifier<UIState> {
-  final UserSiginFeature userSiginFeature;
-  final UsersRepository usersRepository;
-  final EstateFeatures estateFeatures;
-  final AppState appState;
+  const UserProfileScreen({
+    super.key,
+    this.name = "Akshay M",
+    this.email = "akshay@example.com",
+    this.phone = "+91 98765 43210",
+    this.estateName = "LonePeak Residency",
+    this.profileImageUrl,
+  });
 
-  User? _user;
-  User? get user => _user;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // ignore: unused_local_variable
+    final isDark = theme.brightness == Brightness.dark;
+    final textTheme = theme.textTheme;
 
-  UserProfileViewModel({
-    required this.userSiginFeature,
-    required this.usersRepository,
-    required this.estateFeatures,
-    required this.appState,
-  }) : super(UIStateInitial()) {
-    getUserProfile();
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text('Profile'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // Profile Avatar
+            Center(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: profileImageUrl != null
+                    ? NetworkImage(profileImageUrl!)
+                    : null,
+                child: profileImageUrl == null
+                    ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                    : null,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Name
+            Text(
+              name ?? "Unnamed User",
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            // Email / Phone
+            Text(
+              email ?? phone ?? "No contact info",
+              style: textTheme.bodyMedium?.copyWith(
+                color: Colors.grey,
+                fontSize: 15,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Info Cards
+            _InfoCard(
+              icon: Icons.email,
+              title: "Email",
+              value: email ?? "Not Provided",
+            ),
+            const SizedBox(height: 12),
+            _InfoCard(
+              icon: Icons.phone,
+              title: "Phone",
+              value: phone ?? "Not Provided",
+            ),
+            if (estateName != null) ...[
+              const SizedBox(height: 12),
+              _InfoCard(
+                icon: Icons.home_work,
+                title: "Estate Name",
+                value: estateName!,
+              ),
+            ],
+
+            const SizedBox(height: 32),
+
+            // Buttons
+            _FullWidthButton(
+              title: "Exit Estate",
+              backgroundColor: theme.primaryColor,
+              icon: Icons.exit_to_app,
+              textColor: Colors.white,
+              onTap: () {},
+            ),
+            const SizedBox(height: 12),
+            _FullWidthButton(
+              title: "Logout",
+              backgroundColor: Colors.red,
+              icon: Icons.logout,
+              textColor: Colors.white,
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  Future<void> getUserProfile() async {
-    state = UIStateLoading();
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
 
-    try {
-      final currentUser = appState.getUserId();
-      if (currentUser == null) {
-        state = UIStateFailure('No user is currently signed in.');
-        return;
-      }
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
 
-      final userResult = await usersRepository.getUser(currentUser);
-      if (userResult.isFailure) {
-        state = UIStateFailure(userResult.error!);
-        return;
-      }
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
-      _user = userResult.data;
-      state = UIStateSuccess();
-    } catch (e) {
-      state = UIStateFailure(e.toString());
-    }
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(16),
+      color: theme.cardColor,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: theme.primaryColor),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(value, style: theme.textTheme.bodyLarge),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  Future<bool> logout() async {
-    state = UIStateLoading();
+class _FullWidthButton extends StatelessWidget {
+  final String title;
+  final Color backgroundColor;
+  final IconData icon;
+  final Color textColor;
+  final VoidCallback onTap;
 
-    try {
-      final result = await userSiginFeature.logOut();
-      if (result.isSuccess) {
-        state = UIStateSuccess();
-        return true;
-      } else {
-        state = UIStateFailure(result.error ?? 'Logout failed');
-        return false;
-      }
-    } catch (e) {
-      state = UIStateFailure(e.toString());
-      return false;
-    }
-  }
+  const _FullWidthButton({
+    required this.title,
+    required this.backgroundColor,
+    required this.icon,
+    required this.textColor,
+    required this.onTap,
+  });
 
-  Future<bool> exitEstate() async {
-    state = UIStateLoading();
-
-    final result = await estateFeatures.exitEstate();
-    if (result.isFailure) {
-      state = UIStateFailure(result.error ?? 'Failed to exit estate');
-      return false;
-    }
-    _user = null;
-    state = UIStateSuccess();
-    return true;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 2,
+        ),
+        onPressed: onTap,
+        icon: Icon(icon),
+        label: Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
   }
 }

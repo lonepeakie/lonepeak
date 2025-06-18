@@ -9,15 +9,15 @@ import 'package:lonepeak/utils/log_printer.dart';
 
 final estateDocumentsViewModelProvider =
     StateNotifierProvider<EstateDocumentsViewModel, UIState>(
-      (ref) => EstateDocumentsViewModel(
-        documentFeatures: ref.read(documentFeaturesProvider),
-      ),
-    );
+  (ref) => EstateDocumentsViewModel(
+    documentFeatures: ref.read(documentFeaturesProvider),
+  ),
+);
 
 class EstateDocumentsViewModel extends StateNotifier<UIState> {
   EstateDocumentsViewModel({required DocumentFeatures documentFeatures})
-    : _documentFeatures = documentFeatures,
-      super(UIStateInitial()) {
+      : _documentFeatures = documentFeatures,
+        super(UIStateInitial()) {
     // Initialize with root documents
     loadDocuments();
   }

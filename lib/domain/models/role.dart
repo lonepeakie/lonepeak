@@ -13,10 +13,9 @@ class Role {
     final data = snapshot.data();
     return Role(
       type: data?['type'] as String,
-      permissions:
-          (data?['permissions'] as List<dynamic>)
-              .map((e) => Permission.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      permissions: (data?['permissions'] as List<dynamic>)
+          .map((e) => Permission.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 

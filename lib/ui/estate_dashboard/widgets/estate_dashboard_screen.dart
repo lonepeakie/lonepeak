@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/domain/models/user.dart';
+import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -9,6 +12,7 @@ import 'package:lonepeak/ui/estate_dashboard/widgets/dashboard_button.dart';
 import 'package:lonepeak/ui/core/widgets/notice_card.dart';
 import 'package:lonepeak/ui/core/widgets/member_tile.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
+import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen_args.dart';
 
 class EstateDashboardScreen extends ConsumerStatefulWidget {
   const EstateDashboardScreen({super.key});
@@ -30,16 +34,14 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
           ref.read(estateDashboardViewModelProvider.notifier).getMembersCount(),
     );
     Future.microtask(
-      () =>
-          ref
-              .read(estateDashboardViewModelProvider.notifier)
-              .getCommitteeMembers(),
+      () => ref
+          .read(estateDashboardViewModelProvider.notifier)
+          .getCommitteeMembers(),
     );
     Future.microtask(
-      () =>
-          ref
-              .read(estateDashboardViewModelProvider.notifier)
-              .getLatestNotices(),
+      () => ref
+          .read(estateDashboardViewModelProvider.notifier)
+          .getLatestNotices(),
     );
   }
 
@@ -49,6 +51,8 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     final estate = ref.watch(estateDashboardViewModelProvider.notifier).estate;
     final membersCount =
         ref.watch(estateDashboardViewModelProvider.notifier).membersCount;
+    final authState = ref.watch(authStateProvider);
+    final User? currentUser = authState.currentUser;
 
     return Scaffold(
       body: SafeArea(
@@ -65,60 +69,84 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.blue[70],
-                          child: Icon(
-                            Icons.home,
-                            color: AppColors.primary,
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              estate.name,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.blue[70],
+                            child: const Icon(
+                              Icons.home,
+                              color: AppColors.primary,
+                              size: 30,
                             ),
-                            Row(
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.location_on,
-                                  color: Colors.grey,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 2),
                                 Text(
-                                  '${estate.address} ${estate.city} Co.${estate.county}',
+                                  estate.name,
                                   style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      color: Colors.grey,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Flexible(
+                                      child: Text(
+                                        '${estate.address}, ${estate.city}, Co.${estate.county}',
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.person, size: 22),
-                      iconSize: 40,
+                      icon: const Icon(Icons.person, size: 28),
                       onPressed: () {
-                        GoRouter.of(context).go(Routes.userProfile);
+                        if (currentUser != null &&
+                            (estate.id?.isNotEmpty ?? false)) {
+                          GoRouter.of(context).push(
+                            Routes.userProfile,
+                            extra: UserProfileScreenArgs(
+                              user: currentUser,
+                              estate: estate,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Could not load user or estate data. Please try again.'),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
                 ),
               const SizedBox(height: 32),
-              overviewCard(membersCount),
+              overviewCard(membersCount, estate),
               const SizedBox(height: 16),
               latestNoticesCard(),
               const SizedBox(height: 16),
@@ -127,7 +155,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 children: [
@@ -136,9 +164,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate documents',
                     icon: Icons.description,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateDocuments);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateDocuments,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -146,9 +177,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate notices',
                     icon: Icons.notifications,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateNotices);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateNotices,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -156,9 +190,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate members',
                     icon: Icons.groups,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateMembers);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateMembers,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                   DashboardButton(
@@ -166,9 +203,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                     subtitle: 'View and manage estate treasury',
                     icon: Icons.account_balance_wallet,
                     onTap: () {
-                      GoRouter.of(
-                        context,
-                      ).go(Routes.estateHome + Routes.estateTreasury);
+                      if (estate.id != null) {
+                        GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateTreasury,
+                          extra: estate.id,
+                        );
+                      }
                     },
                   ),
                 ],
@@ -198,11 +238,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.notifications_outlined,
                       color: AppColors.primary,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       'Latest Notices',
                       style: AppStyles.titleTextMedium(context),
@@ -211,9 +251,15 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
                 AppTextIconButton(
                   onPressed: () {
-                    GoRouter.of(
-                      context,
-                    ).go(Routes.estateHome + Routes.estateNotices);
+                    final estateId = ref
+                        .read(estateDashboardViewModelProvider.notifier)
+                        .estate
+                        .id;
+                    if (estateId != null) {
+                      GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateNotices,
+                          extra: estateId);
+                    }
                   },
                   icon: Icons.arrow_forward_ios,
                 ),
@@ -225,18 +271,17 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
             ),
             const SizedBox(height: 32),
             Column(
-              children:
-                  notices.map((notice) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          NoticeWidget(notice: notice, displayActions: false),
-                          if (notices.last != notice) const Divider(),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+              children: notices.map((notice) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      NoticeWidget(notice: notice, displayActions: false),
+                      if (notices.last != notice) const Divider(),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
           ],
@@ -262,8 +307,8 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.groups_outlined, color: AppColors.primary),
-                    SizedBox(width: 8),
+                    const Icon(Icons.groups_outlined, color: AppColors.primary),
+                    const SizedBox(width: 8),
                     Text(
                       'Committee',
                       style: AppStyles.titleTextMedium(context),
@@ -272,9 +317,15 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
                 AppTextIconButton(
                   onPressed: () {
-                    GoRouter.of(
-                      context,
-                    ).go(Routes.estateHome + Routes.estateMembers);
+                    final estateId = ref
+                        .read(estateDashboardViewModelProvider.notifier)
+                        .estate
+                        .id;
+                    if (estateId != null) {
+                      GoRouter.of(context).go(
+                          Routes.estateHome + Routes.estateMembers,
+                          extra: estateId);
+                    }
                   },
                   icon: Icons.arrow_forward_ios,
                 ),
@@ -294,8 +345,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               )
             else
               ...committeeMembers.map((member) {
-                final isLast =
-                    committeeMembers.indexOf(member) ==
+                final isLast = committeeMembers.indexOf(member) ==
                     committeeMembers.length - 1;
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -318,7 +368,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     );
   }
 
-  Card overviewCard(int membersCount) {
+  Card overviewCard(int membersCount, Estate estate) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       elevation: 0.2,
@@ -329,8 +379,8 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.primary),
-                SizedBox(width: 8),
+                const Icon(Icons.info_outline, color: AppColors.primary),
+                const SizedBox(width: 8),
                 Text('Overview', style: AppStyles.titleTextMedium(context)),
               ],
             ),
@@ -346,11 +396,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Estate Code', style: TextStyle(fontSize: 14)),
-                    SizedBox(height: 4),
+                    const Text('Estate Code', style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
                     Text(
-                      'TKPARK',
-                      style: TextStyle(
+                      estate.id ?? 'N/A',
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -360,11 +410,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Total Members', style: TextStyle(fontSize: 14)),
-                    SizedBox(height: 4),
+                    const Text('Total Members', style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
                     Text(
                       membersCount.toString(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),

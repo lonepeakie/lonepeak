@@ -7,11 +7,11 @@ class DocumentBreadcrumbs extends StatelessWidget {
   final VoidCallback onHomePressed;
 
   const DocumentBreadcrumbs({
-    Key? key,
+    super.key,
     required this.breadcrumbs,
     required this.onBreadcrumbTap,
     required this.onHomePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +22,13 @@ class DocumentBreadcrumbs extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          // Home button
           InkWell(
             onTap: onHomePressed,
             borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -51,8 +50,6 @@ class DocumentBreadcrumbs extends StatelessWidget {
               ),
             ),
           ),
-
-          // Breadcrumbs
           if (breadcrumbs.isNotEmpty)
             ...breadcrumbs.asMap().entries.map((entry) {
               final index = entry.key;
@@ -61,14 +58,11 @@ class DocumentBreadcrumbs extends StatelessWidget {
 
               return Row(
                 children: [
-                  // Separator
                   Icon(
                     Icons.chevron_right,
                     size: 18,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-
-                  // Breadcrumb
                   InkWell(
                     onTap: isLast ? null : () => onBreadcrumbTap(breadcrumb),
                     borderRadius: BorderRadius.circular(16),
@@ -78,19 +72,17 @@ class DocumentBreadcrumbs extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            isLast
-                                ? theme.colorScheme.primaryContainer
-                                : theme.colorScheme.surfaceVariant,
+                        color: isLast
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         breadcrumb.name,
                         style: TextStyle(
-                          color:
-                              isLast
-                                  ? theme.colorScheme.onPrimaryContainer
-                                  : theme.colorScheme.onSurfaceVariant,
+                          color: isLast
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight:
                               isLast ? FontWeight.w600 : FontWeight.normal,

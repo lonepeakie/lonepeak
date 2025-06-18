@@ -30,10 +30,10 @@ class UserSiginFeature {
     required UsersRepository usersRepository,
     required AppState appState,
     required AuthState authState,
-  }) : _authRepository = authRepository,
-       _usersRepository = usersRepository,
-       _authState = authState,
-       _appState = appState;
+  })  : _authRepository = authRepository,
+        _usersRepository = usersRepository,
+        _authState = authState,
+        _appState = appState;
 
   final AuthRepository _authRepository;
   final UsersRepository _usersRepository;

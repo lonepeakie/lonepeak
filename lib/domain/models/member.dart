@@ -70,10 +70,9 @@ class Member {
       email: snapshot.id,
       displayName: data?['displayName'],
       role: RoleTypeExtension.fromString(data?['role']),
-      status:
-          data?['status'] != null
-              ? MemberStatusExtension.fromName(data!['status'])
-              : MemberStatus.pending,
+      status: data?['status'] != null
+          ? MemberStatusExtension.fromName(data!['status'])
+          : MemberStatus.pending,
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }

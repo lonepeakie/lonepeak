@@ -102,10 +102,8 @@ class MembersService {
   }
 
   Future<Result<int>> getMemberCount(String estateId) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members');
+    final collectionRef =
+        _db.collection('estates').doc(estateId).collection('members');
 
     try {
       final res = await collectionRef.count().get();

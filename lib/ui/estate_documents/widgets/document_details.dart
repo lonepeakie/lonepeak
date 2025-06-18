@@ -11,6 +11,7 @@ class DocumentDetails extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
+  // ignore: use_super_parameters
   const DocumentDetails({
     Key? key,
     required this.document,
@@ -200,6 +201,7 @@ class DocumentDetails extends StatelessWidget {
   double log10(num x) => log(x) / ln(10);
 }
 
+// ignore: unused_element
 class _PermissionChip extends StatelessWidget {
   final String label;
   final String count;
@@ -213,6 +215,7 @@ class _PermissionChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
+        // ignore: deprecated_member_use
         color: theme.colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),

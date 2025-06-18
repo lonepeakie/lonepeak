@@ -5,7 +5,7 @@ import 'package:lonepeak/utils/result.dart';
 
 class UsersRepositoryFirebase extends UsersRepository {
   UsersRepositoryFirebase({required UsersService usersService})
-    : _usersService = usersService;
+      : _usersService = usersService;
 
   final UsersService _usersService;
 

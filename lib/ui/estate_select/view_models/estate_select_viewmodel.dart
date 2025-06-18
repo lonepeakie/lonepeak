@@ -14,8 +14,8 @@ class EstateSelectViewmodel {
   EstateSelectViewmodel({
     required AuthRepository authRepository,
     required UserSiginFeature userSiginFeature,
-  }) : _authRepository = authRepository,
-       _userSiginFeature = userSiginFeature;
+  })  : _authRepository = authRepository,
+        _userSiginFeature = userSiginFeature;
 
   final AuthRepository _authRepository;
   final UserSiginFeature _userSiginFeature;

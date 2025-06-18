@@ -52,11 +52,10 @@ class DocumentsService {
       }
 
       final snapshot = await query.get();
-      final documents =
-          snapshot.docs.map((doc) {
-            final docWithId = doc.data();
-            return docWithId;
-          }).toList();
+      final documents = snapshot.docs.map((doc) {
+        final docWithId = doc.data();
+        return docWithId;
+      }).toList();
 
       _log.i('Retrieved ${documents.length} documents for estate $estateId');
 
@@ -141,16 +140,15 @@ class DocumentsService {
 
       // Get all documents and filter client-side
       final allDocsResult = await _getDocumentsCollection(estateId).get();
-      final matchingDocs =
-          allDocsResult.docs
-              .map((doc) => doc.data())
-              .where(
-                (doc) =>
-                    doc.name.toLowerCase().contains(lowercaseQuery) ||
-                    (doc.description?.toLowerCase().contains(lowercaseQuery) ??
-                        false),
-              )
-              .toList();
+      final matchingDocs = allDocsResult.docs
+          .map((doc) => doc.data())
+          .where(
+            (doc) =>
+                doc.name.toLowerCase().contains(lowercaseQuery) ||
+                (doc.description?.toLowerCase().contains(lowercaseQuery) ??
+                    false),
+          )
+          .toList();
 
       return Result.success(matchingDocs);
     } catch (e) {

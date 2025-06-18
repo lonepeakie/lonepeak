@@ -43,6 +43,8 @@ class User {
     );
   }
 
+  String? get name => null;
+
   User copyWith({
     String? displayName,
     String? email,
