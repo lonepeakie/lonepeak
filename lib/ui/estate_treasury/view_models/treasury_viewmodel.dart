@@ -1,153 +1,190 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/treasury/treasury_provider.dart';
-import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
-import 'package:lonepeak/utils/result.dart';
+import 'package:lonepeak/data/services/treasury/treasury_service.dart';
 
-final treasuryViewModelProvider =
-    StateNotifierProvider<TreasuryViewModel, TreasuryState>((ref) {
-      final treasuryRepository = ref.watch(treasuryRepositoryProvider);
-      return TreasuryViewModel(treasuryRepository: treasuryRepository);
+final treasuryServiceProvider = Provider<TreasuryService>((ref) {
+  return TreasuryService();
+});
+
+final treasuryViewModelProvider = StateNotifierProvider.autoDispose
+    .family<TreasuryViewModel, TreasuryState, String>((ref, estateId) {
+      final treasuryService = ref.watch(treasuryServiceProvider);
+      return TreasuryViewModel(estateId, treasuryService);
     });
+
+class ViewModelResult {
+  final bool isSuccess;
+  final String? error;
+  ViewModelResult({required this.isSuccess, this.error});
+}
 
 class TreasuryState {
   final bool isLoading;
   final String? errorMessage;
-  final List<TreasuryTransaction> transactions;
   final double currentBalance;
-  final Map<TransactionType, double> expensesByType;
+  final List<TreasuryTransaction> transactions;
+  final TransactionFilters filters;
 
-  TreasuryState({
-    this.isLoading = false,
+  const TreasuryState({
+    this.isLoading = true,
     this.errorMessage,
-    this.transactions = const [],
     this.currentBalance = 0.0,
-    this.expensesByType = const {},
+    this.transactions = const [],
+    this.filters = const TransactionFilters(),
   });
 
   TreasuryState copyWith({
     bool? isLoading,
     String? errorMessage,
-    List<TreasuryTransaction>? transactions,
     double? currentBalance,
-    Map<TransactionType, double>? expensesByType,
+    List<TreasuryTransaction>? transactions,
+    TransactionFilters? filters,
   }) {
     return TreasuryState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
-      transactions: transactions ?? this.transactions,
       currentBalance: currentBalance ?? this.currentBalance,
-      expensesByType: expensesByType ?? this.expensesByType,
+      transactions: transactions ?? this.transactions,
+      filters: filters ?? this.filters,
     );
   }
 }
 
 class TreasuryViewModel extends StateNotifier<TreasuryState> {
-  TreasuryViewModel({required TreasuryRepository treasuryRepository})
-    : _treasuryRepository = treasuryRepository,
-      super(TreasuryState());
+  final String estateId;
+  final TreasuryService _treasuryService;
+  List<TreasuryTransaction> _allTransactions = [];
 
-  final TreasuryRepository _treasuryRepository;
+  TreasuryViewModel(this.estateId, this._treasuryService)
+    : super(const TreasuryState()) {
+    loadTransactions();
+  }
 
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
-    // Load transactions
-    final transactionsResult = await _treasuryRepository.getTransactions();
-    if (transactionsResult.isFailure) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: transactionsResult.error,
-      );
-      return;
+    final result = await _treasuryService.getTransactions(estateId);
+    if (result.isSuccess) {
+      _allTransactions = result.data!;
+      _filterAndSetState();
+    } else {
+      state = state.copyWith(isLoading: false, errorMessage: result.error);
     }
+  }
 
-    // Load current balance
-    final balanceResult = await _treasuryRepository.getCurrentBalance();
-    if (balanceResult.isFailure) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: balanceResult.error,
-      );
-      return;
+  Future<ViewModelResult> addTransaction(
+    TreasuryTransaction transaction,
+  ) async {
+    final result = await _treasuryService.addTransaction(estateId, transaction);
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
     }
+  }
 
-    // Calculate the current month as a date range
-    final DateTime now = DateTime.now();
-    final DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final DateTime lastDayOfMonth = DateTime(
-      now.year,
-      now.month + 1,
-      0,
-      23,
-      59,
-      59,
+  Future<ViewModelResult> updateTransaction(
+    TreasuryTransaction transaction,
+  ) async {
+    final result = await _treasuryService.updateTransaction(
+      estateId,
+      transaction,
     );
-
-    // Load expense breakdown for the current month
-    final expensesResult = await _treasuryRepository
-        .getTransactionSummaryByType(
-          startDate: firstDayOfMonth,
-          endDate: lastDayOfMonth,
-        );
-
-    if (expensesResult.isFailure) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: expensesResult.error,
-      );
-      return;
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
     }
+  }
+
+  Future<ViewModelResult> deleteTransaction(String transactionId) async {
+    final result = await _treasuryService.deleteTransaction(
+      estateId,
+      transactionId,
+    );
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
+    }
+  }
+
+  Future<void> refreshBalance() async {
+    final result = await _treasuryService.getCurrentBalance(estateId);
+    if (result.isSuccess) {
+      state = state.copyWith(currentBalance: result.data!);
+    } else {
+      state = state.copyWith(errorMessage: result.error);
+    }
+  }
+
+  Future<Map<TransactionType, double>> getTransactionSummary({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final result = await _treasuryService.getTransactionSummaryByType(
+      estateId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    return result.isSuccess ? result.data! : {};
+  }
+
+  void applyFilters(TransactionFilters newFilters) {
+    state = state.copyWith(filters: newFilters);
+    _filterAndSetState();
+  }
+
+  void clearFilters() {
+    applyFilters(const TransactionFilters());
+  }
+
+  void setFilters(TransactionFilters filters) {
+    state = state.copyWith(filters: filters);
+    _filterAndSetState();
+  }
+
+  void _filterAndSetState() {
+    var filteredList = List<TreasuryTransaction>.from(_allTransactions);
+    final currentFilters = state.filters;
+
+    if (currentFilters.isIncome != null) {
+      filteredList.retainWhere((t) => t.isIncome == currentFilters.isIncome);
+    }
+    if (currentFilters.type != null) {
+      filteredList.retainWhere((t) => t.type == currentFilters.type);
+    }
+    if (currentFilters.startDate != null) {
+      filteredList.retainWhere(
+        (t) => !t.date.isBefore(currentFilters.startDate!),
+      );
+    }
+    if (currentFilters.endDate != null) {
+      final inclusiveEndDate = currentFilters.endDate!.add(
+        const Duration(days: 1),
+      );
+      filteredList.retainWhere((t) => t.date.isBefore(inclusiveEndDate));
+    }
+
+    filteredList.sort((a, b) => b.date.compareTo(a.date));
+
+    final balance = _calculateBalance(_allTransactions);
 
     state = state.copyWith(
       isLoading: false,
-      transactions: transactionsResult.data,
-      currentBalance: balanceResult.data,
-      expensesByType: expensesResult.data,
+      transactions: filteredList,
+      currentBalance: balance,
+      errorMessage: null,
     );
   }
 
-  Future<Result<void>> addTransaction(TreasuryTransaction transaction) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
-    final result = await _treasuryRepository.addTransaction(transaction);
-
-    if (result.isFailure) {
-      state = state.copyWith(isLoading: false, errorMessage: result.error);
-      return result;
-    }
-
-    await loadTransactions(); // Reload all data after adding
-    return result;
-  }
-
-  Future<Result<void>> updateTransaction(
-    TreasuryTransaction transaction,
-  ) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
-    final result = await _treasuryRepository.updateTransaction(transaction);
-
-    if (result.isFailure) {
-      state = state.copyWith(isLoading: false, errorMessage: result.error);
-      return result;
-    }
-
-    await loadTransactions(); // Reload all data after updating
-    return result;
-  }
-
-  Future<Result<void>> deleteTransaction(String transactionId) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
-    final result = await _treasuryRepository.deleteTransaction(transactionId);
-
-    if (result.isFailure) {
-      state = state.copyWith(isLoading: false, errorMessage: result.error);
-      return result;
-    }
-
-    await loadTransactions(); // Reload all data after deleting
-    return result;
+  double _calculateBalance(List<TreasuryTransaction> transactions) {
+    return transactions.fold(0.0, (previousValue, item) {
+      return item.isIncome
+          ? previousValue + item.amount
+          : previousValue - item.amount;
+    });
   }
 }

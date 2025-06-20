@@ -86,7 +86,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.estateTreasuryRelative,
             builder: (context, state) {
-              return EstateTreasuryScreen();
+              final estateId = ref.read(appStateProvider).getEstateId();
+              return FutureBuilder<String?>(
+                future: estateId,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return EstateTreasuryScreen(estateId: snapshot.data!);
+                  }
+                  return const SizedBox.shrink();
+                },
+              );
             },
           ),
           GoRoute(

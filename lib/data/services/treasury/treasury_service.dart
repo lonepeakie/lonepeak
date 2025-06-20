@@ -5,68 +5,69 @@ import 'package:lonepeak/utils/result.dart';
 class TreasuryService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Collection references
-  CollectionReference<Map<String, dynamic>> _getTransactionsCollection(
+  CollectionReference<TreasuryTransaction> _getTransactionsCollection(
     String estateId,
   ) {
-    return _db.collection('estates').doc(estateId).collection('transactions');
+    return _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter<TreasuryTransaction>(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        );
   }
 
-  // Get all transactions for an estate
   Future<Result<List<TreasuryTransaction>>> getTransactions(
     String estateId,
   ) async {
     try {
-      final transactionsRef = _getTransactionsCollection(estateId);
       final snapshot =
-          await transactionsRef.orderBy('date', descending: true).get();
+          await _getTransactionsCollection(
+            estateId,
+          ).orderBy('date', descending: true).get();
 
-      final transactions =
-          snapshot.docs
-              .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
-              .toList();
-
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
       return Result.success(transactions);
     } catch (e) {
       return Result.failure('Failed to get transactions: ${e.toString()}');
     }
   }
 
-  // Get a transaction by ID
   Future<Result<TreasuryTransaction>> getTransactionById(
     String estateId,
     String transactionId,
   ) async {
     try {
-      final transactionDoc =
+      final doc =
           await _getTransactionsCollection(estateId).doc(transactionId).get();
 
-      if (!transactionDoc.exists) {
+      if (!doc.exists) {
         return Result.failure('Transaction not found');
       }
 
-      return Result.success(
-        TreasuryTransaction.fromFirestore(transactionDoc, null),
-      );
+      return Result.success(doc.data()!);
     } catch (e) {
       return Result.failure('Failed to get transaction: ${e.toString()}');
     }
   }
 
-  // Add a transaction
   Future<Result<void>> addTransaction(
     String estateId,
     TreasuryTransaction transaction,
   ) async {
     try {
-      await _getTransactionsCollection(estateId).add(transaction.toFirestore());
+      await _getTransactionsCollection(estateId).add(transaction);
       return Result.success(null);
     } catch (e) {
       return Result.failure('Failed to add transaction: ${e.toString()}');
     }
   }
 
-  // Update a transaction
   Future<Result<void>> updateTransaction(
     String estateId,
     TreasuryTransaction transaction,
@@ -78,14 +79,13 @@ class TreasuryService {
 
       await _getTransactionsCollection(
         estateId,
-      ).doc(transaction.id).update(transaction.toFirestore());
+      ).doc(transaction.id).set(transaction);
       return Result.success(null);
     } catch (e) {
       return Result.failure('Failed to update transaction: ${e.toString()}');
     }
   }
 
-  // Delete a transaction
   Future<Result<void>> deleteTransaction(
     String estateId,
     String transactionId,
@@ -98,7 +98,6 @@ class TreasuryService {
     }
   }
 
-  // Get the current balance
   Future<Result<double>> getCurrentBalance(String estateId) async {
     try {
       final transactionsResult = await getTransactions(estateId);
@@ -124,14 +123,13 @@ class TreasuryService {
     }
   }
 
-  // Get transaction summary by type
   Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType(
     String estateId, {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = _getTransactionsCollection(estateId);
+      Query<TreasuryTransaction> query = _getTransactionsCollection(estateId);
 
       if (startDate != null) {
         query = query.where(
@@ -148,22 +146,15 @@ class TreasuryService {
       }
 
       final snapshot = await query.get();
-      final transactions =
-          snapshot.docs
-              .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
-              .toList();
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
 
       final summary = <TransactionType, double>{};
-
-      // Initialize all transaction types to 0
       for (var type in TransactionType.values) {
         summary[type] = 0;
       }
 
-      // Sum the amounts by type
       for (var transaction in transactions) {
         if (!transaction.isIncome) {
-          // Only count expenses for the summary
           summary[transaction.type] =
               (summary[transaction.type] ?? 0) + transaction.amount;
         }
