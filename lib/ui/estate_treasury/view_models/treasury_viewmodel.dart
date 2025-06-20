@@ -1,6 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/data/services/treasury/treasury_service.dart';
+
+final treasuryServiceProvider = Provider<TreasuryService>((ref) {
+  return TreasuryService();
+});
+
+final treasuryViewModelProvider = StateNotifierProvider.autoDispose
+    .family<TreasuryViewModel, TreasuryState, String>((ref, estateId) {
+      final treasuryService = ref.watch(treasuryServiceProvider);
+      return TreasuryViewModel(estateId, treasuryService);
+    });
 
 class ViewModelResult {
   final bool isSuccess;
@@ -42,35 +52,84 @@ class TreasuryState {
 
 class TreasuryViewModel extends StateNotifier<TreasuryState> {
   final String estateId;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late final CollectionReference<TreasuryTransaction> _transactionsRef;
+  final TreasuryService _treasuryService;
   List<TreasuryTransaction> _allTransactions = [];
 
-  TreasuryViewModel(this.estateId) : super(const TreasuryState()) {
-    _transactionsRef = _firestore
-        .collection('estates')
-        .doc(estateId)
-        .collection('transactions')
-        .withConverter<TreasuryTransaction>(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
-        );
+  TreasuryViewModel(this.estateId, this._treasuryService)
+    : super(const TreasuryState()) {
     loadTransactions();
   }
 
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      final snapshot = await _transactionsRef.get();
-      _allTransactions = snapshot.docs.map((doc) => doc.data()).toList();
+    final result = await _treasuryService.getTransactions(estateId);
+    if (result.isSuccess) {
+      _allTransactions = result.data!;
       _filterAndSetState();
-    } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    } else {
+      state = state.copyWith(isLoading: false, errorMessage: result.error);
     }
+  }
+
+  Future<ViewModelResult> addTransaction(
+    TreasuryTransaction transaction,
+  ) async {
+    final result = await _treasuryService.addTransaction(estateId, transaction);
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
+    }
+  }
+
+  Future<ViewModelResult> updateTransaction(
+    TreasuryTransaction transaction,
+  ) async {
+    final result = await _treasuryService.updateTransaction(
+      estateId,
+      transaction,
+    );
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
+    }
+  }
+
+  Future<ViewModelResult> deleteTransaction(String transactionId) async {
+    final result = await _treasuryService.deleteTransaction(
+      estateId,
+      transactionId,
+    );
+    if (result.isSuccess) {
+      await loadTransactions();
+      return ViewModelResult(isSuccess: true);
+    } else {
+      return ViewModelResult(isSuccess: false, error: result.error);
+    }
+  }
+
+  Future<void> refreshBalance() async {
+    final result = await _treasuryService.getCurrentBalance(estateId);
+    if (result.isSuccess) {
+      state = state.copyWith(currentBalance: result.data!);
+    } else {
+      state = state.copyWith(errorMessage: result.error);
+    }
+  }
+
+  Future<Map<TransactionType, double>> getTransactionSummary({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final result = await _treasuryService.getTransactionSummaryByType(
+      estateId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    return result.isSuccess ? result.data! : {};
   }
 
   void applyFilters(TransactionFilters newFilters) {
@@ -85,19 +144,6 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
   void setFilters(TransactionFilters filters) {
     state = state.copyWith(filters: filters);
     _filterAndSetState();
-  }
-
-  Future<ViewModelResult> addTransaction(
-    TreasuryTransaction transaction,
-  ) async {
-    try {
-      final docRef = await _transactionsRef.add(transaction);
-      _allTransactions.add(transaction.copyWith(id: docRef.id));
-      _filterAndSetState();
-      return ViewModelResult(isSuccess: true);
-    } catch (e) {
-      return ViewModelResult(isSuccess: false, error: e.toString());
-    }
   }
 
   void _filterAndSetState() {
@@ -142,8 +188,3 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     });
   }
 }
-
-final treasuryViewModelProvider = StateNotifierProvider.autoDispose
-    .family<TreasuryViewModel, TreasuryState, String>((ref, estateId) {
-      return TreasuryViewModel(estateId);
-    });

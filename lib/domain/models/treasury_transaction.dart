@@ -1,31 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-class Metadata {
-  final String? createdBy;
-  final String? updatedBy;
-  final Timestamp? createdAt;
-  final Timestamp? updatedAt;
-
-  Metadata({this.createdBy, this.updatedBy, this.createdAt, this.updatedAt});
-
-  factory Metadata.fromJson(Map<String, dynamic> json) {
-    return Metadata(
-      createdBy: json['createdBy'] as String?,
-      updatedBy: json['updatedBy'] as String?,
-      createdAt: json['createdAt'] is Timestamp ? json['createdAt'] : null,
-      updatedAt: json['updatedAt'] is Timestamp ? json['updatedAt'] : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      if (createdBy != null) 'createdBy': createdBy,
-      if (updatedBy != null) 'updatedBy': updatedBy,
-      if (createdAt != null) 'createdAt': createdAt,
-      if (updatedAt != null) 'updatedAt': updatedAt,
-    };
-  }
-}
+import 'package:lonepeak/domain/models/metadata.dart';
 
 enum TransactionType { maintenance, insurance, utilities, rental, fees, other }
 
@@ -84,8 +58,7 @@ class TreasuryTransaction {
       date: (json['date'] as Timestamp).toDate(),
       description: json['description'] as String?,
       isIncome: json['isIncome'] as bool,
-      metadata:
-          json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
+      metadata: Metadata.fromJson(json['metadata']),
     );
   }
 

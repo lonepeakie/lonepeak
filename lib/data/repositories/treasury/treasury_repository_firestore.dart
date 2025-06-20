@@ -3,6 +3,7 @@ import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/data/services/treasury/treasury_service.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/utils/result.dart';
 
 class TreasuryRepositoryFirestore extends TreasuryRepository {

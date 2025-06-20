@@ -5,30 +5,33 @@ import 'package:lonepeak/utils/result.dart';
 class TreasuryService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  CollectionReference<Map<String, dynamic>> _getTransactionsCollection(
+  CollectionReference<TreasuryTransaction> _getTransactionsCollection(
     String estateId,
   ) {
-    return _db.collection('estates').doc(estateId).collection('transactions');
+    return _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter<TreasuryTransaction>(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        );
   }
 
   Future<Result<List<TreasuryTransaction>>> getTransactions(
     String estateId,
   ) async {
     try {
-      final transactionsRef = _getTransactionsCollection(estateId);
       final snapshot =
-          await transactionsRef.orderBy('date', descending: true).get();
+          await _getTransactionsCollection(
+            estateId,
+          ).orderBy('date', descending: true).get();
 
-      final transactions =
-          snapshot.docs
-              .map(
-                (doc) => TreasuryTransaction.fromJson(
-                  doc.data(),
-                  id: doc.id,
-                ).copyWith(id: doc.id),
-              )
-              .toList();
-
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
       return Result.success(transactions);
     } catch (e) {
       return Result.failure('Failed to get transactions: ${e.toString()}');
@@ -40,19 +43,14 @@ class TreasuryService {
     String transactionId,
   ) async {
     try {
-      final transactionDoc =
+      final doc =
           await _getTransactionsCollection(estateId).doc(transactionId).get();
 
-      if (!transactionDoc.exists) {
+      if (!doc.exists) {
         return Result.failure('Transaction not found');
       }
 
-      return Result.success(
-        TreasuryTransaction.fromJson(
-          transactionDoc.data()!,
-          id: transactionDoc.id,
-        ).copyWith(id: transactionDoc.id),
-      );
+      return Result.success(doc.data()!);
     } catch (e) {
       return Result.failure('Failed to get transaction: ${e.toString()}');
     }
@@ -63,7 +61,7 @@ class TreasuryService {
     TreasuryTransaction transaction,
   ) async {
     try {
-      await _getTransactionsCollection(estateId).add(transaction.toJson());
+      await _getTransactionsCollection(estateId).add(transaction);
       return Result.success(null);
     } catch (e) {
       return Result.failure('Failed to add transaction: ${e.toString()}');
@@ -81,7 +79,7 @@ class TreasuryService {
 
       await _getTransactionsCollection(
         estateId,
-      ).doc(transaction.id).update(transaction.toJson());
+      ).doc(transaction.id).set(transaction);
       return Result.success(null);
     } catch (e) {
       return Result.failure('Failed to update transaction: ${e.toString()}');
@@ -131,7 +129,7 @@ class TreasuryService {
     DateTime? endDate,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = _getTransactionsCollection(estateId);
+      Query<TreasuryTransaction> query = _getTransactionsCollection(estateId);
 
       if (startDate != null) {
         query = query.where(
@@ -148,19 +146,9 @@ class TreasuryService {
       }
 
       final snapshot = await query.get();
-
-      final transactions =
-          snapshot.docs
-              .map(
-                (doc) => TreasuryTransaction.fromJson(
-                  doc.data(),
-                  id: doc.id,
-                ).copyWith(id: doc.id),
-              )
-              .toList();
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
 
       final summary = <TransactionType, double>{};
-
       for (var type in TransactionType.values) {
         summary[type] = 0;
       }

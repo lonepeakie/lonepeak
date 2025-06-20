@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 
 Color _getCategoryColor(TransactionType type) {
   switch (type) {
@@ -10,13 +11,13 @@ Color _getCategoryColor(TransactionType type) {
     case TransactionType.insurance:
       return Colors.purple;
     case TransactionType.utilities:
-      return Colors.orange.shade800;
+      return Colors.orange;
     case TransactionType.rental:
       return Colors.green;
     case TransactionType.fees:
       return Colors.teal;
     case TransactionType.other:
-      return Colors.grey.shade600;
+      return Colors.grey;
   }
 }
 
@@ -29,6 +30,15 @@ class TransactionCard extends ConsumerWidget {
 
   final TreasuryTransaction transaction;
   final String estateId;
+
+  void _handleMenuAction(BuildContext context, String value, WidgetRef ref) {
+    final viewModel = ref.read(treasuryViewModelProvider(estateId).notifier);
+    if (value == 'delete') {
+      viewModel.deleteTransaction(transaction.id!);
+    } else if (value == 'edit') {
+      // edit flow
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,9 +99,25 @@ class TransactionCard extends ConsumerWidget {
             ],
           ),
         ),
-        trailing: Text(
-          amountString,
-          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              amountString,
+              style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, size: 20),
+              elevation: 1,
+              padding: const EdgeInsets.all(0),
+              onSelected: (value) => _handleMenuAction(context, value, ref),
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
+            ),
+          ],
         ),
       ),
     );
