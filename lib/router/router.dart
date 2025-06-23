@@ -91,8 +91,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 future: estateId,
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
+                    // This provides the required 'estateId' parameter, fixing the error.
                     return EstateTreasuryScreen(estateId: snapshot.data!);
                   }
+                  // Return a loading indicator or an empty container while waiting for the ID.
                   return const SizedBox.shrink();
                 },
               );

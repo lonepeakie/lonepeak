@@ -1,70 +1,78 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/utils/result.dart';
+import 'package:logger/logger.dart';
+
+final treasuryServiceProvider = Provider<TreasuryService>(
+  (ref) => TreasuryService(),
+);
 
 class TreasuryService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final _log = Logger(printer: PrefixedLogPrinter('TreasuryService'));
 
-  CollectionReference<TreasuryTransaction> _getTransactionsCollection(
+  Future<Result<void>> addTransaction(
     String estateId,
-  ) {
-    return _db
+    TreasuryTransaction transaction,
+  ) async {
+    if (transaction.id == null || transaction.id!.isEmpty) {
+      return Result.failure('Transaction ID is required for creation');
+    }
+
+    final docRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('transactions')
-        .withConverter<TreasuryTransaction>(
+        .withConverter(
           fromFirestore:
               (snapshot, _) => TreasuryTransaction.fromJson(
                 snapshot.data()!,
                 id: snapshot.id,
               ),
           toFirestore: (transaction, _) => transaction.toJson(),
-        );
-  }
+        )
+        .doc(transaction.id);
 
-  Future<Result<List<TreasuryTransaction>>> getTransactions(
-    String estateId,
-  ) async {
     try {
-      final snapshot =
-          await _getTransactionsCollection(
-            estateId,
-          ).orderBy('date', descending: true).get();
-
-      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
-      return Result.success(transactions);
+      await docRef.set(transaction);
+      _log.i('Transaction added successfully with ID: ${transaction.id}');
+      return Result.success(null);
     } catch (e) {
-      return Result.failure('Failed to get transactions: ${e.toString()}');
+      _log.e('Failed to add transaction: $e');
+      return Result.failure('Failed to add transaction');
     }
   }
 
-  Future<Result<TreasuryTransaction>> getTransactionById(
+  Future<Result<TreasuryTransaction>> getTransaction(
     String estateId,
     String transactionId,
   ) async {
-    try {
-      final doc =
-          await _getTransactionsCollection(estateId).doc(transactionId).get();
+    final docRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        )
+        .doc(transactionId);
 
-      if (!doc.exists) {
+    try {
+      final doc = await docRef.get();
+      if (doc.exists) {
+        return Result.success(doc.data()!);
+      } else {
         return Result.failure('Transaction not found');
       }
-
-      return Result.success(doc.data()!);
     } catch (e) {
-      return Result.failure('Failed to get transaction: ${e.toString()}');
-    }
-  }
-
-  Future<Result<void>> addTransaction(
-    String estateId,
-    TreasuryTransaction transaction,
-  ) async {
-    try {
-      await _getTransactionsCollection(estateId).add(transaction);
-      return Result.success(null);
-    } catch (e) {
-      return Result.failure('Failed to add transaction: ${e.toString()}');
+      _log.e('Failed to get transaction: $e');
+      return Result.failure('Failed to get transaction');
     }
   }
 
@@ -72,17 +80,31 @@ class TreasuryService {
     String estateId,
     TreasuryTransaction transaction,
   ) async {
-    try {
-      if (transaction.id == null) {
-        return Result.failure('Transaction ID cannot be null');
-      }
+    if (transaction.id == null || transaction.id!.isEmpty) {
+      return Result.failure('Transaction ID is required for update');
+    }
 
-      await _getTransactionsCollection(
-        estateId,
-      ).doc(transaction.id).set(transaction);
+    final docRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        )
+        .doc(transaction.id);
+
+    try {
+      await docRef.set(transaction);
+      _log.i('Transaction updated successfully');
       return Result.success(null);
     } catch (e) {
-      return Result.failure('Failed to update transaction: ${e.toString()}');
+      _log.e('Failed to update transaction: $e');
+      return Result.failure('Failed to update transaction');
     }
   }
 
@@ -90,37 +112,71 @@ class TreasuryService {
     String estateId,
     String transactionId,
   ) async {
+    final docRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        )
+        .doc(transactionId);
+
     try {
-      await _getTransactionsCollection(estateId).doc(transactionId).delete();
+      await docRef.delete();
+      _log.i('Transaction deleted: $transactionId');
       return Result.success(null);
     } catch (e) {
-      return Result.failure('Failed to delete transaction: ${e.toString()}');
+      _log.e('Failed to delete transaction: $e');
+      return Result.failure('Failed to delete transaction');
+    }
+  }
+
+  Future<Result<List<TreasuryTransaction>>> getTransactions(
+    String estateId,
+  ) async {
+    final collectionRef = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        )
+        .orderBy('date', descending: true);
+
+    try {
+      final snapshot = await collectionRef.get();
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
+      _log.i('Fetched ${transactions.length} transactions');
+      return Result.success(transactions);
+    } catch (e) {
+      _log.e('Failed to fetch transactions: $e');
+      return Result.failure('Failed to get transactions');
     }
   }
 
   Future<Result<double>> getCurrentBalance(String estateId) async {
-    try {
-      final transactionsResult = await getTransactions(estateId);
+    final result = await getTransactions(estateId);
+    if (result.isFailure) return Result.failure(result.error!);
 
-      if (transactionsResult.isFailure) {
-        return Result.failure(transactionsResult.error!);
-      }
+    final transactions = result.data!;
+    double balance = 0;
 
-      final transactions = transactionsResult.data!;
-      double balance = 0;
-
-      for (var transaction in transactions) {
-        if (transaction.isIncome) {
-          balance += transaction.amount;
-        } else {
-          balance -= transaction.amount;
-        }
-      }
-
-      return Result.success(balance);
-    } catch (e) {
-      return Result.failure('Failed to calculate balance: ${e.toString()}');
+    for (var tx in transactions) {
+      balance += tx.isIncome ? tx.amount : -tx.amount;
     }
+
+    _log.i('Current balance: $balance');
+    return Result.success(balance);
   }
 
   Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType(
@@ -128,43 +184,52 @@ class TreasuryService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
+    Query<TreasuryTransaction> query = _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore:
+              (snapshot, _) => TreasuryTransaction.fromJson(
+                snapshot.data()!,
+                id: snapshot.id,
+              ),
+          toFirestore: (transaction, _) => transaction.toJson(),
+        );
+
+    if (startDate != null) {
+      query = query.where(
+        'date',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+      );
+    }
+
+    if (endDate != null) {
+      query = query.where(
+        'date',
+        isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+      );
+    }
+
     try {
-      Query<TreasuryTransaction> query = _getTransactionsCollection(estateId);
-
-      if (startDate != null) {
-        query = query.where(
-          'date',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
-        );
-      }
-
-      if (endDate != null) {
-        query = query.where(
-          'date',
-          isLessThanOrEqualTo: Timestamp.fromDate(endDate),
-        );
-      }
-
       final snapshot = await query.get();
       final transactions = snapshot.docs.map((doc) => doc.data()).toList();
 
-      final summary = <TransactionType, double>{};
-      for (var type in TransactionType.values) {
-        summary[type] = 0;
-      }
+      final summary = <TransactionType, double>{
+        for (var type in TransactionType.values) type: 0,
+      };
 
-      for (var transaction in transactions) {
-        if (!transaction.isIncome) {
-          summary[transaction.type] =
-              (summary[transaction.type] ?? 0) + transaction.amount;
+      for (var tx in transactions) {
+        if (!tx.isIncome) {
+          summary[tx.type] = (summary[tx.type] ?? 0) + tx.amount;
         }
       }
 
+      _log.i('Summary by type: $summary');
       return Result.success(summary);
     } catch (e) {
-      return Result.failure(
-        'Failed to get transaction summary: ${e.toString()}',
-      );
+      _log.e('Failed to get summary: $e');
+      return Result.failure('Failed to get transaction summary');
     }
   }
 }

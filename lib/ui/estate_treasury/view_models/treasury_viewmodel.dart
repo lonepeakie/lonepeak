@@ -1,22 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/data/repositories/treasury/treasury_provider.dart';
+import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
-import 'package:lonepeak/data/services/treasury/treasury_service.dart';
-
-final treasuryServiceProvider = Provider<TreasuryService>((ref) {
-  return TreasuryService();
-});
+import 'package:lonepeak/utils/result.dart';
 
 final treasuryViewModelProvider = StateNotifierProvider.autoDispose
     .family<TreasuryViewModel, TreasuryState, String>((ref, estateId) {
-      final treasuryService = ref.watch(treasuryServiceProvider);
-      return TreasuryViewModel(estateId, treasuryService);
+      final repository = ref.read(treasuryRepositoryProvider);
+      return TreasuryViewModel(
+        estateId: estateId,
+        treasuryRepository: repository,
+      );
     });
-
-class ViewModelResult {
-  final bool isSuccess;
-  final String? error;
-  ViewModelResult({required this.isSuccess, this.error});
-}
 
 class TreasuryState {
   final bool isLoading;
@@ -52,17 +48,18 @@ class TreasuryState {
 
 class TreasuryViewModel extends StateNotifier<TreasuryState> {
   final String estateId;
-  final TreasuryService _treasuryService;
+  final TreasuryRepository treasuryRepository;
+
   List<TreasuryTransaction> _allTransactions = [];
 
-  TreasuryViewModel(this.estateId, this._treasuryService)
+  TreasuryViewModel({required this.estateId, required this.treasuryRepository})
     : super(const TreasuryState()) {
     loadTransactions();
   }
 
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    final result = await _treasuryService.getTransactions(estateId);
+    final result = await treasuryRepository.getTransactions();
     if (result.isSuccess) {
       _allTransactions = result.data!;
       _filterAndSetState();
@@ -71,48 +68,45 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     }
   }
 
-  Future<ViewModelResult> addTransaction(
-    TreasuryTransaction transaction,
-  ) async {
-    final result = await _treasuryService.addTransaction(estateId, transaction);
+  Future<Result<void>> addTransaction(TreasuryTransaction transaction) async {
+    // ✅ Generate unique Firestore document ID
+    final newId =
+        FirebaseFirestore.instance
+            .collection('estates')
+            .doc(estateId)
+            .collection('transactions')
+            .doc()
+            .id;
+
+    final transactionWithId = transaction.copyWith(id: newId);
+
+    final result = await treasuryRepository.addTransaction(transactionWithId);
     if (result.isSuccess) {
       await loadTransactions();
-      return ViewModelResult(isSuccess: true);
-    } else {
-      return ViewModelResult(isSuccess: false, error: result.error);
     }
+    return result;
   }
 
-  Future<ViewModelResult> updateTransaction(
+  Future<Result<void>> updateTransaction(
     TreasuryTransaction transaction,
   ) async {
-    final result = await _treasuryService.updateTransaction(
-      estateId,
-      transaction,
-    );
+    final result = await treasuryRepository.updateTransaction(transaction);
     if (result.isSuccess) {
       await loadTransactions();
-      return ViewModelResult(isSuccess: true);
-    } else {
-      return ViewModelResult(isSuccess: false, error: result.error);
     }
+    return result;
   }
 
-  Future<ViewModelResult> deleteTransaction(String transactionId) async {
-    final result = await _treasuryService.deleteTransaction(
-      estateId,
-      transactionId,
-    );
+  Future<Result<void>> deleteTransaction(String transactionId) async {
+    final result = await treasuryRepository.deleteTransaction(transactionId);
     if (result.isSuccess) {
       await loadTransactions();
-      return ViewModelResult(isSuccess: true);
-    } else {
-      return ViewModelResult(isSuccess: false, error: result.error);
     }
+    return result;
   }
 
   Future<void> refreshBalance() async {
-    final result = await _treasuryService.getCurrentBalance(estateId);
+    final result = await treasuryRepository.getCurrentBalance();
     if (result.isSuccess) {
       state = state.copyWith(currentBalance: result.data!);
     } else {
@@ -124,8 +118,7 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final result = await _treasuryService.getTransactionSummaryByType(
-      estateId,
+    final result = await treasuryRepository.getTransactionSummaryByType(
       startDate: startDate,
       endDate: endDate,
     );
@@ -141,50 +134,44 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     applyFilters(const TransactionFilters());
   }
 
-  void setFilters(TransactionFilters filters) {
-    state = state.copyWith(filters: filters);
+  void setFilters(TransactionFilters newFilters) {
+    state = state.copyWith(filters: newFilters);
     _filterAndSetState();
   }
 
   void _filterAndSetState() {
-    var filteredList = List<TreasuryTransaction>.from(_allTransactions);
-    final currentFilters = state.filters;
+    final filters = state.filters;
+    var filtered = List<TreasuryTransaction>.from(_allTransactions);
 
-    if (currentFilters.isIncome != null) {
-      filteredList.retainWhere((t) => t.isIncome == currentFilters.isIncome);
+    if (filters.isIncome != null) {
+      filtered.retainWhere((t) => t.isIncome == filters.isIncome);
     }
-    if (currentFilters.type != null) {
-      filteredList.retainWhere((t) => t.type == currentFilters.type);
+    if (filters.type != null) {
+      filtered.retainWhere((t) => t.type == filters.type);
     }
-    if (currentFilters.startDate != null) {
-      filteredList.retainWhere(
-        (t) => !t.date.isBefore(currentFilters.startDate!),
-      );
+    if (filters.startDate != null) {
+      filtered.retainWhere((t) => !t.date.isBefore(filters.startDate!));
     }
-    if (currentFilters.endDate != null) {
-      final inclusiveEndDate = currentFilters.endDate!.add(
-        const Duration(days: 1),
-      );
-      filteredList.retainWhere((t) => t.date.isBefore(inclusiveEndDate));
+    if (filters.endDate != null) {
+      final inclusiveEnd = filters.endDate!.add(const Duration(days: 1));
+      filtered.retainWhere((t) => t.date.isBefore(inclusiveEnd));
     }
 
-    filteredList.sort((a, b) => b.date.compareTo(a.date));
+    filtered.sort((a, b) => b.date.compareTo(a.date));
 
     final balance = _calculateBalance(_allTransactions);
 
     state = state.copyWith(
       isLoading: false,
-      transactions: filteredList,
+      transactions: filtered,
       currentBalance: balance,
       errorMessage: null,
     );
   }
 
   double _calculateBalance(List<TreasuryTransaction> transactions) {
-    return transactions.fold(0.0, (previousValue, item) {
-      return item.isIncome
-          ? previousValue + item.amount
-          : previousValue - item.amount;
+    return transactions.fold(0.0, (sum, t) {
+      return t.isIncome ? sum + t.amount : sum - t.amount;
     });
   }
 }
