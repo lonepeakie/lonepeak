@@ -299,7 +299,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       const SizedBox(height: 16),
                       AppTextInput(
                         controller: titleController,
-                        labelText: 'Title',
+                        labelText: 'Title', //Tittle
                         hintText: 'e.g. Community garden Repair',
                         required: true,
                       ),
