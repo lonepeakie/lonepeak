@@ -38,9 +38,9 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   void _showMemberActionSheet(BuildContext context, Member member) async {
     final viewModel = ref.read(estateMembersViewModelProvider.notifier);
     final isAdmin = await viewModel.hasAdminPrivileges();
+    if (!context.mounted) return;
 
     if (!isAdmin) {
-      // Non-admin users shouldn't be able to modify members
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You need admin privileges to modify members'),
@@ -86,7 +86,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               leading: CircleAvatar(
                 backgroundColor: Theme.of(
                   context,
-                ).colorScheme.primary.withOpacity(0.1),
+                ).colorScheme.primary.withValues(alpha: .1),
                 child: Text(
                   member.displayName[0],
                   style: TextStyle(
@@ -387,7 +387,10 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                               email: member.email,
                               role: roleName,
                               onTap:
-                                  () => _showMemberActionSheet(context, member),
+                                  () => {
+                                    if (context.mounted)
+                                      {_showMemberActionSheet(context, member)},
+                                  },
                             );
                           },
                         );

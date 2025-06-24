@@ -192,7 +192,6 @@ class EstateFeatures {
     final updatedUser = user.data!.copyWithEmptyEstateId(
       metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
     );
-    print('Updated user: ${updatedUser.toFirestore()}');
     final userUpdateResult = await _usersRepository.updateUser(updatedUser);
     if (userUpdateResult.isFailure) {
       return Result.failure('Failed to update user');
