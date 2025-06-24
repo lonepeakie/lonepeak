@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:lonepeak/domain/features/document_features.dart';
+import 'package:lonepeak/data/repositories/document/documents_provider.dart';
+import 'package:lonepeak/data/repositories/document/documents_repository.dart';
 import 'package:lonepeak/domain/models/document.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/utils/log_printer.dart';
@@ -10,19 +11,19 @@ import 'package:lonepeak/utils/log_printer.dart';
 final estateDocumentsViewModelProvider =
     StateNotifierProvider<EstateDocumentsViewModel, UIState>(
       (ref) => EstateDocumentsViewModel(
-        documentFeatures: ref.read(documentFeaturesProvider),
+        documentsRepository: ref.read(documentsRepositoryProvider),
       ),
     );
 
 class EstateDocumentsViewModel extends StateNotifier<UIState> {
-  EstateDocumentsViewModel({required DocumentFeatures documentFeatures})
-    : _documentFeatures = documentFeatures,
+  EstateDocumentsViewModel({required DocumentsRepository documentsRepository})
+    : _documentsRepository = documentsRepository,
       super(UIStateInitial()) {
     // Initialize with root documents
     loadDocuments();
   }
 
-  final DocumentFeatures _documentFeatures;
+  final DocumentsRepository _documentsRepository;
   final _log = Logger(printer: PrefixedLogPrinter('EstateDocumentsViewModel'));
 
   List<Document> _documents = [];
@@ -40,36 +41,90 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> loadDocuments({String? folderId}) async {
     state = UIStateLoading();
     _currentFolderId = folderId;
+    _log.i("Loading documents for folderId: $folderId");
 
-    final result = await _documentFeatures.getDocuments(parentId: folderId);
+    final result = await _documentsRepository.getDocuments(parentId: folderId);
     if (result.isSuccess) {
       _documents = result.data ?? [];
-      state = UIStateSuccess();
+      _documents.sort((a, b) {
+        if (a.type == DocumentType.folder && b.type != DocumentType.folder) {
+          return -1;
+        }
+        if (a.type != DocumentType.folder && b.type == DocumentType.folder) {
+          return 1;
+        }
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+      _log.d("Documents loaded: ${_documents.length} items");
 
-      // Load breadcrumbs if we're in a folder
       if (folderId != null) {
         await _loadBreadcrumbs(folderId);
       } else {
         _breadcrumbs = [];
+        _log.d("At root, breadcrumbs cleared.");
       }
+      state = UIStateSuccess();
     } else {
+      _log.e("Failed to load documents: ${result.error}");
       state = UIStateFailure(result.error ?? 'Failed to load documents');
     }
   }
 
   Future<void> _loadBreadcrumbs(String folderId) async {
-    _breadcrumbs = [];
-    String? currentId = folderId;
+    _log.i('Loading breadcrumbs for folder ID: $folderId');
+    List<Document> newBreadcrumbs = [];
+    String? currentAncestorId = folderId; // Start with the current folder's ID
 
-    while (currentId != null) {
-      final result = await _documentFeatures.getDocumentById(currentId);
-      if (result.isSuccess) {
-        _breadcrumbs.insert(0, result.data!);
-        currentId = result.data!.parentId;
+    int safetyCount = 0;
+    const int maxDepth = 10; // Max depth for breadcrumb chain
+
+    while (currentAncestorId != null &&
+        currentAncestorId.isNotEmpty &&
+        currentAncestorId != "root" &&
+        safetyCount < maxDepth) {
+      _log.d('Fetching document for breadcrumb: ID $currentAncestorId');
+      final docResult = await _documentsRepository.getDocumentById(
+        currentAncestorId,
+      );
+
+      if (docResult.isSuccess && docResult.data != null) {
+        final doc = docResult.data!;
+        newBreadcrumbs.insert(
+          0,
+          doc,
+        ); // Insert at the beginning to maintain order (Root -> ... -> Current)
+        _log.d(
+          'Added to breadcrumbs: ${doc.name} (ID: ${doc.id}, Parent: ${doc.parentId})',
+        );
+
+        // Move to the parent for the next iteration
+        if (doc.parentId.isEmpty || doc.parentId == currentAncestorId) {
+          // Check for empty or self-reference
+          _log.w(
+            'Parent ID is empty or self-referential for ${doc.name}. Stopping breadcrumb generation.',
+          );
+          break;
+        }
+        currentAncestorId = doc.parentId;
       } else {
-        break;
+        _log.e(
+          'Failed to fetch document for breadcrumb: ID $currentAncestorId. Error: ${docResult.error}',
+        );
+        break; // Stop if a document in the path cannot be fetched
       }
+      safetyCount++;
     }
+
+    if (safetyCount >= maxDepth) {
+      _log.w(
+        'Reached max depth for breadcrumbs. Path might be too deep or circular.',
+      );
+    }
+
+    _breadcrumbs = newBreadcrumbs;
+    _log.i(
+      'Breadcrumbs updated: ${_breadcrumbs.map((b) => b.name).join(' / ')}',
+    );
   }
 
   Future<void> navigateToFolder(Document folder) async {
@@ -110,7 +165,10 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> createFolder(String name) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.createFolder(name, _currentFolderId);
+    final result = await _documentsRepository.createFolder(
+      name,
+      _currentFolderId,
+    );
     if (result.isSuccess) {
       // Reload documents to include the new folder
       await loadDocuments(folderId: _currentFolderId);
@@ -122,7 +180,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> uploadDocument(Document document) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.addDocument(document);
+    final result = await _documentsRepository.addDocument(document);
     if (result.isSuccess) {
       // Reload documents to include the new document
       await loadDocuments(folderId: _currentFolderId);
@@ -134,7 +192,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
   Future<void> deleteDocument(String documentId) async {
     state = UIStateLoading();
 
-    final result = await _documentFeatures.deleteDocument(documentId);
+    final result = await _documentsRepository.deleteDocument(documentId);
     if (result.isSuccess) {
       // If we just deleted the selected document, clear selection
       if (_selectedDocument?.id == documentId) {
@@ -157,7 +215,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
 
     state = UIStateLoading();
 
-    final result = await _documentFeatures.searchDocuments(query);
+    final result = await _documentsRepository.searchDocuments(query);
     if (result.isSuccess) {
       _documents = result.data ?? [];
       state = UIStateSuccess();
@@ -192,7 +250,7 @@ class EstateDocumentsViewModel extends StateNotifier<UIState> {
       );
 
       // Upload file
-      final uploadResult = await _documentFeatures.uploadFile(
+      final uploadResult = await _documentsRepository.uploadFile(
         File(file.path!),
         file.name,
         documentType,

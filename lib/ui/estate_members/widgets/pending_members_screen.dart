@@ -65,7 +65,7 @@ class _PendingMembersScreenState extends ConsumerState<PendingMembersScreen> {
                         member: member,
                         onApprove: () async {
                           await viewModel.approveMember(member.email);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('${member.displayName} approved'),
@@ -76,7 +76,7 @@ class _PendingMembersScreenState extends ConsumerState<PendingMembersScreen> {
                         },
                         onReject: () async {
                           await viewModel.rejectMember(member.email);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('${member.displayName} rejected'),

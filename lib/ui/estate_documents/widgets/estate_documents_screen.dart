@@ -259,19 +259,23 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     final success = await viewModel.pickAndUploadFile();
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('File uploaded successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File uploaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('File upload canceled or failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File upload canceled or failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -372,7 +376,6 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 title: const Text('Download File'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement download functionality
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Downloading file...')),
                   );

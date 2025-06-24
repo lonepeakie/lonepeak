@@ -48,24 +48,26 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           ),
         ],
       ),
-      body:
-          treasuryState.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : treasuryState.errorMessage != null
-              ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCurrentBalanceCard(treasuryState.currentBalance),
-                    const SizedBox(height: 24),
-                    _buildRecentTransactionsContainer(
-                      treasuryState.transactions,
-                    ),
-                  ],
+      body: SafeArea(
+        child:
+            treasuryState.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : treasuryState.errorMessage != null
+                ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
+                : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCurrentBalanceCard(treasuryState.currentBalance),
+                      const SizedBox(height: 24),
+                      _buildRecentTransactionsContainer(
+                        treasuryState.transactions,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+      ),
     );
   }
 

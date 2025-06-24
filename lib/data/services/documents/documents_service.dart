@@ -175,7 +175,6 @@ class DocumentsService {
           .child('documents')
           .child('${DateTime.now().millisecondsSinceEpoch}_$fileName');
 
-      // Upload file
       final uploadTask = storageRef.putFile(
         file,
         SettableMetadata(contentType: _getContentType(type, fileName)),
@@ -187,14 +186,10 @@ class DocumentsService {
       // Get download URL
       final fileUrl = await snapshot.ref.getDownloadURL();
 
-      // Get file size
       final fileSize = await file.length();
-
-      // Create thumbnail if image
       String? thumbnailUrl;
       if (type == DocumentType.image) {
-        thumbnailUrl =
-            fileUrl; // In real implementation, generate a smaller thumbnail
+        thumbnailUrl = fileUrl;
       }
 
       return Result.success({

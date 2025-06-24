@@ -27,6 +27,10 @@ class TransactionCard extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         leading: Icon(
           transaction.isIncome ? Icons.south_west : Icons.arrow_outward,
           color: transaction.isIncome ? Colors.green : Colors.red,
