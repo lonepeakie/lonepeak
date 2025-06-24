@@ -13,9 +13,9 @@ extension TransactionTypeExtension on TransactionType {
       case TransactionType.utilities:
         return 'Utilities';
       case TransactionType.rental:
-        return 'Rental Income';
+        return 'Rental';
       case TransactionType.fees:
-        return 'Fees';
+        return 'Annual Fees';
       case TransactionType.other:
         return 'Other';
     }
@@ -25,8 +25,8 @@ extension TransactionTypeExtension on TransactionType {
 class TreasuryTransaction {
   final String? id;
   final String title;
-  final double amount;
   final TransactionType type;
+  final double amount;
   final DateTime date;
   final String? description;
   final bool isIncome;
@@ -35,43 +35,45 @@ class TreasuryTransaction {
   TreasuryTransaction({
     this.id,
     required this.title,
-    required this.amount,
     required this.type,
+    required this.amount,
     required this.date,
     this.description,
     required this.isIncome,
     this.metadata,
   });
 
-  factory TreasuryTransaction.fromJson(
-    Map<String, dynamic> json, {
-    required String id,
-  }) {
+  factory TreasuryTransaction.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
+    final data = snapshot.data() as Map<String, dynamic>;
     return TreasuryTransaction(
-      id: id,
-      title: json['title'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      id: snapshot.id,
+      title: data['title'] ?? '',
       type: TransactionType.values.firstWhere(
-        (e) => e.name == json['type'],
+        (e) => e.toString() == data['type'],
         orElse: () => TransactionType.other,
       ),
-      date: (json['date'] as Timestamp).toDate(),
-      description: json['description'] as String?,
-      isIncome: json['isIncome'] as bool,
-      metadata:
-          json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
+      amount: (data['amount'] ?? 0).toDouble(),
+      date: (data['date'] as Timestamp).toDate(),
+      description: data['description'],
+      isIncome: data['isIncome'] ?? false,
+      metadata: Metadata.fromJson(data['metadata']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFirestore() {
     return {
       'title': title,
+      'type': type.toString(),
       'amount': amount,
-      'type': type.name,
       'date': Timestamp.fromDate(date),
       'description': description,
       'isIncome': isIncome,
-      'metadata': metadata?.toJson(),
+      'metadata':
+          metadata?.toJson() ??
+          {'createdAt': Timestamp.now(), 'updatedAt': Timestamp.now()},
     };
   }
 
@@ -94,53 +96,6 @@ class TreasuryTransaction {
       description: description ?? this.description,
       isIncome: isIncome ?? this.isIncome,
       metadata: metadata ?? this.metadata,
-    );
-  }
-
-  // ✅ Firestore converters
-  static TreasuryTransaction fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? _,
-  ) {
-    final data = snapshot.data()!;
-    return TreasuryTransaction.fromJson(data, id: snapshot.id);
-  }
-
-  static Map<String, dynamic> toFirestore(
-    TreasuryTransaction transaction,
-    SetOptions? _,
-  ) {
-    return transaction.toJson();
-  }
-}
-
-class TransactionFilters {
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final TransactionType? type;
-  final bool? isIncome;
-
-  const TransactionFilters({
-    this.startDate,
-    this.endDate,
-    this.type,
-    this.isIncome,
-  });
-
-  bool get isClear =>
-      startDate == null && endDate == null && type == null && isIncome == null;
-
-  TransactionFilters copyWith({
-    DateTime? startDate,
-    DateTime? endDate,
-    TransactionType? type,
-    bool? isIncome,
-  }) {
-    return TransactionFilters(
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-      type: type ?? this.type,
-      isIncome: isIncome ?? this.isIncome,
     );
   }
 }
