@@ -100,7 +100,7 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     }
 
     _allTransactions = transactionsResult.data!;
-    _filterAndSetState(); //
+    _filterAndSetState();
 
     state = state.copyWith(
       currentBalance: balanceResult.data!,
