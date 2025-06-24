@@ -259,7 +259,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     final success = await viewModel.pickAndUploadFile();
 
     if (success) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File uploaded successfully'),
@@ -268,7 +268,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
         );
       }
     } else {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File upload canceled or failed'),
