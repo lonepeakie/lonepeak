@@ -58,7 +58,8 @@ class TreasuryTransaction {
       date: (json['date'] as Timestamp).toDate(),
       description: json['description'] as String?,
       isIncome: json['isIncome'] as bool,
-      metadata: Metadata.fromJson(json['metadata']),
+      metadata:
+          json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
     );
   }
 
@@ -94,6 +95,22 @@ class TreasuryTransaction {
       isIncome: isIncome ?? this.isIncome,
       metadata: metadata ?? this.metadata,
     );
+  }
+
+  // ✅ Firestore converters
+  static TreasuryTransaction fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? _,
+  ) {
+    final data = snapshot.data()!;
+    return TreasuryTransaction.fromJson(data, id: snapshot.id);
+  }
+
+  static Map<String, dynamic> toFirestore(
+    TreasuryTransaction transaction,
+    SetOptions? _,
+  ) {
+    return transaction.toJson();
   }
 }
 

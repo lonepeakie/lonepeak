@@ -17,27 +17,18 @@ class TreasuryService {
     String estateId,
     TreasuryTransaction transaction,
   ) async {
-    if (transaction.id == null || transaction.id!.isEmpty) {
-      return Result.failure('Transaction ID is required for creation');
-    }
-
-    final docRef = _db
+    final collectionRef = _db
         .collection('estates')
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
-        )
-        .doc(transaction.id);
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
+        );
 
     try {
-      await docRef.set(transaction);
-      _log.i('Transaction added successfully with ID: ${transaction.id}');
+      await collectionRef.add(transaction);
+      _log.i('Transaction added successfully');
       return Result.success(null);
     } catch (e) {
       _log.e('Failed to add transaction: $e');
@@ -54,12 +45,8 @@ class TreasuryService {
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
         )
         .doc(transactionId);
 
@@ -89,12 +76,8 @@ class TreasuryService {
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
         )
         .doc(transaction.id);
 
@@ -117,12 +100,8 @@ class TreasuryService {
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
         )
         .doc(transactionId);
 
@@ -144,12 +123,8 @@ class TreasuryService {
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
         )
         .orderBy('date', descending: true);
 
@@ -189,12 +164,8 @@ class TreasuryService {
         .doc(estateId)
         .collection('transactions')
         .withConverter(
-          fromFirestore:
-              (snapshot, _) => TreasuryTransaction.fromJson(
-                snapshot.data()!,
-                id: snapshot.id,
-              ),
-          toFirestore: (transaction, _) => transaction.toJson(),
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore: TreasuryTransaction.toFirestore,
         );
 
     if (startDate != null) {
