@@ -50,7 +50,7 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
     if (estateId == null) {
       return Result.failure('Estate ID is null');
     }
-    return _treasuryService.getTransaction(estateId, transactionId);
+    return _treasuryService.getTransactionById(estateId, transactionId);
   }
 
   @override

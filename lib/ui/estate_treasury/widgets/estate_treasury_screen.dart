@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
@@ -10,36 +11,51 @@ import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart'
 import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions_bottom_sheet.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
 
-class EstateTreasuryScreen extends ConsumerStatefulWidget {
-  final String estateId;
-  const EstateTreasuryScreen({super.key, required this.estateId});
+class EstateTreasuryScreen extends ConsumerWidget {
+  const EstateTreasuryScreen({super.key});
 
   @override
-  ConsumerState<EstateTreasuryScreen> createState() =>
-      _EstateTreasuryScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<String?> estateIdAsync = ref.watch(
+      currentEstateIdProvider,
+    );
 
-class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void _showFilterBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder:
-          (context) => FilterTransactionsBottomSheet(estateId: widget.estateId),
+    return estateIdAsync.when(
+      loading:
+          () => Scaffold(
+            appBar: AppBar(title: const Text('Treasury')),
+            body: const Center(child: CircularProgressIndicator()),
+          ),
+      error:
+          (err, stack) => Scaffold(
+            appBar: AppBar(title: const Text('Treasury')),
+            body: Center(child: Text('Error loading estate ID: $err')),
+          ),
+      data: (estateId) {
+        if (estateId == null || estateId.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Treasury')),
+            body: const Center(
+              child: Text(
+                'Error: No estate is currently selected.',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+        return _EstateTreasuryView(estateId: estateId);
+      },
     );
   }
+}
+
+class _EstateTreasuryView extends ConsumerWidget {
+  final String estateId;
+  const _EstateTreasuryView({required this.estateId});
 
   @override
-  Widget build(BuildContext context) {
-    final treasuryState = ref.watch(treasuryViewModelProvider(widget.estateId));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final treasuryState = ref.watch(treasuryViewModelProvider(estateId));
     final areFiltersActive = !treasuryState.filters.isClear;
 
     return Scaffold(
@@ -57,15 +73,20 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           ),
           AppbarActionButton(
             icon: Icons.add,
-            onPressed: () => _showAddTransactionBottomSheet(context),
+            onPressed: () => _showAddTransactionBottomSheet(context, ref),
           ),
         ],
       ),
-      body: _buildBody(treasuryState, areFiltersActive),
+      body: _buildBody(context, ref, treasuryState, areFiltersActive),
     );
   }
 
-  Widget _buildBody(TreasuryState treasuryState, bool areFiltersActive) {
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    TreasuryState treasuryState,
+    bool areFiltersActive,
+  ) {
     if (treasuryState.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -78,7 +99,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       onRefresh:
           () =>
               ref
-                  .read(treasuryViewModelProvider(widget.estateId).notifier)
+                  .read(treasuryViewModelProvider(estateId).notifier)
                   .loadTransactions(),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -86,9 +107,11 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildCurrentBalanceCard(treasuryState.currentBalance),
+            _buildCurrentBalanceCard(context, treasuryState.currentBalance),
             const SizedBox(height: 24),
             _buildTransactionsList(
+              context,
+              ref,
               treasuryState.transactions,
               areFiltersActive,
             ),
@@ -98,7 +121,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Widget _buildCurrentBalanceCard(double balance) {
+  Widget _buildCurrentBalanceCard(BuildContext context, double balance) {
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
     return SizedBox(
       width: double.infinity,
@@ -128,6 +151,8 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   }
 
   Widget _buildTransactionsList(
+    BuildContext context,
+    WidgetRef ref,
     List<TreasuryTransaction> transactions,
     bool areFiltersActive,
   ) {
@@ -146,11 +171,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                 onPressed:
                     () =>
                         ref
-                            .read(
-                              treasuryViewModelProvider(
-                                widget.estateId,
-                              ).notifier,
-                            )
+                            .read(treasuryViewModelProvider(estateId).notifier)
                             .clearFilters(),
                 child: const Text('Clear Filters'),
               ),
@@ -176,7 +197,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                 final transaction = transactions[index];
                 return TransactionCard(
                   transaction: transaction,
-                  estateId: widget.estateId,
+                  estateId: estateId,
                 );
               },
             ),
@@ -184,7 +205,18 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  void _showAddTransactionBottomSheet(BuildContext context) {
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => FilterTransactionsBottomSheet(estateId: estateId),
+    );
+  }
+
+  void _showAddTransactionBottomSheet(BuildContext context, WidgetRef ref) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final amountController = TextEditingController();
@@ -196,12 +228,30 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     final DateFormat parserFormat = DateFormat('MMM d, yyyy');
 
     void submitForm() {
-      if (formKey.currentState!.validate()) {
+      if (formKey.currentState?.validate() ?? false) {
+        final amount = double.tryParse(amountController.text);
+        DateTime? transactionDate;
+        try {
+          transactionDate = parserFormat.parse(dateController.text);
+        } catch (e) {
+          // Handled by the null check below
+        }
+
+        if (amount == null || transactionDate == null) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter a valid amount and date.'),
+            ),
+          );
+          return;
+        }
+
         final newTransaction = TreasuryTransaction(
           title: titleController.text,
-          amount: double.parse(amountController.text),
+          amount: amount,
           type: selectedType,
-          date: parserFormat.parse(dateController.text),
+          date: transactionDate,
           description:
               descriptionController.text.trim().isEmpty
                   ? null
@@ -210,7 +260,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         );
 
         ref
-            .read(treasuryViewModelProvider(widget.estateId).notifier)
+            .read(treasuryViewModelProvider(estateId).notifier)
             .addTransaction(newTransaction)
             .then((result) {
               if (!context.mounted) return;

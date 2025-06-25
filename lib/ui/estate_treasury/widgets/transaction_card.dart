@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 
 class TransactionCard extends ConsumerWidget {
-  const TransactionCard({super.key, required this.transaction});
+  const TransactionCard({
+    super.key,
+    required this.transaction,
+    required this.estateId,
+  });
 
   final TreasuryTransaction transaction;
+  final String estateId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,98 +75,11 @@ class TransactionCard extends ConsumerWidget {
             ),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              amountString,
-              style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 4),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              elevation: 1,
-              padding: const EdgeInsets.all(0),
-              onSelected: (value) => _handleMenuAction(context, value, ref),
-              itemBuilder:
-                  (BuildContext context) => [
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete'),
-                        ],
-                      ),
-                    ),
-                  ],
-            ),
-          ],
+        trailing: Text(
+          amountString,
+          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold),
         ),
       ),
-    );
-  }
-
-  void _handleMenuAction(BuildContext context, String action, WidgetRef ref) {
-    if (action == 'delete') {
-      _showDeleteConfirmation(context, ref);
-    }
-  }
-
-  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Transaction'),
-          content: const Text(
-            'Are you sure you want to delete this transaction?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            AppButton(
-              onPressed: () {
-                if (transaction.id != null) {
-                  ref
-                      .read(treasuryViewModelProvider.notifier)
-                      .deleteTransaction(transaction.id!)
-                      .then((result) {
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                          if (result.isFailure && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${result.error}')),
-                            );
-                          }
-                        } else if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Transaction deleted successfully'),
-                            ),
-                          );
-                        }
-                      });
-                } else {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Error: Cannot delete transaction without ID',
-                      ),
-                    ),
-                  );
-                }
-              },
-              buttonText: 'Delete',
-              backgroundColor: Colors.red.shade400,
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -47,7 +47,6 @@ class AppState {
 
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
-
     return _loadEstateId();
   }
 
@@ -106,7 +105,6 @@ class AppState {
     if (estateIdResult.isFailure) {
       return estateIdResult;
     }
-
     return await clearUserRole();
   }
 
@@ -120,13 +118,11 @@ class AppState {
 
   Future<String?> getUserRole() async {
     if (_userRole != null) return _userRole;
-
     return loadUserRole();
   }
 
   Future<Result<void>> setUserRole(String role) async {
     _userRole = role;
-
     try {
       await _secureStorage.write(key: _userRoleKey, value: role);
       return Result.success(null);
@@ -146,7 +142,6 @@ class AppState {
 
   Future<Result<void>> clearUserRole() async {
     _userRole = null;
-
     try {
       await _secureStorage.delete(key: _userRoleKey);
       return Result.success(null);
@@ -155,3 +150,8 @@ class AppState {
     }
   }
 }
+
+final currentEstateIdProvider = FutureProvider<String?>((ref) {
+  final appState = ref.watch(appStateProvider);
+  return appState.getEstateId();
+});

@@ -99,3 +99,36 @@ class TreasuryTransaction {
     );
   }
 }
+
+class TransactionFilters {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final TransactionType? type;
+  final bool? isIncome;
+
+  const TransactionFilters({
+    this.startDate,
+    this.endDate,
+    this.type,
+    this.isIncome,
+  });
+
+  TransactionFilters copyWith({
+    DateTime? startDate,
+    DateTime? endDate,
+    TransactionType? type,
+    bool? isIncome,
+  }) {
+    return TransactionFilters(
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      type: type ?? this.type,
+      isIncome: isIncome ?? this.isIncome,
+    );
+  }
+
+  bool get hasAnyFilter =>
+      startDate != null || endDate != null || type != null || isIncome != null;
+
+  bool get isClear => !hasAnyFilter;
+}
