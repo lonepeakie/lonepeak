@@ -79,7 +79,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     required BuildContext context,
     required double balance,
   }) {
-    final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 0);
+    final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
     final formattedBalance = formatter.format(balance);
     const iban = 'ES91 2100 0418 4502 0005 1332';
 
