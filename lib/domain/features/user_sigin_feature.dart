@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
+import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
-import 'package:lonepeak/data/repositories/users/users_provider.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';

@@ -110,4 +110,28 @@ class Document {
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
+
+  Document copyWith({
+    String? id,
+    String? name,
+    String? description,
+    DocumentType? type,
+    String? fileUrl,
+    String? parentId,
+    String? thumbnailUrl,
+    int? size,
+    Metadata? metadata,
+  }) {
+    return Document(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      fileUrl: fileUrl ?? this.fileUrl,
+      parentId: parentId ?? this.parentId,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      size: size ?? this.size,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }

@@ -1,10 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/data/services/notices/notices_service.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
+
+final noticesRepositoryProvider = Provider<NoticesRepository>((ref) {
+  final noticesService = ref.read(noticesServiceProvider);
+  final appState = ref.read(appStateProvider);
+
+  return NoticesRepositoryFirestore(
+    noticesService: noticesService,
+    appState: appState,
+  );
+});
 
 class NoticesRepositoryFirestore extends NoticesRepository {
   NoticesRepositoryFirestore({
@@ -23,14 +34,12 @@ class NoticesRepositoryFirestore extends NoticesRepository {
       return Result.failure('Estate ID is null');
     }
 
-    // Set metadata for new notice
-    notice.metadata = Metadata(
-      createdAt: Timestamp.now(),
-      createdBy: _appState.getUserId() ?? 'Unknown',
-      updatedAt: Timestamp.now(),
+    final userEmail = _appState.getUserId();
+    final updatedNotice = notice.copyWith(
+      metadata: Metadata(createdAt: Timestamp.now(), createdBy: userEmail),
     );
 
-    return _noticesService.createNotice(estateId, notice);
+    return _noticesService.createNotice(estateId, updatedNotice);
   }
 
   @override
@@ -76,7 +85,15 @@ class NoticesRepositoryFirestore extends NoticesRepository {
     if (estateId == null) {
       return Result.failure('Estate ID is null');
     }
-    return _noticesService.updateNotice(estateId, notice);
+
+    final userEmail = _appState.getUserId();
+    final updatedNotice = notice.copyWith(
+      metadata: notice.metadata?.copyWith(
+        updatedAt: Timestamp.now(),
+        updatedBy: userEmail,
+      ),
+    );
+    return _noticesService.updateNotice(estateId, updatedNotice);
   }
 
   @override

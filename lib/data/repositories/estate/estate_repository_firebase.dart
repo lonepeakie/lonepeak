@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/services/estate/estate_service.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
 
@@ -25,7 +26,11 @@ class EstateRepositoryFirebase extends EstateRepository {
 
   @override
   Future<Result<String>> addEstate(Estate estate) {
-    return _estateService.createEstateWithAutoId(estate);
+    final userId = _appState.getUserId();
+    final updatedEstate = estate.copyWith(
+      metadata: Metadata(createdAt: Timestamp.now(), createdBy: userId),
+    );
+    return _estateService.createEstateWithAutoId(updatedEstate);
   }
 
   @override
@@ -48,9 +53,12 @@ class EstateRepositoryFirebase extends EstateRepository {
     if (estateId == null) {
       return Result.failure('Estate ID is null');
     }
-    estate.metadata?.updatedAt = Timestamp.now();
+    final userId = _appState.getUserId();
+    final updatedEstate = estate.copyWith(
+      metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userId),
+    );
 
-    return _estateService.updateEstate(estateId, estate);
+    return _estateService.updateEstate(estateId, updatedEstate);
   }
 
   @override

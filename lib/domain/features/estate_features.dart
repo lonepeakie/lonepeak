@@ -1,16 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
+import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
-import 'package:lonepeak/data/repositories/members/members_provider.dart';
 import 'package:lonepeak/data/repositories/members/members_repository.dart';
-import 'package:lonepeak/data/repositories/users/users_provider.dart';
+import 'package:lonepeak/data/repositories/members/members_repository_firestore.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/member.dart';
-import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
@@ -61,11 +59,6 @@ class EstateFeatures {
       return Result.failure('Current user is null');
     }
 
-    // Create the estate
-    estateData.metadata = Metadata(
-      createdAt: Timestamp.now(),
-      createdBy: currentUser.email,
-    );
     final estateResult = await _estateRepository.addEstate(estateData);
     if (estateResult.isFailure) {
       return Result.failure('Failed to create estate');
@@ -79,10 +72,6 @@ class EstateFeatures {
       email: currentUser.email,
       displayName: currentUser.displayName,
       role: RoleType.admin,
-      metadata: Metadata(
-        createdAt: Timestamp.now(),
-        createdBy: currentUser.email,
-      ),
     );
 
     // Add the member
@@ -174,10 +163,7 @@ class EstateFeatures {
       return Result.failure('Member not found');
     }
 
-    final updatedMember = member.copyWith(
-      status: MemberStatus.inactive,
-      metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
-    );
+    final updatedMember = member.copyWith(status: MemberStatus.inactive);
 
     final updateResult = await _membersRepository.updateMember(updatedMember);
     if (updateResult.isFailure) {
@@ -189,9 +175,7 @@ class EstateFeatures {
       return Result.failure('Failed to get user');
     }
 
-    final updatedUser = user.data!.copyWithEmptyEstateId(
-      metadata: Metadata(updatedAt: Timestamp.now(), updatedBy: userEmail),
-    );
+    final updatedUser = user.data!.copyWithEmptyEstateId();
     final userUpdateResult = await _usersRepository.updateUser(updatedUser);
     if (userUpdateResult.isFailure) {
       return Result.failure('Failed to update user');

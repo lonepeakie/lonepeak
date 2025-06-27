@@ -25,4 +25,18 @@ class Metadata {
       if (updatedAt != null) "updatedAt": updatedAt,
     };
   }
+
+  Metadata copyWith({
+    String? createdBy,
+    String? updatedBy,
+    Timestamp? createdAt,
+    Timestamp? updatedAt,
+  }) {
+    return Metadata(
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

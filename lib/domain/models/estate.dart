@@ -63,4 +63,26 @@ class Estate {
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
+
+  Estate copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? address,
+    String? city,
+    String? county,
+    String? logoUrl,
+    Metadata? metadata,
+  }) {
+    return Estate(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      address: address ?? this.address,
+      city: city ?? this.city,
+      county: county ?? this.county,
+      logoUrl: logoUrl ?? this.logoUrl,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }

@@ -93,4 +93,26 @@ class TreasuryTransaction {
           {'createdAt': Timestamp.now(), 'updatedAt': Timestamp.now()},
     };
   }
+
+  TreasuryTransaction copyWith({
+    String? id,
+    String? title,
+    TransactionType? type,
+    double? amount,
+    DateTime? date,
+    String? description,
+    bool? isIncome,
+    Metadata? metadata,
+  }) {
+    return TreasuryTransaction(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      description: description ?? this.description,
+      isIncome: isIncome ?? this.isIncome,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }

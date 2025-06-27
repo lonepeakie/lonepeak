@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/treasury/treasury_provider.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
+import 'package:lonepeak/data/repositories/treasury/treasury_repository_firestore.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/utils/result.dart';
 
