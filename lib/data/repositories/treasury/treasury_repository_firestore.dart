@@ -101,7 +101,7 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
   }
 
   @override
-  Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType({
+  Future<Result<List<TreasuryTransaction>>> getTransactionsBetweenDates({
     DateTime? startDate,
     DateTime? endDate,
   }) async {
@@ -109,7 +109,7 @@ class TreasuryRepositoryFirestore extends TreasuryRepository {
     if (estateId == null) {
       return Future.value(Result.failure('Estate ID is null'));
     }
-    return _treasuryService.getTransactionSummaryByType(
+    return _treasuryService.getTransactionsBetweenDates(
       estateId,
       startDate: startDate,
       endDate: endDate,

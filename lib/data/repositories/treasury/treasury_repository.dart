@@ -8,7 +8,7 @@ abstract class TreasuryRepository {
   Future<Result<void>> updateTransaction(TreasuryTransaction transaction);
   Future<Result<void>> deleteTransaction(String transactionId);
   Future<Result<double>> getCurrentBalance();
-  Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType({
+  Future<Result<List<TreasuryTransaction>>> getTransactionsBetweenDates({
     DateTime? startDate,
     DateTime? endDate,
   });

@@ -7,6 +7,7 @@ import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
+import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
 
 class EstateTreasuryScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_alt_outlined),
-            onPressed: () {},
+            onPressed: () => _showFilterBottomSheet(context),
           ),
           IconButton(
             icon: const Icon(Icons.download_outlined),
@@ -220,7 +221,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Income/Expense toggle
                       Row(
                         children: [
                           const Text('Transaction is: '),
@@ -323,7 +323,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -346,6 +345,17 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           },
         );
       },
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => FilterTransactionsBottomSheet(),
     );
   }
 }

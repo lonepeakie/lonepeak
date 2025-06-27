@@ -136,7 +136,7 @@ class TreasuryService {
     }
   }
 
-  Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType(
+  Future<Result<List<TreasuryTransaction>>> getTransactionsBetweenDates(
     String estateId, {
     DateTime? startDate,
     DateTime? endDate,
@@ -167,24 +167,11 @@ class TreasuryService {
               .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
               .toList();
 
-      final summary = <TransactionType, double>{};
-
-      for (var type in TransactionType.values) {
-        summary[type] = 0;
-      }
-
-      for (var transaction in transactions) {
-        if (!transaction.isIncome) {
-          summary[transaction.type] =
-              (summary[transaction.type] ?? 0) + transaction.amount;
-        }
-      }
-
-      return Result.success(summary);
+      return Result.success(transactions);
     } catch (e) {
-      _log.e('Failed to get transaction summary: $e');
+      _log.e('Failed to get transactions between dates: $e');
       return Result.failure(
-        'Failed to get transaction summary: ${e.toString()}',
+        'Failed to get transactions between dates: ${e.toString()}',
       );
     }
   }
