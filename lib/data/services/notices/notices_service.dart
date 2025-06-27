@@ -13,16 +13,19 @@ class NoticesService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('NoticeService'));
 
-  Future<Result<void>> createNotice(String estateId, Notice noticeData) async {
-    final docRef = _db
+  CollectionReference<Notice> _getNoticesCollection(String estateId) {
+    return _db
         .collection('estates')
         .doc(estateId)
         .collection('notices')
         .withConverter(
           fromFirestore: Notice.fromFirestore,
           toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .doc(noticeData.id);
+        );
+  }
+
+  Future<Result<void>> createNotice(String estateId, Notice noticeData) async {
+    final docRef = _getNoticesCollection(estateId).doc(noticeData.id);
 
     try {
       await docRef.set(noticeData);
@@ -35,15 +38,7 @@ class NoticesService {
   }
 
   Future<Result<Notice>> getNotice(String estateId, String noticeId) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('notices')
-        .withConverter(
-          fromFirestore: Notice.fromFirestore,
-          toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .doc(noticeId);
+    final docRef = _getNoticesCollection(estateId).doc(noticeId);
 
     try {
       final snapshot = await docRef.get();
@@ -59,15 +54,7 @@ class NoticesService {
   }
 
   Future<Result<void>> updateNotice(String estateId, Notice noticeData) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('notices')
-        .withConverter(
-          fromFirestore: Notice.fromFirestore,
-          toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .doc(noticeData.id);
+    final docRef = _getNoticesCollection(estateId).doc(noticeData.id);
 
     try {
       await docRef.update(noticeData.toFirestore());
@@ -80,15 +67,7 @@ class NoticesService {
   }
 
   Future<Result<void>> deleteNotice(String estateId, String noticeId) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('notices')
-        .withConverter(
-          fromFirestore: Notice.fromFirestore,
-          toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .doc(noticeId);
+    final docRef = _getNoticesCollection(estateId).doc(noticeId);
 
     try {
       await docRef.delete();
@@ -101,15 +80,9 @@ class NoticesService {
   }
 
   Future<Result<List<Notice>>> getNotices(String estateId) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('notices')
-        .withConverter(
-          fromFirestore: Notice.fromFirestore,
-          toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .orderBy('metadata.createdAt', descending: true);
+    final collectionRef = _getNoticesCollection(
+      estateId,
+    ).orderBy('metadata.createdAt', descending: true);
 
     try {
       final snapshot = await collectionRef.get();
@@ -125,16 +98,9 @@ class NoticesService {
     String estateId,
     int limit,
   ) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('notices')
-        .withConverter(
-          fromFirestore: Notice.fromFirestore,
-          toFirestore: (Notice notice, options) => notice.toFirestore(),
-        )
-        .orderBy('metadata.createdAt', descending: true)
-        .limit(limit);
+    final collectionRef = _getNoticesCollection(
+      estateId,
+    ).orderBy('metadata.createdAt', descending: true).limit(limit);
 
     try {
       final snapshot = await collectionRef.get();

@@ -11,14 +11,17 @@ class EstateService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('EstateService'));
 
-  Future<Result<void>> createEstate(String estateId, Estate estateData) async {
-    final docRef = _db
+  CollectionReference<Estate> _getEstatesCollection() {
+    return _db
         .collection('estates')
         .withConverter(
           fromFirestore: Estate.fromFirestore,
           toFirestore: (Estate estate, options) => estate.toFirestore(),
-        )
-        .doc(estateId);
+        );
+  }
+
+  Future<Result<void>> createEstate(String estateId, Estate estateData) async {
+    final docRef = _getEstatesCollection().doc(estateId);
 
     try {
       await docRef.set(estateData);
@@ -31,12 +34,7 @@ class EstateService {
   }
 
   Future<Result<String>> createEstateWithAutoId(Estate estateData) {
-    return _db
-        .collection('estates')
-        .withConverter(
-          fromFirestore: Estate.fromFirestore,
-          toFirestore: (Estate estate, options) => estate.toFirestore(),
-        )
+    return _getEstatesCollection()
         .add(estateData)
         .then((docRef) async {
           _log.i('Estate created successfully with ID: ${docRef.id}');
@@ -49,13 +47,7 @@ class EstateService {
   }
 
   Future<Result<Estate>> getEstate(String estateId) async {
-    final docRef = _db
-        .collection('estates')
-        .withConverter(
-          fromFirestore: Estate.fromFirestore,
-          toFirestore: (Estate estate, options) => estate.toFirestore(),
-        )
-        .doc(estateId);
+    final docRef = _getEstatesCollection().doc(estateId);
 
     try {
       final snapshot = await docRef.get();
@@ -73,16 +65,7 @@ class EstateService {
 
   Future<Result<List<Estate>>> getPublicEstates() async {
     try {
-      final querySnapshot =
-          await _db
-              .collection('estates')
-              .withConverter(
-                fromFirestore: Estate.fromFirestore,
-                toFirestore: (Estate estate, options) => estate.toFirestore(),
-              )
-              // In a real application, you'd have a field to indicate if an estate is public/joinable
-              // For now, we're just getting all estates
-              .get();
+      final querySnapshot = await _getEstatesCollection().get();
 
       final estates = querySnapshot.docs.map((doc) => doc.data()).toList();
 
@@ -94,13 +77,7 @@ class EstateService {
   }
 
   Future<Result<void>> updateEstate(String estateId, Estate estateData) async {
-    final docRef = _db
-        .collection('estates')
-        .withConverter(
-          fromFirestore: Estate.fromFirestore,
-          toFirestore: (Estate estate, options) => estate.toFirestore(),
-        )
-        .doc(estateId);
+    final docRef = _getEstatesCollection().doc(estateId);
 
     try {
       await docRef.update(estateData.toFirestore());
@@ -113,13 +90,7 @@ class EstateService {
   }
 
   Future<Result<void>> deleteEstate(String estateId) async {
-    final docRef = _db
-        .collection('estates')
-        .withConverter(
-          fromFirestore: Estate.fromFirestore,
-          toFirestore: (Estate estate, options) => estate.toFirestore(),
-        )
-        .doc(estateId);
+    final docRef = _getEstatesCollection().doc(estateId);
 
     try {
       await docRef.delete();
