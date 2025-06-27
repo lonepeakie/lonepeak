@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/members/members_provider.dart';
 import 'package:lonepeak/data/repositories/members/members_repository.dart';
+import 'package:lonepeak/data/repositories/members/members_repository_firestore.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';

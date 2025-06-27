@@ -43,6 +43,17 @@ class User {
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      "displayName": displayName,
+      "email": email,
+      if (mobile != null) "mobile": mobile,
+      if (photoUrl != null) "photoUrl": photoUrl,
+      "estateId": estateId,
+      if (metadata != null) "metadata": metadata!.toJson(),
+    };
+  }
+
   User copyWith({
     String? displayName,
     String? email,
@@ -70,16 +81,5 @@ class User {
       estateId: null,
       metadata: metadata ?? this.metadata,
     );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      "displayName": displayName,
-      "email": email,
-      if (mobile != null) "mobile": mobile,
-      if (photoUrl != null) "photoUrl": photoUrl,
-      "estateId": estateId,
-      if (metadata != null) "metadata": metadata!.toJson(),
-    };
   }
 }

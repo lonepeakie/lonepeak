@@ -45,22 +45,6 @@ class Member {
     this.metadata,
   });
 
-  Member copyWith({
-    String? email,
-    String? displayName,
-    RoleType? role,
-    MemberStatus? status,
-    Metadata? metadata,
-  }) {
-    return Member(
-      email: email ?? this.email,
-      displayName: displayName ?? this.displayName,
-      role: role ?? this.role,
-      status: status ?? this.status,
-      metadata: metadata ?? this.metadata,
-    );
-  }
-
   factory Member.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
@@ -86,5 +70,21 @@ class Member {
       "status": status.name,
       if (metadata != null) "metadata": metadata!.toJson(),
     };
+  }
+
+  Member copyWith({
+    String? email,
+    String? displayName,
+    RoleType? role,
+    MemberStatus? status,
+    Metadata? metadata,
+  }) {
+    return Member(
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      metadata: metadata ?? this.metadata,
+    );
   }
 }

@@ -1,11 +1,22 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/document/documents_repository.dart';
 import 'package:lonepeak/data/services/documents/documents_service.dart';
 import 'package:lonepeak/domain/models/document.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/utils/result.dart';
+
+final documentsRepositoryProvider = Provider<DocumentsRepository>((ref) {
+  final documentsService = ref.read(documentsServiceProvider);
+  final appState = ref.read(appStateProvider);
+
+  return DocumentsRepositoryFirestore(
+    documentsService: documentsService,
+    appState: appState,
+  );
+});
 
 class DocumentsRepositoryFirestore extends DocumentsRepository {
   DocumentsRepositoryFirestore({
@@ -42,14 +53,12 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('Estate ID is null');
     }
 
-    // Set metadata for new document
-    document.metadata = Metadata(
-      createdAt: Timestamp.now(),
-      createdBy: _appState.getUserId() ?? 'Unknown',
-      updatedAt: Timestamp.now(),
+    final userEmail = _appState.getUserId();
+    final updatedDocument = document.copyWith(
+      metadata: Metadata(createdAt: Timestamp.now(), createdBy: userEmail),
     );
 
-    return _documentsService.addDocument(estateId, document);
+    return _documentsService.addDocument(estateId, updatedDocument);
   }
 
   @override
@@ -59,13 +68,15 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('Estate ID is null');
     }
 
-    if (document.metadata != null) {
-      document.metadata!.updatedAt = Timestamp.now();
-    } else {
-      document.metadata = Metadata(updatedAt: Timestamp.now());
-    }
+    final userEmail = _appState.getUserId();
+    final updatedDocument = document.copyWith(
+      metadata: document.metadata?.copyWith(
+        updatedAt: Timestamp.now(),
+        updatedBy: userEmail,
+      ),
+    );
 
-    return _documentsService.updateDocument(estateId, document);
+    return _documentsService.updateDocument(estateId, updatedDocument);
   }
 
   @override
@@ -85,18 +96,10 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
     }
 
     final userEmail = _appState.getUserId();
-    if (userEmail == null) {
-      return Result.failure('User email is null');
-    }
-
     final folder = Document.folder(
       name: name,
       parentId: parentId,
-      metadata: Metadata(
-        createdAt: Timestamp.now(),
-        createdBy: userEmail,
-        updatedAt: Timestamp.now(),
-      ),
+      metadata: Metadata(createdAt: Timestamp.now(), createdBy: userEmail),
     );
 
     final result = await _documentsService.addDocument(estateId, folder);
@@ -129,7 +132,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure('Estate ID is null');
     }
 
-    // Upload file to Firebase Storage
     final uploadResult = await _documentsService.uploadFile(
       estateId,
       fileName,
@@ -142,10 +144,8 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       return Result.failure(uploadResult.error!);
     }
 
-    // Get upload data
     final uploadData = uploadResult.data!;
 
-    // Create document record with the file data
     final document = Document(
       name: fileName,
       description: description,
@@ -161,7 +161,6 @@ class DocumentsRepositoryFirestore extends DocumentsRepository {
       ),
     );
 
-    // Add document to Firestore
     final result = await addDocument(document);
 
     if (result.isFailure) {

@@ -1,4 +1,4 @@
-name: Flutter CI
+name: PR Validation
 
 on:
   pull_request:

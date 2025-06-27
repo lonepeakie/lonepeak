@@ -13,16 +13,19 @@ class MembersService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _log = Logger(printer: PrefixedLogPrinter('MembersService'));
 
-  Future<Result<void>> addMember(String estateId, Member member) async {
-    final docRef = _db
+  CollectionReference<Member> _getMembersCollection(String estateId) {
+    return _db
         .collection('estates')
         .doc(estateId)
         .collection('members')
         .withConverter(
           fromFirestore: Member.fromFirestore,
           toFirestore: (Member member, options) => member.toFirestore(),
-        )
-        .doc(member.email);
+        );
+  }
+
+  Future<Result<void>> addMember(String estateId, Member member) async {
+    final docRef = _getMembersCollection(estateId).doc(member.email);
 
     try {
       await docRef.set(member);
@@ -35,15 +38,7 @@ class MembersService {
   }
 
   Future<Result<Member>> getMemberById(String estateId, String email) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members')
-        .withConverter(
-          fromFirestore: Member.fromFirestore,
-          toFirestore: (Member member, options) => member.toFirestore(),
-        )
-        .doc(email);
+    final docRef = _getMembersCollection(estateId).doc(email);
 
     try {
       final snapshot = await docRef.get();
@@ -59,14 +54,7 @@ class MembersService {
   }
 
   Future<Result<List<Member>>> getMembers(String estateId) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members')
-        .withConverter(
-          fromFirestore: Member.fromFirestore,
-          toFirestore: (Member member, options) => member.toFirestore(),
-        );
+    final collectionRef = _getMembersCollection(estateId);
 
     try {
       final snapshot = await collectionRef.get();
@@ -82,14 +70,7 @@ class MembersService {
     String estateId,
     List<String> roles,
   ) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members')
-        .withConverter(
-          fromFirestore: Member.fromFirestore,
-          toFirestore: (Member member, options) => member.toFirestore(),
-        );
+    final collectionRef = _getMembersCollection(estateId);
 
     try {
       final snapshot = await collectionRef.where('role', whereIn: roles).get();
@@ -102,10 +83,7 @@ class MembersService {
   }
 
   Future<Result<int>> getMemberCount(String estateId) async {
-    final collectionRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members');
+    final collectionRef = _getMembersCollection(estateId);
 
     try {
       final res = await collectionRef.count().get();
@@ -117,15 +95,7 @@ class MembersService {
   }
 
   Future<Result<void>> updateMember(String estateId, Member member) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members')
-        .withConverter(
-          fromFirestore: Member.fromFirestore,
-          toFirestore: (Member member, options) => member.toFirestore(),
-        )
-        .doc(member.email);
+    final docRef = _getMembersCollection(estateId).doc(member.email);
 
     try {
       await docRef.update(member.toFirestore());
@@ -138,11 +108,7 @@ class MembersService {
   }
 
   Future<Result<void>> deleteMember(String estateId, String memberId) async {
-    final docRef = _db
-        .collection('estates')
-        .doc(estateId)
-        .collection('members')
-        .doc(memberId);
+    final docRef = _getMembersCollection(estateId).doc(memberId);
 
     try {
       await docRef.delete();

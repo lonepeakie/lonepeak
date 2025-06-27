@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:lonepeak/data/repositories/auth/auth_provider.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
-import 'package:lonepeak/data/repositories/users/users_provider.dart';
+import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/utils/result.dart';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {

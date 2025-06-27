@@ -1,18 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/utils/result.dart';
+
+final treasuryServiceProvider = Provider<TreasuryService>((ref) {
+  return TreasuryService();
+});
 
 class TreasuryService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final _log = Logger(printer: PrefixedLogPrinter('NoticeService'));
 
-  // Collection references
-  CollectionReference<Map<String, dynamic>> _getTransactionsCollection(
+  CollectionReference<TreasuryTransaction> _getTransactionsCollection(
     String estateId,
   ) {
-    return _db.collection('estates').doc(estateId).collection('transactions');
+    return _db
+        .collection('estates')
+        .doc(estateId)
+        .collection('transactions')
+        .withConverter(
+          fromFirestore: TreasuryTransaction.fromFirestore,
+          toFirestore:
+              (TreasuryTransaction transaction, options) =>
+                  transaction.toFirestore(),
+        );
   }
 
-  // Get all transactions for an estate
   Future<Result<List<TreasuryTransaction>>> getTransactions(
     String estateId,
   ) async {
@@ -21,18 +36,15 @@ class TreasuryService {
       final snapshot =
           await transactionsRef.orderBy('date', descending: true).get();
 
-      final transactions =
-          snapshot.docs
-              .map((doc) => TreasuryTransaction.fromFirestore(doc, null))
-              .toList();
+      final transactions = snapshot.docs.map((doc) => doc.data()).toList();
 
       return Result.success(transactions);
     } catch (e) {
+      _log.e('Failed to get transactions: $e');
       return Result.failure('Failed to get transactions: ${e.toString()}');
     }
   }
 
-  // Get a transaction by ID
   Future<Result<TreasuryTransaction>> getTransactionById(
     String estateId,
     String transactionId,
@@ -42,31 +54,30 @@ class TreasuryService {
           await _getTransactionsCollection(estateId).doc(transactionId).get();
 
       if (!transactionDoc.exists) {
+        _log.w('Transaction with ID $transactionId not found');
         return Result.failure('Transaction not found');
       }
 
-      return Result.success(
-        TreasuryTransaction.fromFirestore(transactionDoc, null),
-      );
+      return Result.success(transactionDoc.data()!);
     } catch (e) {
+      _log.e('Failed to get transaction: $e');
       return Result.failure('Failed to get transaction: ${e.toString()}');
     }
   }
 
-  // Add a transaction
   Future<Result<void>> addTransaction(
     String estateId,
     TreasuryTransaction transaction,
   ) async {
     try {
-      await _getTransactionsCollection(estateId).add(transaction.toFirestore());
+      await _getTransactionsCollection(estateId).add(transaction);
       return Result.success(null);
     } catch (e) {
+      _log.e('Failed to add transaction: $e');
       return Result.failure('Failed to add transaction: ${e.toString()}');
     }
   }
 
-  // Update a transaction
   Future<Result<void>> updateTransaction(
     String estateId,
     TreasuryTransaction transaction,
@@ -81,11 +92,11 @@ class TreasuryService {
       ).doc(transaction.id).update(transaction.toFirestore());
       return Result.success(null);
     } catch (e) {
+      _log.e('Failed to update transaction: $e');
       return Result.failure('Failed to update transaction: ${e.toString()}');
     }
   }
 
-  // Delete a transaction
   Future<Result<void>> deleteTransaction(
     String estateId,
     String transactionId,
@@ -94,11 +105,11 @@ class TreasuryService {
       await _getTransactionsCollection(estateId).doc(transactionId).delete();
       return Result.success(null);
     } catch (e) {
+      _log.e('Failed to delete transaction: $e');
       return Result.failure('Failed to delete transaction: ${e.toString()}');
     }
   }
 
-  // Get the current balance
   Future<Result<double>> getCurrentBalance(String estateId) async {
     try {
       final transactionsResult = await getTransactions(estateId);
@@ -120,18 +131,21 @@ class TreasuryService {
 
       return Result.success(balance);
     } catch (e) {
+      _log.e('Failed to calculate balance: $e');
       return Result.failure('Failed to calculate balance: ${e.toString()}');
     }
   }
 
-  // Get transaction summary by type
   Future<Result<Map<TransactionType, double>>> getTransactionSummaryByType(
     String estateId, {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = _getTransactionsCollection(estateId);
+      Query<Map<String, dynamic>> query = _db
+          .collection('estates')
+          .doc(estateId)
+          .collection('transactions');
 
       if (startDate != null) {
         query = query.where(
@@ -155,15 +169,12 @@ class TreasuryService {
 
       final summary = <TransactionType, double>{};
 
-      // Initialize all transaction types to 0
       for (var type in TransactionType.values) {
         summary[type] = 0;
       }
 
-      // Sum the amounts by type
       for (var transaction in transactions) {
         if (!transaction.isIncome) {
-          // Only count expenses for the summary
           summary[transaction.type] =
               (summary[transaction.type] ?? 0) + transaction.amount;
         }
@@ -171,6 +182,7 @@ class TreasuryService {
 
       return Result.success(summary);
     } catch (e) {
+      _log.e('Failed to get transaction summary: $e');
       return Result.failure(
         'Failed to get transaction summary: ${e.toString()}',
       );

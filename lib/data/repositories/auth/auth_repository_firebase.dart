@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
@@ -6,6 +7,10 @@ import 'package:lonepeak/utils/result.dart';
 import 'package:lonepeak/data/services/auth/firebase/auth_service.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 import 'package:lonepeak/domain/models/user.dart' as app_user;
+
+final authRepositoryProvider = Provider<AuthRepositoryFirebase>((ref) {
+  return AuthRepositoryFirebase(authService: ref.read(authServiceProvider));
+});
 
 class AuthRepositoryFirebase extends AuthRepository {
   AuthRepositoryFirebase({required AuthService authService})
