@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
@@ -26,12 +27,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(userProfileViewModelProvider);
     final user = ref.watch(userProfileViewModelProvider.notifier).user;
+    final estate = ref.watch(userProfileViewModelProvider.notifier).estate;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => GoRouter.of(context).go(Routes.estateHome),
         ),
       ),
@@ -43,143 +49,299 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : state is UIStateFailure
                   ? Center(child: Text('Error: ${state.error}'))
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: .1),
-                        child:
-                            user?.photoUrl != null
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Image.network(
-                                    user!.photoUrl!,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
+                  : SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.person,
+                                size: 24,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Profile',
+                                    style: AppStyles.titleTextLarge(
+                                      context,
+                                    ).copyWith(fontSize: 28),
                                   ),
-                                )
-                                : Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  Text(
+                                    'Manage your account settings',
+                                    style: AppStyles.subtitleText(
+                                      context,
+                                    ).copyWith(fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+
+                        _buildSection(
+                          context,
+                          title: 'Personal Information',
+                          subtitle: 'Your personal account information',
+                          hasEditButton: true,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              Center(
+                                child: Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 40,
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      child:
+                                          user?.photoUrl != null
+                                              ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(40),
+                                                child: Image.network(
+                                                  user!.photoUrl!,
+                                                  width: 80,
+                                                  height: 80,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                              : const Text(
+                                                'f',
+                                                style: TextStyle(
+                                                  fontSize: 28,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                    ),
+                                  ],
                                 ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        user?.displayName ?? 'User',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.titleLarge?.color,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 40),
-                      _buildInfoTile(
-                        context,
-                        'Email',
-                        user?.email ?? 'N/A',
-                        Icons.email,
-                      ),
-                      const Divider(),
-                      _buildInfoTile(
-                        context,
-                        'Phone',
-                        user?.mobile ?? 'Not provided',
-                        Icons.phone,
-                      ),
-                      const SizedBox(height: 40),
-                      ElevatedButton.icon(
-                        onPressed: _confirmExitEstate,
-                        icon: const Icon(Icons.exit_to_app),
-                        label: const Text(
-                          'Exit Estate',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                              ),
+                              const SizedBox(height: 24),
+
+                              _buildInfoField(
+                                'Full Name',
+                                user?.displayName ?? 'N/A',
+                              ),
+                              const SizedBox(height: 16),
+
+                              _buildInfoField(
+                                'Email Address',
+                                user?.email ?? 'N/A',
+                              ),
+                            ],
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _confirmLogout,
-                        icon: const Icon(Icons.logout),
-                        label: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 32),
+
+                        _buildSection(
+                          context,
+                          title: 'Current Estate',
+                          subtitle: 'The estate you are currently managing',
+                          hasEditButton: false,
+                          isEstateSection: true,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 24),
+
+                              _buildInfoField(
+                                'Estate Name',
+                                estate?.name ?? 'No Estate',
+                              ),
+                              const SizedBox(height: 16),
+
+                              _buildInfoField(
+                                'Address',
+                                estate?.address != null &&
+                                        estate!.address!.isNotEmpty
+                                    ? '${estate.address}, ${estate.city}'
+                                    : estate?.city ?? 'N/A',
+                              ),
+                              const SizedBox(height: 24),
+
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _confirmExitEstate,
+                                  icon: const Icon(Icons.exit_to_app),
+                                  label: const Text(
+                                    'Exit Estate',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                    side: BorderSide(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        style: FilledButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: BorderSide(color: Colors.red),
-                          minimumSize: const Size(double.infinity, 48),
-                          backgroundColor: Colors.red,
+                        const SizedBox(height: 32),
+
+                        _buildSection(
+                          context,
+                          title: 'Account Actions',
+                          subtitle: 'Manage your account and session',
+                          hasEditButton: false,
+                          isEstateSection: false,
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 24),
+
+                              SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
+                                  onPressed: _confirmLogout,
+                                  icon: const Icon(Icons.exit_to_app),
+                                  label: const Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: FilledButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: AppColors.red,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoTile(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-  ) {
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool hasEditButton,
+    required Widget child,
+    bool isEstateSection = false,
+  }) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isDarkMode
+                  ? theme.colorScheme.outline.withValues(alpha: 0.3)
+                  : theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Icon(icon, color: theme.colorScheme.primary),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.textTheme.bodyMedium?.color?.withValues(
-                    alpha: 0.6,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppStyles.titleTextMedium(context)),
+                    Text(subtitle, style: AppStyles.subtitleText(context)),
+                  ],
+                ),
+              ),
+              if (hasEditButton)
+                IconButton(
+                  onPressed: () {
+                    // TODO: Add edit functionality
+                  },
+                  icon: Icon(
+                    Icons.edit,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    padding: const EdgeInsets.all(8),
                   ),
                 ),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textTheme.bodyLarge?.color,
-                ),
-              ),
             ],
           ),
+          child,
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoField(String label, String value) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppStyles.labelText(context)),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -203,12 +365,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+                child: Text('Cancel', style: TextStyle(color: Colors.white)),
               ),
               AppElevatedButton(
                 onPressed: () async {
@@ -222,7 +379,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   }
                 },
                 buttonText: 'Logout',
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.red,
               ),
             ],
           ),
@@ -249,12 +406,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+                child: Text('Cancel', style: TextStyle(color: Colors.white)),
               ),
               AppElevatedButton(
                 onPressed: () async {
