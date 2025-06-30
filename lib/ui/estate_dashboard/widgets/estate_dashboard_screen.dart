@@ -69,7 +69,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: Colors.blue[70],
+                          backgroundColor: Colors.blue[100],
                           child: Icon(
                             Icons.home,
                             color: AppColors.primary,
@@ -169,6 +169,16 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       GoRouter.of(
                         context,
                       ).go(Routes.estateHome + Routes.estateTreasury);
+                    },
+                  ),
+                  DashboardButton(
+                    title: 'Marketplace',
+                    subtitle: 'Buy and sell within your estate',
+                    icon: Icons.shopping_bag,
+                    onTap: () {
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.marketplace);
                     },
                   ),
                 ],

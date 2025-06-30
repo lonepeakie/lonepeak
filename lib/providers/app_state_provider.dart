@@ -4,6 +4,7 @@ import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
+import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/utils/result.dart';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
@@ -113,6 +114,18 @@ class AppState {
   String? getUserId() {
     try {
       return _authRepository.getCurrentUser().data?.email;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  User? getCurrentUser() {
+    try {
+      final result = _authRepository.getCurrentUser();
+      if (result.isSuccess) {
+        return result.data;
+      }
+      return null;
     } catch (e) {
       return null;
     }
