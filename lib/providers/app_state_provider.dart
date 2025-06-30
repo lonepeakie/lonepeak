@@ -118,6 +118,14 @@ class AppState {
     }
   }
 
+  dynamic getCurrentUser() {
+    try {
+      return _authRepository.getCurrentUser().data;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<String?> getUserRole() async {
     if (_userRole != null) return _userRole;
 

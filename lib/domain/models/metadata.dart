@@ -17,6 +17,10 @@ class Metadata {
     );
   }
 
+  factory Metadata.fromMap(Map<String, dynamic>? data) {
+    return Metadata.fromJson(data);
+  }
+
   Map<String, dynamic> toJson() {
     return {
       if (createdBy != null) "createdBy": createdBy,
@@ -24,6 +28,10 @@ class Metadata {
       if (createdAt != null) "createdAt": createdAt,
       if (updatedAt != null) "updatedAt": updatedAt,
     };
+  }
+
+  Map<String, dynamic> toMap() {
+    return toJson();
   }
 
   Metadata copyWith({
