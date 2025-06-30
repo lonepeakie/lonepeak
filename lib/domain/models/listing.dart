@@ -67,7 +67,7 @@ class Listing {
       description: data['description'] ?? '',
       price: (data['price'] ?? 0.0).toDouble(),
       category: ListingCategory.values.firstWhere(
-        (e) => e.name == data['category'],
+        (e) => e.toString() == data['category'],
         orElse: () => ListingCategory.other,
       ),
       ownerId: data['ownerId'] ?? '',
@@ -84,7 +84,7 @@ class Listing {
       'title': title,
       'description': description,
       'price': price,
-      'category': category.name,
+      'category': category.toString(),
       'ownerId': ownerId,
       'ownerName': ownerName,
       'ownerEmail': ownerEmail,

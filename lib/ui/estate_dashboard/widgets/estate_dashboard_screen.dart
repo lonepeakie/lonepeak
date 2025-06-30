@@ -69,7 +69,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: Colors.blue[70],
+                          backgroundColor: Colors.blue[100],
                           child: Icon(
                             Icons.home,
                             color: AppColors.primary,
