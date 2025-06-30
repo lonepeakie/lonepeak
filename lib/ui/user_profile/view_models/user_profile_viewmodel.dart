@@ -109,4 +109,40 @@ class UserProfileViewModel extends StateNotifier<UIState> {
     state = UIStateSuccess();
     return true;
   }
+
+  Future<bool> update({String? displayName}) async {
+    state = UIStateLoading();
+
+    try {
+      if (_user == null) {
+        state = UIStateFailure('No user data available');
+        return false;
+      }
+
+      if (displayName != null && displayName.trim().isEmpty) {
+        state = UIStateFailure('Display name cannot be empty');
+        return false;
+      }
+
+      User updatedUser = _user!;
+
+      if (displayName != null) {
+        updatedUser = updatedUser.copyWith(displayName: displayName.trim());
+      }
+
+      final result = await usersRepository.updateUser(updatedUser);
+
+      if (result.isSuccess) {
+        _user = updatedUser;
+        state = UIStateSuccess();
+        return true;
+      } else {
+        state = UIStateFailure(result.error ?? 'Failed to update');
+        return false;
+      }
+    } catch (e) {
+      state = UIStateFailure(e.toString());
+      return false;
+    }
+  }
 }

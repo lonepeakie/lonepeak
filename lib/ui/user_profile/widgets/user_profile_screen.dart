@@ -15,12 +15,21 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  bool _isEditingDisplayName = false;
+  final TextEditingController _displayNameController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     Future.microtask(
       () => ref.read(userProfileViewModelProvider.notifier).getUserProfile(),
     );
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -134,10 +143,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               ),
                               const SizedBox(height: 24),
 
-                              _buildInfoField(
-                                'Full Name',
-                                user?.displayName ?? 'N/A',
-                              ),
+                              _buildEditableDisplayNameField(),
                               const SizedBox(height: 16),
 
                               _buildInfoField(
@@ -296,11 +302,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               if (hasEditButton)
                 IconButton(
-                  onPressed: () {
-                    // TODO: Add edit functionality
-                  },
+                  onPressed: () => _toggleEditMode(),
                   icon: Icon(
-                    Icons.edit,
+                    _isEditingDisplayName ? Icons.check : Icons.edit,
                     size: 20,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -423,5 +427,111 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             ],
           ),
     );
+  }
+
+  Widget _buildEditableDisplayNameField() {
+    final user = ref.watch(userProfileViewModelProvider.notifier).user;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Full Name', style: AppStyles.labelText(context)),
+        const SizedBox(height: 8),
+        _isEditingDisplayName
+            ? TextField(
+              controller: _displayNameController,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+            )
+            : Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                user?.displayName ?? 'N/A',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  void _toggleEditMode() async {
+    final user = ref.read(userProfileViewModelProvider.notifier).user;
+
+    if (!_isEditingDisplayName) {
+      _displayNameController.text = user?.displayName ?? '';
+      setState(() {
+        _isEditingDisplayName = true;
+      });
+    } else {
+      final newDisplayName = _displayNameController.text.trim();
+      if (newDisplayName.isNotEmpty && newDisplayName != user?.displayName) {
+        final success = await ref
+            .read(userProfileViewModelProvider.notifier)
+            .update(displayName: newDisplayName);
+
+        if (success && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Display name updated successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (mounted) {
+          final errorMessage =
+              ref.read(userProfileViewModelProvider) is UIStateFailure
+                  ? (ref.read(userProfileViewModelProvider) as UIStateFailure)
+                      .error
+                  : 'Failed to update display name';
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          );
+          _displayNameController.text = user?.displayName ?? '';
+        }
+      }
+
+      setState(() {
+        _isEditingDisplayName = false;
+      });
+    }
   }
 }
