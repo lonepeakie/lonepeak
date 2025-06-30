@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
+import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
+import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 import 'package:lonepeak/domain/models/user.dart';
+import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
@@ -12,6 +15,7 @@ final userProfileViewModelProvider =
       return UserProfileViewModel(
         userSiginFeature: ref.read(userSiginFeatureProvider),
         usersRepository: ref.read(usersRepositoryProvider),
+        estateRepository: ref.read(estateRepositoryProvider),
         estateFeatures: ref.read(estateFeaturesProvider),
         appState: ref.read(appStateProvider),
       );
@@ -20,19 +24,25 @@ final userProfileViewModelProvider =
 class UserProfileViewModel extends StateNotifier<UIState> {
   final UserSiginFeature userSiginFeature;
   final UsersRepository usersRepository;
+  final EstateRepository estateRepository;
   final EstateFeatures estateFeatures;
   final AppState appState;
 
   User? _user;
+  Estate? _estate;
+
   User? get user => _user;
+  Estate? get estate => _estate;
 
   UserProfileViewModel({
     required this.userSiginFeature,
     required this.usersRepository,
+    required this.estateRepository,
     required this.estateFeatures,
     required this.appState,
   }) : super(UIStateInitial()) {
     getUserProfile();
+    getEstate();
   }
 
   Future<void> getUserProfile() async {
@@ -53,6 +63,17 @@ class UserProfileViewModel extends StateNotifier<UIState> {
 
       _user = userResult.data;
       state = UIStateSuccess();
+    } catch (e) {
+      state = UIStateFailure(e.toString());
+    }
+  }
+
+  Future<void> getEstate() async {
+    try {
+      final estateResult = await estateRepository.getEstate();
+      if (estateResult.isSuccess) {
+        _estate = estateResult.data;
+      }
     } catch (e) {
       state = UIStateFailure(e.toString());
     }
@@ -87,5 +108,41 @@ class UserProfileViewModel extends StateNotifier<UIState> {
     _user = null;
     state = UIStateSuccess();
     return true;
+  }
+
+  Future<bool> update({String? displayName}) async {
+    state = UIStateLoading();
+
+    try {
+      if (_user == null) {
+        state = UIStateFailure('No user data available');
+        return false;
+      }
+
+      if (displayName != null && displayName.trim().isEmpty) {
+        state = UIStateFailure('Display name cannot be empty');
+        return false;
+      }
+
+      User updatedUser = _user!;
+
+      if (displayName != null) {
+        updatedUser = updatedUser.copyWith(displayName: displayName.trim());
+      }
+
+      final result = await usersRepository.updateUser(updatedUser);
+
+      if (result.isSuccess) {
+        _user = updatedUser;
+        state = UIStateSuccess();
+        return true;
+      } else {
+        state = UIStateFailure(result.error ?? 'Failed to update');
+        return false;
+      }
+    } catch (e) {
+      state = UIStateFailure(e.toString());
+      return false;
+    }
   }
 }
