@@ -64,7 +64,10 @@ class MarketplaceViewModel extends StateNotifier<UIState> {
   void filterByCategory(ListingCategory? category) {
     _categoryFilter = category;
     _applyFilter();
-    notifyListeners();
+    // Update state to trigger UI refresh
+    if (state is UIStateSuccess) {
+      state = UIStateSuccess();
+    }
   }
 
   void _applyFilter() {
