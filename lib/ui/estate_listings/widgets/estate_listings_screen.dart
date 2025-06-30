@@ -137,12 +137,14 @@ class _EstateListingsScreenState extends ConsumerState<EstateListingsScreen> {
 
             final success = await viewModel.createListing(listing, imageFile);
             
-            if (success && context.mounted) {
+            if (context.mounted) {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Listing created successfully'),
-                  backgroundColor: Colors.green,
+                SnackBar(
+                  content: Text(success 
+                    ? 'Listing created successfully' 
+                    : 'Failed to create listing'),
+                  backgroundColor: success ? Colors.green : Colors.red,
                 ),
               );
             }

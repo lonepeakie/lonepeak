@@ -100,6 +100,8 @@ class _CreateListingFormState extends State<CreateListingForm> {
       return;
     }
 
+    if (_isLoading) return; // Prevent double submission
+
     setState(() {
       _isLoading = true;
     });
@@ -118,7 +120,16 @@ class _CreateListingFormState extends State<CreateListingForm> {
       metadata: widget.initialListing?.metadata,
     );
 
+    // Call onSubmit and handle completion
     widget.onSubmit(listing, _selectedImage);
+  }
+
+  void resetLoadingState() {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
