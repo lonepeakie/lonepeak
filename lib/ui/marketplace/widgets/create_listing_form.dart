@@ -190,8 +190,8 @@ class _CreateListingFormState extends ConsumerState<CreateListingForm> {
         price: double.parse(_priceController.text),
         category: _selectedCategory,
         ownerId: appState.getUserId(),
-        ownerName: currentUser.displayName ?? 'Unknown',
-        ownerEmail: currentUser.email ?? '',
+        ownerName: currentUser.displayName,
+        ownerEmail: currentUser.email,
         imageUrls: widget.existingListing?.imageUrls ?? [],
         metadata: widget.existingListing?.metadata,
       );
