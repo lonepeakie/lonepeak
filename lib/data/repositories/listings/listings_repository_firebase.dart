@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/listings/listings_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/data/services/listings/listings_service.dart';
 import 'package:lonepeak/domain/models/listing.dart';
@@ -27,8 +29,8 @@ class ListingsRepositoryFirebase extends ListingsRepository {
   });
 
   final ListingsService _listingsService;
-  final _authRepository;
-  final _usersRepository;
+  final AuthRepository _authRepository;
+  final UsersRepository _usersRepository;
   final AppState _appState;
 
   @override

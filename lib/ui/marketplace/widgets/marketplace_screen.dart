@@ -5,8 +5,8 @@ import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
 import 'package:lonepeak/ui/marketplace/view_models/marketplace_viewmodel.dart';
-import 'package:lonepeak/ui/marketplace/widgets/create_listing_form.dart';
 import 'package:lonepeak/ui/marketplace/widgets/listing_card.dart';
+import 'package:lonepeak/widgets/marketplace/create_listing_form.dart';
 
 class MarketplaceScreen extends ConsumerStatefulWidget {
   const MarketplaceScreen({super.key});
@@ -31,9 +31,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
