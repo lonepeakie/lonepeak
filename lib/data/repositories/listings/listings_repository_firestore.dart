@@ -29,7 +29,7 @@ class ListingsRepositoryFirestore extends ListingsRepository {
   final AppState _appState;
 
   @override
-  Future<Result<void>> addListing(Listing listing) async {
+  Future<Result<String>> addListing(Listing listing) async {
     final estateId = await _appState.getEstateId();
     if (estateId == null) {
       return Result.failure('Estate ID is null');

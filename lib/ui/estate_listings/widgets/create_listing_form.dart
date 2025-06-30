@@ -5,7 +5,7 @@ import 'package:lonepeak/domain/models/listing.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 
 class CreateListingForm extends StatefulWidget {
-  final Function(Listing) onSubmit;
+  final Function(Listing, File?) onSubmit;
   final Listing? initialListing;
 
   const CreateListingForm({
@@ -118,7 +118,7 @@ class _CreateListingFormState extends State<CreateListingForm> {
       metadata: widget.initialListing?.metadata,
     );
 
-    widget.onSubmit(listing);
+    widget.onSubmit(listing, _selectedImage);
   }
 
   @override
@@ -407,6 +407,4 @@ class _CreateListingFormState extends State<CreateListingForm> {
       ],
     );
   }
-
-  File? get selectedImage => _selectedImage;
 }

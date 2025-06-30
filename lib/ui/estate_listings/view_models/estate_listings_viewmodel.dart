@@ -56,11 +56,10 @@ class EstateListingsViewModel extends StateNotifier<UIState> {
         return false;
       }
 
+      final listingId = result.data!;
+
       // If there's an image, upload it and update the listing
       if (imageFile != null) {
-        // For now, we'll use the current timestamp as listing ID
-        // In a real implementation, the service should return the created listing ID
-        final listingId = DateTime.now().millisecondsSinceEpoch.toString();
         final fileName = 'listing_image.${imageFile.path.split('.').last}';
 
         final uploadResult = await _listingsRepository.uploadImage(
@@ -72,6 +71,7 @@ class EstateListingsViewModel extends StateNotifier<UIState> {
         if (uploadResult.isSuccess) {
           // Update the listing with the image URL
           final updatedListing = listing.copyWith(
+            id: listingId,
             imageUrl: uploadResult.data,
           );
 

@@ -26,11 +26,11 @@ class ListingsService {
         );
   }
 
-  Future<Result<void>> addListing(String estateId, Listing listing) async {
+  Future<Result<String>> addListing(String estateId, Listing listing) async {
     try {
-      await _getListingsCollection(estateId).add(listing);
+      final docRef = await _getListingsCollection(estateId).add(listing);
       _log.i('Listing added successfully: ${listing.title}');
-      return Result.success(null);
+      return Result.success(docRef.id);
     } catch (e) {
       _log.e('Error adding listing: $e');
       return Result.failure('Failed to add listing: $e');

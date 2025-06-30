@@ -132,10 +132,8 @@ class _EstateListingsScreenState extends ConsumerState<EstateListingsScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CreateListingForm(
-          onSubmit: (listing) async {
+          onSubmit: (listing, imageFile) async {
             final viewModel = ref.read(estateListingsViewModelProvider.notifier);
-            final form = context.findAncestorStateOfType<State<CreateListingForm>>();
-            final imageFile = (form as _CreateListingFormState?)?.selectedImage;
 
             final success = await viewModel.createListing(listing, imageFile);
             
