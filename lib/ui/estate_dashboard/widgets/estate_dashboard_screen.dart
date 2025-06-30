@@ -171,6 +171,16 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       ).go(Routes.estateHome + Routes.estateTreasury);
                     },
                   ),
+                  DashboardButton(
+                    title: 'Marketplace',
+                    subtitle: 'Buy, sell and share with neighbors',
+                    icon: Icons.storefront,
+                    onTap: () {
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.marketplace);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
