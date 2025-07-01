@@ -4,23 +4,23 @@ import 'package:lonepeak/domain/models/notice.dart';
 abstract class NoticeTypeUI {
   static Color getCategoryColor(NoticeType type) {
     switch (type) {
-      case NoticeType.urgent:
-        return Colors.red.withValues(alpha: 0.65);
+      case NoticeType.alert:
+        return Colors.red.withAlpha(200);
       case NoticeType.general:
-        return Colors.blue.withValues(alpha: 0.8);
+        return Colors.blue.withAlpha(200);
       case NoticeType.event:
-        return Colors.green.withValues(alpha: 0.7);
+        return Colors.green.withAlpha(200);
     }
   }
 
   static IconData getCategoryIcon(NoticeType type) {
     switch (type) {
-      case NoticeType.urgent:
+      case NoticeType.alert:
         return Icons.warning_amber_outlined;
       case NoticeType.general:
         return Icons.info_outline;
       case NoticeType.event:
-        return Icons.group_outlined;
+        return Icons.event_note_outlined;
     }
   }
 }

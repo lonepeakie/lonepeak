@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/data/services/notices/notices_service.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
@@ -99,16 +100,44 @@ class NoticesRepositoryFirestore extends NoticesRepository {
   @override
   Future<Result<Notice>> toggleLike(String noticeId) async {
     final estateId = await _appState.getEstateId();
-    final userEmail = _appState.getUserId();
+    final userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (estateId == null) {
       return Result.failure('Estate ID is null');
     }
 
-    if (userEmail == null) {
-      return Result.failure('User email is null');
+    if (userId == null) {
+      return Result.failure('User ID is null');
     }
 
-    return _noticesService.likeNotice(estateId, noticeId, userEmail);
+    return _noticesService.likeNotice(estateId, noticeId, userId);
+  }
+
+  @override
+  Future<Result<List<Notice>>> getNoticesByType(NoticeType type) async {
+    final estateId = await _appState.getEstateId();
+    if (estateId == null) {
+      return Result.failure('Estate ID is null');
+    }
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('estates')
+              .doc(estateId)
+              .collection('notices')
+              .where('type', isEqualTo: type.name)
+              .orderBy('metadata.createdAt', descending: true)
+              .withConverter(
+                fromFirestore: Notice.fromFirestore,
+                toFirestore: (notice, _) => notice.toFirestore(),
+              )
+              .get();
+
+      final notices = snapshot.docs.map((doc) => doc.data()).toList();
+      return Result.success(notices);
+    } catch (e) {
+      return Result.failure('Failed to fetch notices by type');
+    }
   }
 }
