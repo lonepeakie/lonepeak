@@ -5,6 +5,7 @@ abstract final class AppColors {
   static const Color black = Color.fromARGB(196, 0, 0, 0);
   static const Color white = Color.fromARGB(255, 249, 252, 254);
   static const Color lightblack = Color.fromARGB(156, 0, 0, 0);
+  static const Color red = Color.fromARGB(255, 238, 68, 67);
   static const Color black50 = Color.from(
     alpha: 0.5,
     red: 0,
@@ -23,7 +24,7 @@ abstract final class AppThemes {
       secondary: Colors.grey,
       brightness: Brightness.light,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -63,7 +64,7 @@ abstract final class AppThemes {
       surface: const Color(0xFF121212),
       onSurface: Colors.white.withAlpha(225),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFF1E1E1E),
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
