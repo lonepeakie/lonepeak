@@ -66,13 +66,13 @@ class Notice {
 
 enum NoticeType {
   general('general'),
-  urgent('urgent'),
+  alert('alert'),
   event('event');
 
   static NoticeType fromString(String type) {
     switch (type) {
-      case 'urgent':
-        return NoticeType.urgent;
+      case 'alert':
+        return NoticeType.alert;
       case 'event':
         return NoticeType.event;
       default:
@@ -81,6 +81,5 @@ enum NoticeType {
   }
 
   final String name;
-
   const NoticeType(this.name);
 }

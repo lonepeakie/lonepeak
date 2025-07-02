@@ -1,4 +1,6 @@
-abstract class UIState {}
+abstract class UIState {
+  get hasAdminPrivileges => null;
+}
 
 class UIStateInitial extends UIState {}
 
