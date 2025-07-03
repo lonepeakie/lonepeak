@@ -27,17 +27,8 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Decode Keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
-
       - name: Build release APK
-        run: |
-          flutter build apk --release \
-            --keystore-password "${{ secrets.KEY_PASSWORD }}" \
-            --key-alias "${{ secrets.KEY_ALIAS }}" \
-            --key-password "${{ secrets.KEY_ALIAS_PASSWORD }}" \
-            --keystore-path "android/app/release.jks"
+        run: flutter build apk --release
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
