@@ -24,7 +24,7 @@ abstract final class AppThemes {
       secondary: Colors.grey,
       brightness: Brightness.light,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -64,7 +64,7 @@ abstract final class AppThemes {
       surface: const Color(0xFF121212),
       onSurface: Colors.white.withAlpha(225),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFF1E1E1E),
       elevation: 0.3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
