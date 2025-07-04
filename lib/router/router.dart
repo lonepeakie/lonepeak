@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
+import 'package:lonepeak/ui/estate_alerts/widgets/estate_alerts_screen.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create_screen.dart';
 import 'package:lonepeak/ui/estate_home/widgets/estate_home_screen.dart';
 import 'package:lonepeak/ui/estate_join/widgets/estate_join_screen.dart';
@@ -121,6 +122,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.userProfile,
         builder: (context, state) {
           return const UserProfileScreen();
+        },
+      ),
+      GoRoute(
+        path: Routes.alerts,
+        builder: (context, state) {
+          return const EstateAlertsScreen();
         },
       ),
     ],
