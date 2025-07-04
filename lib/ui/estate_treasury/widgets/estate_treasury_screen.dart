@@ -31,9 +31,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
-
-    final iban = treasuryState.estate?.metadata?.iban;
-    final hasIban = iban != null && iban.trim().isNotEmpty;
+    final iban = treasuryState.estate?.iban;
 
     return Scaffold(
       appBar: AppBar(
@@ -68,7 +66,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         context,
                         treasuryState.currentBalance,
                         iban,
-                        hasIban,
                       ),
                       const SizedBox(height: 24),
                       _buildRecentTransactionsContainer(
@@ -85,9 +82,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     BuildContext context,
     double balance,
     String? iban,
-    bool hasIban,
   ) {
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
+    final hasIban = iban != null && iban.trim().isNotEmpty;
 
     return Card(
       elevation: 0.3,
@@ -119,7 +116,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    hasIban ? iban! : 'Not Provided',
+                    hasIban ? iban : 'Not Provided',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
@@ -127,7 +124,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   IconButton(
                     icon: const Icon(Icons.copy_outlined, size: 20),
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: iban!));
+                      Clipboard.setData(ClipboardData(text: iban));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('IBAN copied to clipboard'),
@@ -207,21 +204,17 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
             .read(treasuryViewModelProvider.notifier)
             .addTransaction(newTransaction)
             .then((result) {
-              if (result.isSuccess) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transaction added successfully'),
-                    ),
-                  );
-                }
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${result.error}')),
-                  );
-                }
+              if (result.isSuccess && context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Transaction added successfully'),
+                  ),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${result.error}')),
+                );
               }
             });
       }

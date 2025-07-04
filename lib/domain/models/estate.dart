@@ -9,6 +9,7 @@ class Estate {
   final String city;
   final String county;
   final String? logoUrl;
+  final String? iban;
   Metadata? metadata;
 
   Estate({
@@ -19,6 +20,7 @@ class Estate {
     required this.city,
     required this.county,
     this.logoUrl,
+    this.iban,
     this.metadata,
   });
 
@@ -31,6 +33,7 @@ class Estate {
       city: 'Unknown',
       county: 'Unknown',
       logoUrl: null,
+      iban: null,
       metadata: null,
     );
   }
@@ -48,6 +51,7 @@ class Estate {
       city: data?['city'],
       county: data?['county'],
       logoUrl: data?['logoUrl'],
+      iban: data?['iban'],
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }
@@ -60,6 +64,7 @@ class Estate {
       "city": city,
       "county": county,
       if (logoUrl != null) "logoUrl": logoUrl,
+      if (iban != null) "iban": iban,
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
@@ -72,6 +77,7 @@ class Estate {
     String? city,
     String? county,
     String? logoUrl,
+    String? iban,
     Metadata? metadata,
   }) {
     return Estate(
@@ -82,6 +88,7 @@ class Estate {
       city: city ?? this.city,
       county: county ?? this.county,
       logoUrl: logoUrl ?? this.logoUrl,
+      iban: iban ?? this.iban,
       metadata: metadata ?? this.metadata,
     );
   }
