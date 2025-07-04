@@ -187,7 +187,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: 0.2,
+      elevation: AppStyles.cardElevation,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -251,7 +251,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: 0.2,
+      elevation: AppStyles.cardElevation,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -321,7 +321,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
   Card overviewCard(int membersCount) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: 0.2,
+      elevation: AppStyles.cardElevation,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

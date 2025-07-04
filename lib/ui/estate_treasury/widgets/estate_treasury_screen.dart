@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
@@ -60,7 +61,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCurrentBalanceCard(treasuryState.currentBalance),
+                      _buildAccountOverviewCard(
+                        context: context,
+                        balance: treasuryState.currentBalance,
+                      ),
                       const SizedBox(height: 24),
                       _buildRecentTransactionsContainer(
                         treasuryState.transactions,
@@ -72,30 +76,72 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Widget _buildCurrentBalanceCard(double balance) {
+  Widget _buildAccountOverviewCard({
+    required BuildContext context,
+    required double balance,
+  }) {
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        elevation: 0.3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Current Balance', style: AppStyles.titleTextSmall(context)),
-              const SizedBox(height: 8),
-              Text(
-                formatter.format(balance),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: balance >= 0 ? Colors.green : Colors.red,
+    final formattedBalance = formatter.format(balance);
+    const iban = 'ES91 2100 0418 4502 0005 1332';
+
+    return Card(
+      elevation: AppStyles.cardElevation,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.primary,
                 ),
+                const SizedBox(width: 8),
+                Text(
+                  'Account Overview',
+                  style: AppStyles.titleTextSmall(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Estate treasury account details',
+              style: AppStyles.subtitleText(context),
+            ),
+            const SizedBox(height: 24),
+            Text('IBAN', style: TextStyle(fontSize: 14)),
+            Row(
+              children: [
+                const Text(
+                  iban,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.copy_outlined, size: 20),
+                  onPressed: () {
+                    Clipboard.setData(const ClipboardData(text: iban));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('IBAN copied to clipboard')),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text('Current Balance', style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(
+              formattedBalance,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: balance >= 0 ? Colors.green : Colors.red,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -136,44 +182,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     TransactionType selectedType = TransactionType.other;
     bool isIncome = false;
 
-    void submitForm() {
-      if (formKey.currentState!.validate()) {
-        final newTransaction = TreasuryTransaction(
-          title: titleController.text,
-          amount: double.parse(amountController.text),
-          type: selectedType,
-          date: DateTime.parse(dateController.text),
-          description:
-              descriptionController.text.isEmpty
-                  ? null
-                  : descriptionController.text,
-          isIncome: isIncome,
-        );
-
-        ref
-            .read(treasuryViewModelProvider.notifier)
-            .addTransaction(newTransaction)
-            .then((result) {
-              if (result.isSuccess) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transaction added successfully'),
-                    ),
-                  );
-                }
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${result.error}')),
-                  );
-                }
-              }
-            });
-      }
-    }
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -183,6 +191,62 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            bool isSubmitting = false;
+
+            Future<void> submitForm() async {
+              if (!formKey.currentState!.validate()) {
+                return;
+              }
+
+              setState(() {
+                isSubmitting = true;
+              });
+
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+
+              try {
+                final newTransaction = TreasuryTransaction(
+                  title: titleController.text,
+                  amount: double.parse(amountController.text),
+                  type: selectedType,
+                  date: DateFormat('MMM d, yyyy').parse(dateController.text),
+                  description:
+                      descriptionController.text.isEmpty
+                          ? null
+                          : descriptionController.text,
+                  isIncome: isIncome,
+                );
+
+                final result = await ref
+                    .read(treasuryViewModelProvider.notifier)
+                    .addTransaction(newTransaction);
+
+                if (result.isSuccess) {
+                  navigator.pop();
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Transaction added successfully'),
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Error: ${result.error}')),
+                  );
+                }
+              } catch (e) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Invalid data provided')),
+                );
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    isSubmitting = false;
+                  });
+                }
+              }
+            }
+
             return Padding(
               padding: EdgeInsets.only(
                 left: 16,
@@ -220,7 +284,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
                       Row(
                         children: [
                           const Text('Transaction is: '),
@@ -228,11 +291,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                           Expanded(
                             child: ToggleButtons(
                               isSelected: [!isIncome, isIncome],
-                              onPressed: (int index) {
-                                setState(() {
-                                  isIncome = index == 1;
-                                });
-                              },
+                              onPressed:
+                                  isSubmitting
+                                      ? null
+                                      : (int index) {
+                                        setState(() {
+                                          isIncome = index == 1;
+                                        });
+                                      },
                               borderRadius: BorderRadius.circular(8),
                               selectedColor: Colors.white,
                               fillColor: isIncome ? Colors.green : Colors.red,
@@ -327,12 +393,16 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           AppElevatedButton(
-                            onPressed: submitForm,
+                            onPressed: () {
+                              if (isSubmitting) return;
+                              submitForm();
+                            },
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,
                               horizontal: 12,
                             ),
-                            buttonText: 'Add',
+                            buttonText:
+                                isSubmitting ? 'Adding...' : 'Add Transaction',
                           ),
                         ],
                       ),
