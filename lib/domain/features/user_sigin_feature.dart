@@ -33,13 +33,11 @@ class UserSiginFeature {
     required AuthState authState,
   }) : _authRepository = authRepository,
        _usersRepository = usersRepository,
-       _authState = authState,
        _appState = appState;
 
   final AuthRepository _authRepository;
   final UsersRepository _usersRepository;
   final AppState _appState;
-  final AuthState _authState;
 
   final _log = Logger(printer: PrefixedLogPrinter('UserSiginFeature'));
 
@@ -93,8 +91,6 @@ class UserSiginFeature {
       }
     }
 
-    _authState.refreshAuthState();
-
     return Result.success(false);
   }
 
@@ -120,8 +116,6 @@ class UserSiginFeature {
         clearRoleResult.error ?? 'Failed to clear user role',
       );
     }
-
-    _authState.refreshAuthState();
 
     return Result.success(true);
   }

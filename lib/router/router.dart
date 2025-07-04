@@ -17,8 +17,26 @@ import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
 import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
 
+final routerNotifierProvider = ChangeNotifierProvider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
+    _ref.listen(isAuthenticatedProvider, (previous, next) {
+      if (previous != next) {
+        notifyListeners();
+      }
+    });
+  }
+
+  final Ref _ref;
+
+  bool get isAuthenticated => _ref.read(isAuthenticatedProvider);
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final routerNotifier = ref.watch(authStateProvider);
+  final routerNotifier = ref.watch(routerNotifierProvider);
 
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isAuthenticated = routerNotifier.isAuthenticated;
