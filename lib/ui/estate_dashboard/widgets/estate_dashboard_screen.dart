@@ -397,7 +397,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
   Card overviewCard(int membersCount) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: AppStyles.cardElevation,
+      elevation: 0.2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -405,47 +405,37 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.primary),
-                SizedBox(width: 8),
-                Text('Overview', style: AppStyles.titleTextMedium(context)),
+                Icon(Icons.hub_outlined, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Community Hub',
+                  style: AppStyles.titleTextMedium(context),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'General information about your estate',
+              'Connect with your community',
               style: AppStyles.subtitleText(context),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Estate Code', style: TextStyle(fontSize: 14)),
-                    SizedBox(height: 4),
-                    Text(
-                      'TKPARK',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                _buildHubButton(
+                  icon: Icons.forum_outlined,
+                  label: 'Forum',
+                  onTap: () {},
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Total Members', style: TextStyle(fontSize: 14)),
-                    SizedBox(height: 4),
-                    Text(
-                      membersCount.toString(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                _buildHubButton(
+                  icon: Icons.event_outlined,
+                  label: 'Events',
+                  onTap: () {},
+                ),
+                _buildHubButton(
+                  icon: Icons.warning_amber_rounded,
+                  label: 'Alerts',
+                  onTap: () => context.go(Routes.alerts),
                 ),
               ],
             ),
@@ -455,4 +445,88 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
       ),
     );
   }
+
+  // Widget _buildHubButton({
+  //   required IconData icon,
+  //   required String label,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return InkWell(
+  //     onTap: onTap,
+  //     borderRadius: BorderRadius.circular(8),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(8.0),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Icon(icon, color: AppColors.primary, size: 28),
+  //           const SizedBox(height: 8),
+  //           Text(label, style: const TextStyle(fontSize: 14)),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Card overviewCard(int membersCount) {
+  //   return Card(
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+  //     elevation: AppStyles.cardElevation,
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Row(
+  //             children: [
+  //               Icon(Icons.info_outline, color: AppColors.primary),
+  //               SizedBox(width: 8),
+  //               Text('Overview', style: AppStyles.titleTextMedium(context)),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 8),
+  //           Text(
+  //             'General information about your estate',
+  //             style: AppStyles.subtitleText(context),
+  //           ),
+  //           const SizedBox(height: 40),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             children: [
+  //               Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Text('Estate Code', style: TextStyle(fontSize: 14)),
+  //                   SizedBox(height: 4),
+  //                   Text(
+  //                     'TKPARK',
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       fontWeight: FontWeight.bold,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Text('Total Members', style: TextStyle(fontSize: 14)),
+  //                   SizedBox(height: 4),
+  //                   Text(
+  //                     membersCount.toString(),
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       fontWeight: FontWeight.bold,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 16),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
