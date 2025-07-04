@@ -124,6 +124,8 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
               const SizedBox(height: 16),
               committeCard(),
               const SizedBox(height: 16),
+              communityHubCard(),
+              const SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -312,6 +314,80 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 );
               }),
             const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card communityHubCard() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 0.2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.hub_outlined, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Community Hub',
+                  style: AppStyles.titleTextMedium(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Connect with your community',
+              style: AppStyles.subtitleText(context),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildHubButton(
+                  icon: Icons.forum_outlined,
+                  label: 'Forum',
+                  onTap: () {},
+                ),
+                _buildHubButton(
+                  icon: Icons.event_outlined,
+                  label: 'Events',
+                  onTap: () {},
+                ),
+                _buildHubButton(
+                  icon: Icons.warning_amber_rounded,
+                  label: 'Alerts',
+                  onTap: () => context.go(Routes.alerts),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHubButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.primary, size: 28),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontSize: 14)),
           ],
         ),
       ),

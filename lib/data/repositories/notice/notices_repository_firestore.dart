@@ -112,4 +112,32 @@ class NoticesRepositoryFirestore extends NoticesRepository {
 
     return _noticesService.likeNotice(estateId, noticeId, userId);
   }
+
+  @override
+  Future<Result<List<Notice>>> getNoticesByType(NoticeType type) async {
+    final estateId = await _appState.getEstateId();
+    if (estateId == null) {
+      return Result.failure('Estate ID is null');
+    }
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('estates')
+              .doc(estateId)
+              .collection('notices')
+              .where('type', isEqualTo: type.name)
+              .orderBy('metadata.createdAt', descending: true)
+              .withConverter(
+                fromFirestore: Notice.fromFirestore,
+                toFirestore: (notice, _) => notice.toFirestore(),
+              )
+              .get();
+
+      final notices = snapshot.docs.map((doc) => doc.data()).toList();
+      return Result.success(notices);
+    } catch (e) {
+      return Result.failure('Failed to fetch notices by type');
+    }
+  }
 }
