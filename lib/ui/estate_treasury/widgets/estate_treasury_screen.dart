@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
@@ -22,14 +23,17 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(treasuryViewModelProvider.notifier).loadTransactions(),
-    );
+    Future.microtask(() {
+      ref.read(treasuryViewModelProvider.notifier).loadTransactions();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
+
+    final iban = treasuryState.estate?.metadata?.iban;
+    final hasIban = iban != null && iban.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -60,7 +64,12 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCurrentBalanceCard(treasuryState.currentBalance),
+                      _buildAccountOverviewCard(
+                        context,
+                        treasuryState.currentBalance,
+                        iban,
+                        hasIban,
+                      ),
                       const SizedBox(height: 24),
                       _buildRecentTransactionsContainer(
                         treasuryState.transactions,
@@ -72,30 +81,74 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Widget _buildCurrentBalanceCard(double balance) {
+  Widget _buildAccountOverviewCard(
+    BuildContext context,
+    double balance,
+    String? iban,
+    bool hasIban,
+  ) {
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        elevation: 0.3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Current Balance', style: AppStyles.titleTextSmall(context)),
-              const SizedBox(height: 8),
-              Text(
-                formatter.format(balance),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: balance >= 0 ? Colors.green : Colors.red,
+
+    return Card(
+      elevation: 0.3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined),
+                const SizedBox(width: 8),
+                Text(
+                  'Account Overview',
+                  style: AppStyles.titleTextSmall(context),
                 ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Estate treasury account details',
+              style: AppStyles.subtitleText(context),
+            ),
+            const SizedBox(height: 24),
+            Text('IBAN', style: AppStyles.subtitleText(context)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    hasIban ? iban! : 'Not Provided',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                if (hasIban)
+                  IconButton(
+                    icon: const Icon(Icons.copy_outlined, size: 20),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: iban!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('IBAN copied to clipboard'),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text('Current Balance', style: AppStyles.subtitleText(context)),
+            const SizedBox(height: 4),
+            Text(
+              formatter.format(balance),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: balance >= 0 ? Colors.green : Colors.red,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -142,7 +195,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           title: titleController.text,
           amount: double.parse(amountController.text),
           type: selectedType,
-          date: DateTime.parse(dateController.text),
+          date: DateFormat('MMM d, yyyy').parse(dateController.text),
           description:
               descriptionController.text.isEmpty
                   ? null
@@ -220,7 +273,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
                       Row(
                         children: [
                           const Text('Transaction is: '),
