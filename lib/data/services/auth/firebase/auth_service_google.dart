@@ -58,18 +58,4 @@ class AuthServiceGoogle {
     }
     return user;
   }
-
-  Future<bool> signOut() async {
-    try {
-      if (!kIsWeb) {
-        await _googleSignIn.signOut();
-      }
-      await FirebaseAuth.instance.signOut();
-      _log.i('User signed out successfully.');
-      return true;
-    } catch (e, stackTrace) {
-      _log.e('Error signing out: $e\nStackTrace: $stackTrace');
-      return false;
-    }
-  }
 }

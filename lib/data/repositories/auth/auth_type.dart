@@ -1,5 +1,6 @@
 enum AuthType {
-  google;
+  google,
+  email;
 
   @override
   String toString() {
@@ -10,6 +11,8 @@ enum AuthType {
     switch (value) {
       case 'google':
         return AuthType.google;
+      case 'email':
+        return AuthType.email;
       default:
         throw ArgumentError('Invalid auth type: $value');
     }
