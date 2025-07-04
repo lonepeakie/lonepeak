@@ -4,31 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository_firestore.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/alerts_providers.dart';
-import 'package:lonepeak/router/routes.dart';
+import 'package:lonepeak/router/routes.dart'; // Make sure Routes is imported
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/create_notice_sheet.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_card.dart';
 
-class EstateAlertsScreen extends ConsumerStatefulWidget {
+class EstateAlertsScreen extends ConsumerWidget {
   const EstateAlertsScreen({super.key});
 
   @override
-  ConsumerState<EstateAlertsScreen> createState() => _EstateAlertsScreenState();
-}
-
-class _EstateAlertsScreenState extends ConsumerState<EstateAlertsScreen> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Future.microtask(() {
-      ref.read(estateAlertsViewModelProvider.notifier).getAlerts();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(estateAlertsViewModelProvider);
     final viewModel = ref.read(estateAlertsViewModelProvider.notifier);
+
     final hasAdminPrivileges =
         ref.watch(
           estateMembersViewModelProvider.select((s) => s.hasAdminPrivileges),
@@ -37,6 +25,7 @@ class _EstateAlertsScreenState extends ConsumerState<EstateAlertsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        // FIX: Navigate directly to the dashboard route instead of popping.
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(Routes.estateHome),
@@ -61,12 +50,10 @@ class _EstateAlertsScreenState extends ConsumerState<EstateAlertsScreen> {
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: NoticeCard(
                         notice: notice,
-                        onLike: () async {
-                          await ref
-                              .read(noticesRepositoryProvider)
-                              .toggleLike(notice.id!);
-                          await viewModel.getAlerts();
-                        },
+                        onLike:
+                            () => ref
+                                .read(noticesRepositoryProvider)
+                                .toggleLike(notice.id!),
                       ),
                     );
                   },
