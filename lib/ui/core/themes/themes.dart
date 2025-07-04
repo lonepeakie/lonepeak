@@ -124,4 +124,6 @@ abstract final class AppStyles {
     fontWeight: FontWeight.w600,
     color: Theme.of(context).colorScheme.onSurfaceVariant,
   );
+
+  static const double cardElevation = 0.2;
 }
