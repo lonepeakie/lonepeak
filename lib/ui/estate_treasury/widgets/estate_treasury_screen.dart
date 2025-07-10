@@ -87,8 +87,8 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     final hasIban = iban != null && iban.trim().isNotEmpty;
 
     return Card(
-      elevation: 0.3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: AppStyles.cardElevation,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -96,7 +96,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.account_balance_wallet_outlined),
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Account Overview',
@@ -117,7 +120,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                 Expanded(
                   child: Text(
                     hasIban ? iban : 'Not Provided',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 if (hasIban)
@@ -186,40 +192,6 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     TransactionType selectedType = TransactionType.other;
     bool isIncome = false;
 
-    void submitForm() {
-      if (formKey.currentState!.validate()) {
-        final newTransaction = TreasuryTransaction(
-          title: titleController.text,
-          amount: double.parse(amountController.text),
-          type: selectedType,
-          date: DateFormat('MMM d, yyyy').parse(dateController.text),
-          description:
-              descriptionController.text.isEmpty
-                  ? null
-                  : descriptionController.text,
-          isIncome: isIncome,
-        );
-
-        ref
-            .read(treasuryViewModelProvider.notifier)
-            .addTransaction(newTransaction)
-            .then((result) {
-              if (result.isSuccess && context.mounted) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Transaction added successfully'),
-                  ),
-                );
-              } else if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${result.error}')),
-                );
-              }
-            });
-      }
-    }
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -229,6 +201,62 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            bool isSubmitting = false;
+
+            Future<void> submitForm() async {
+              if (!formKey.currentState!.validate()) {
+                return;
+              }
+
+              setState(() {
+                isSubmitting = true;
+              });
+
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+
+              try {
+                final newTransaction = TreasuryTransaction(
+                  title: titleController.text,
+                  amount: double.parse(amountController.text),
+                  type: selectedType,
+                  date: DateFormat('MMM d, yyyy').parse(dateController.text),
+                  description:
+                      descriptionController.text.isEmpty
+                          ? null
+                          : descriptionController.text,
+                  isIncome: isIncome,
+                );
+
+                final result = await ref
+                    .read(treasuryViewModelProvider.notifier)
+                    .addTransaction(newTransaction);
+
+                if (result.isSuccess) {
+                  navigator.pop();
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Transaction added successfully'),
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Error: ${result.error}')),
+                  );
+                }
+              } catch (e) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Invalid data provided')),
+                );
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    isSubmitting = false;
+                  });
+                }
+              }
+            }
+
             return Padding(
               padding: EdgeInsets.only(
                 left: 16,
@@ -273,11 +301,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                           Expanded(
                             child: ToggleButtons(
                               isSelected: [!isIncome, isIncome],
-                              onPressed: (int index) {
-                                setState(() {
-                                  isIncome = index == 1;
-                                });
-                              },
+                              onPressed:
+                                  isSubmitting
+                                      ? null
+                                      : (int index) {
+                                        setState(() {
+                                          isIncome = index == 1;
+                                        });
+                                      },
                               borderRadius: BorderRadius.circular(8),
                               selectedColor: Colors.white,
                               fillColor: isIncome ? Colors.green : Colors.red,
@@ -372,12 +403,16 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           AppElevatedButton(
-                            onPressed: submitForm,
+                            onPressed: () {
+                              if (isSubmitting) return;
+                              submitForm();
+                            },
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,
                               horizontal: 12,
                             ),
-                            buttonText: 'Add',
+                            buttonText:
+                                isSubmitting ? 'Adding...' : 'Add Transaction',
                           ),
                         ],
                       ),

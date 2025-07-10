@@ -5,6 +5,7 @@ abstract final class AppColors {
   static const Color black = Color.fromARGB(196, 0, 0, 0);
   static const Color white = Color.fromARGB(255, 249, 252, 254);
   static const Color lightblack = Color.fromARGB(156, 0, 0, 0);
+  static const Color red = Color.fromARGB(255, 238, 68, 67);
   static const Color black50 = Color.from(
     alpha: 0.5,
     red: 0,
@@ -123,4 +124,6 @@ abstract final class AppStyles {
     fontWeight: FontWeight.w600,
     color: Theme.of(context).colorScheme.onSurfaceVariant,
   );
+
+  static const double cardElevation = 0.2;
 }
