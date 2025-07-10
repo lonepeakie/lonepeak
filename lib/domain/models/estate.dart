@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lonepeak/domain/models/metadata.dart';
 
 class Estate {
   final String? id;
@@ -9,7 +8,9 @@ class Estate {
   final String city;
   final String county;
   final String? logoUrl;
-  Metadata? metadata;
+  final String? estateCode;
+  final String? eircode;
+  final List<Map<String, dynamic>>? webLinks;
 
   Estate({
     this.id,
@@ -19,7 +20,9 @@ class Estate {
     required this.city,
     required this.county,
     this.logoUrl,
-    this.metadata,
+    this.estateCode,
+    this.eircode,
+    this.webLinks,
   });
 
   factory Estate.empty() {
@@ -31,7 +34,9 @@ class Estate {
       city: 'Unknown',
       county: 'Unknown',
       logoUrl: null,
-      metadata: null,
+      estateCode: null,
+      eircode: null,
+      webLinks: [],
     );
   }
 
@@ -48,7 +53,12 @@ class Estate {
       city: data?['city'],
       county: data?['county'],
       logoUrl: data?['logoUrl'],
-      metadata: Metadata.fromJson(data?['metadata']),
+      estateCode: data?['estateCode'],
+      eircode: data?['eircode'],
+      webLinks:
+          data?['webLinks'] != null
+              ? List<Map<String, dynamic>>.from(data?['webLinks'])
+              : [],
     );
   }
 
@@ -60,7 +70,9 @@ class Estate {
       "city": city,
       "county": county,
       if (logoUrl != null) "logoUrl": logoUrl,
-      if (metadata != null) "metadata": metadata!.toJson(),
+      if (estateCode != null) "estateCode": estateCode,
+      if (eircode != null) "eircode": eircode,
+      if (webLinks != null) "webLinks": webLinks,
     };
   }
 
@@ -72,7 +84,9 @@ class Estate {
     String? city,
     String? county,
     String? logoUrl,
-    Metadata? metadata,
+    String? estateCode,
+    String? eircode,
+    List<Map<String, dynamic>>? webLinks,
   }) {
     return Estate(
       id: id ?? this.id,
@@ -82,7 +96,9 @@ class Estate {
       city: city ?? this.city,
       county: county ?? this.county,
       logoUrl: logoUrl ?? this.logoUrl,
-      metadata: metadata ?? this.metadata,
+      estateCode: estateCode ?? this.estateCode,
+      eircode: eircode ?? this.eircode,
+      webLinks: webLinks ?? this.webLinks,
     );
   }
 }
