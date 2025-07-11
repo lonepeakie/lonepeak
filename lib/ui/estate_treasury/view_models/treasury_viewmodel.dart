@@ -63,15 +63,12 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
     required EstateRepository estateRepository,
   }) : _treasuryRepository = treasuryRepository,
        _estateRepository = estateRepository,
-       super(TreasuryState());
+       super(const TreasuryState());
 
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final estateResult = await _estateRepository.getEstate();
-    final transactionsResult = await _treasuryRepository.getTransactions();
-    final balanceResult = await _treasuryRepository.getCurrentBalance();
-
     if (estateResult.isFailure) {
       state = state.copyWith(
         isLoading: false,
@@ -80,6 +77,7 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
       return;
     }
 
+    final transactionsResult = await _treasuryRepository.getTransactions();
     if (transactionsResult.isFailure) {
       state = state.copyWith(
         isLoading: false,
@@ -88,6 +86,7 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
       return;
     }
 
+    final balanceResult = await _treasuryRepository.getCurrentBalance();
     if (balanceResult.isFailure) {
       state = state.copyWith(
         isLoading: false,
