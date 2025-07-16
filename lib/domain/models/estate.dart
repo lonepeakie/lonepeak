@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lonepeak/domain/models/metadata.dart';
 
 class Estate {
   final String? id;
@@ -11,6 +12,8 @@ class Estate {
   final String? estateCode;
   final String? eircode;
   final List<Map<String, dynamic>>? webLinks;
+  final String? iban;
+  final Metadata? metadata;
 
   Estate({
     this.id,
@@ -23,6 +26,8 @@ class Estate {
     this.estateCode,
     this.eircode,
     this.webLinks,
+    this.iban,
+    this.metadata,
   });
 
   factory Estate.empty() {
@@ -37,6 +42,8 @@ class Estate {
       estateCode: null,
       eircode: null,
       webLinks: [],
+      iban: null,
+      metadata: null,
     );
   }
 
@@ -59,6 +66,11 @@ class Estate {
           data?['webLinks'] != null
               ? List<Map<String, dynamic>>.from(data?['webLinks'])
               : [],
+      iban: data?['iban'],
+      metadata:
+          data?['metadata'] != null
+              ? Metadata.fromJson(data?['metadata'])
+              : null,
     );
   }
 
@@ -73,6 +85,8 @@ class Estate {
       if (estateCode != null) "estateCode": estateCode,
       if (eircode != null) "eircode": eircode,
       if (webLinks != null) "webLinks": webLinks,
+      if (iban != null) "iban": iban,
+      if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
 
@@ -87,6 +101,8 @@ class Estate {
     String? estateCode,
     String? eircode,
     List<Map<String, dynamic>>? webLinks,
+    String? iban,
+    Metadata? metadata,
   }) {
     return Estate(
       id: id ?? this.id,
@@ -99,6 +115,8 @@ class Estate {
       estateCode: estateCode ?? this.estateCode,
       eircode: eircode ?? this.eircode,
       webLinks: webLinks ?? this.webLinks,
+      iban: iban ?? this.iban,
+      metadata: metadata ?? this.metadata,
     );
   }
 }
