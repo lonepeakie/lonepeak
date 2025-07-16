@@ -23,14 +23,15 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(treasuryViewModelProvider.notifier).loadTransactions(),
-    );
+    Future.microtask(() {
+      ref.read(treasuryViewModelProvider.notifier).loadTransactions();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
+    final iban = treasuryState.estate?.iban;
 
     return Scaffold(
       appBar: AppBar(
@@ -62,8 +63,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildAccountOverviewCard(
-                        context: context,
-                        balance: treasuryState.currentBalance,
+                        context,
+                        treasuryState.currentBalance,
+                        iban,
                       ),
                       const SizedBox(height: 24),
                       _buildRecentTransactionsContainer(
@@ -76,13 +78,13 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Widget _buildAccountOverviewCard({
-    required BuildContext context,
-    required double balance,
-  }) {
+  Widget _buildAccountOverviewCard(
+    BuildContext context,
+    double balance,
+    String? iban,
+  ) {
     final formatter = NumberFormat.currency(symbol: '€', decimalDigits: 2);
-    final formattedBalance = formatter.format(balance);
-    const iban = 'ES91 2100 0418 4502 0005 1332';
+    final hasIban = iban != null && iban.trim().isNotEmpty;
 
     return Card(
       elevation: AppStyles.cardElevation,
@@ -111,30 +113,38 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
               style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 24),
-            Text('IBAN', style: TextStyle(fontSize: 14)),
+            Text('IBAN', style: AppStyles.subtitleText(context)),
+            const SizedBox(height: 8),
             Row(
               children: [
-                const Text(
-                  iban,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    hasIban ? iban : 'Not Provided',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.copy_outlined, size: 20),
-                  onPressed: () {
-                    Clipboard.setData(const ClipboardData(text: iban));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('IBAN copied to clipboard')),
-                    );
-                  },
-                ),
+                if (hasIban)
+                  IconButton(
+                    icon: const Icon(Icons.copy_outlined, size: 20),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: iban));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('IBAN copied to clipboard'),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             const SizedBox(height: 16),
-            Text('Current Balance', style: TextStyle(fontSize: 14)),
+            Text('Current Balance', style: AppStyles.subtitleText(context)),
             const SizedBox(height: 4),
             Text(
-              formattedBalance,
+              formatter.format(balance),
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
