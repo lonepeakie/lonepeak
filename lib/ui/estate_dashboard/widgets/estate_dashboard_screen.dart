@@ -69,37 +69,47 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: Colors.blue[70],
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                           child: Icon(
                             Icons.home,
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             size: 30,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               estate.name,
-                              style: TextStyle(
-                                fontSize: 24,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.location_on,
-                                  color: Colors.grey,
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
                                   size: 16,
                                 ),
-                                const SizedBox(width: 2),
+                                const SizedBox(width: 4),
                                 Text(
                                   '${estate.address} ${estate.city} Co.${estate.county}',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -109,8 +119,13 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.person, size: 22),
-                      iconSize: 40,
+                      icon: Icon(
+                        Icons.person_outline,
+                        size: 24,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                       onPressed: () {
                         GoRouter.of(context).go(Routes.userProfile);
                       },
