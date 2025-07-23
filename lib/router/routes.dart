@@ -19,5 +19,6 @@ abstract final class Routes {
   static const estateTreasuryRelative = 'estate-treasury';
   static const estateDocuments = '/$estateDocumentsRelative';
   static const estateDocumentsRelative = 'estate-documents';
+  static const estateDetailsRelative = 'estate-details';
   static const String alerts = '/alerts';
 }

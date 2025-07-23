@@ -33,21 +33,18 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
   final MembersRepository _membersRepository;
   final NoticesRepository _noticesRepository;
 
-  Estate _estate = Estate.empty();
-  int _membersCount = 0;
-  List<Member> _committeeMembers = [];
-  List<Notice> _allNotices = [];
-
   Estate get estate => _estate;
+  Estate _estate = Estate.empty();
   int get membersCount => _membersCount;
+  int _membersCount = 0;
   List<Member> get committeeMembers => _committeeMembers;
-
-  List<Notice> get latestNoticesForDashboard {
-    return _allNotices.take(3).toList();
-  }
+  List<Member> _committeeMembers = [];
+  List<Notice> get notices => _notices;
+  List<Notice> _notices = [];
 
   Future<void> getEstate() async {
     state = UIStateLoading();
+
     final result = await _estateRepository.getEstate();
     if (result.isSuccess) {
       _estate = result.data ?? Estate.empty();
@@ -59,6 +56,7 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
 
   Future<void> getMembersCount() async {
     state = UIStateLoading();
+
     final result = await _membersRepository.getMemberCount();
     if (result.isSuccess) {
       _membersCount = result.data ?? 0;
@@ -89,48 +87,19 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
 
   Future<void> getLatestNotices() async {
     state = UIStateLoading();
+
     final result = await _noticesRepository.getLatestNotices();
     if (result.isSuccess) {
-      _allNotices = result.data ?? [];
+      _notices = result.data ?? [];
       state = UIStateSuccess();
     } else {
       state = UIStateFailure(result.error ?? 'Unknown error');
     }
   }
 
-  Future<void> updateEstate(Map<String, String> updatedData) async {
-    state = UIStateLoading();
-    final estateToUpdate = _estate.copyWith(
-      name: updatedData['name'],
-      description: updatedData['description'],
-      address: updatedData['address'],
-      city: updatedData['city'],
-      county: updatedData['county'],
-    );
-
-    final result = await _estateRepository.updateEstate(estateToUpdate);
-
-    if (result.isSuccess) {
-      _estate = estateToUpdate;
-      state = UIStateSuccess();
-    } else {
-      state = UIStateFailure(result.error ?? 'Failed to update estate');
-    }
-  }
-
-  Future<void> updateEstateLinks(List<Map<String, String>> newLinks) async {
-    state = UIStateLoading();
-
-    final estateToUpdate = _estate.copyWith(webLinks: newLinks);
-
-    final result = await _estateRepository.updateEstate(estateToUpdate);
-
-    if (result.isSuccess) {
-      _estate = estateToUpdate;
-      state = UIStateSuccess();
-    } else {
-      state = UIStateFailure(result.error ?? 'Failed to update links');
-    }
+  void updateEstateData(Estate updatedEstate) {
+    _estate = updatedEstate;
+    state = UIStateSuccess();
   }
 
   Future<void> toggleLike(String noticeId) async {
@@ -138,10 +107,10 @@ class EstateDashboardViewmodel extends StateNotifier<UIState> {
 
     if (result.isSuccess) {
       final updatedNotice = result.data!;
-      final index = _allNotices.indexWhere((notice) => notice.id == noticeId);
+      final index = _notices.indexWhere((notice) => notice.id == noticeId);
 
       if (index != -1) {
-        _allNotices[index] = updatedNotice;
+        _notices[index] = updatedNotice;
         state = UIStateSuccess();
       }
     }
