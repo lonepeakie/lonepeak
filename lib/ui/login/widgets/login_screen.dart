@@ -51,7 +51,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'MyEstate',
+                  'Meitheal',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Text(
           'Login / Signup to access your account',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.center,

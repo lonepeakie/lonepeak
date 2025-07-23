@@ -1,14 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
+import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository_firestore.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/transaction_filters.dart';
 import 'package:lonepeak/utils/result.dart';
 
 final treasuryViewModelProvider =
     StateNotifierProvider<TreasuryViewModel, TreasuryState>((ref) {
       final treasuryRepository = ref.watch(treasuryRepositoryProvider);
-      return TreasuryViewModel(treasuryRepository: treasuryRepository);
+      final estateRepository = ref.watch(estateRepositoryProvider);
+      return TreasuryViewModel(
+        treasuryRepository: treasuryRepository,
+        estateRepository: estateRepository,
+      );
     });
 
 class TreasuryState {
@@ -17,6 +24,7 @@ class TreasuryState {
   final List<TreasuryTransaction> transactions;
   final TransactionFilters filters;
   final double currentBalance;
+  final Estate? estate;
 
   const TreasuryState({
     this.isLoading = true,
@@ -24,6 +32,7 @@ class TreasuryState {
     this.transactions = const [],
     this.filters = const TransactionFilters(),
     this.currentBalance = 0.0,
+    this.estate,
   });
 
   TreasuryState copyWith({
@@ -32,6 +41,7 @@ class TreasuryState {
     List<TreasuryTransaction>? transactions,
     TransactionFilters? filters,
     double? currentBalance,
+    Estate? estate,
   }) {
     return TreasuryState(
       isLoading: isLoading ?? this.isLoading,
@@ -39,19 +49,33 @@ class TreasuryState {
       transactions: transactions ?? this.transactions,
       filters: filters ?? this.filters,
       currentBalance: currentBalance ?? this.currentBalance,
+      estate: estate ?? this.estate,
     );
   }
 }
 
 class TreasuryViewModel extends StateNotifier<TreasuryState> {
-  TreasuryViewModel({required TreasuryRepository treasuryRepository})
-    : _treasuryRepository = treasuryRepository,
-      super(TreasuryState());
-
   final TreasuryRepository _treasuryRepository;
+  final EstateRepository _estateRepository;
+
+  TreasuryViewModel({
+    required TreasuryRepository treasuryRepository,
+    required EstateRepository estateRepository,
+  }) : _treasuryRepository = treasuryRepository,
+       _estateRepository = estateRepository,
+       super(const TreasuryState());
 
   Future<void> loadTransactions() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final estateResult = await _estateRepository.getEstate();
+    if (estateResult.isFailure) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: estateResult.error,
+      );
+      return;
+    }
 
     final transactionsResult = await _treasuryRepository.getTransactions();
     if (transactionsResult.isFailure) {
@@ -75,6 +99,7 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
       isLoading: false,
       transactions: transactionsResult.data,
       currentBalance: balanceResult.data,
+      estate: estateResult.data,
     );
   }
 
@@ -147,10 +172,12 @@ class TreasuryViewModel extends StateNotifier<TreasuryState> {
       state = state.copyWith(isLoading: false, errorMessage: result.error);
       return;
     }
+
     final trxs = result.data!;
     if (currentFilters.isIncome != null) {
       trxs.retainWhere((trx) => trx.isIncome == currentFilters.isIncome);
     }
+
     state = state.copyWith(
       isLoading: false,
       transactions: trxs,
