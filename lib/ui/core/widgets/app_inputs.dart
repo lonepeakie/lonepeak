@@ -62,12 +62,6 @@ class _AppTextInputState extends State<AppTextInput> {
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: TextStyle(color: theme.hintColor),
-            filled: theme.brightness == Brightness.dark,
-            fillColor:
-                theme.brightness == Brightness.dark
-                    ? theme.inputDecorationTheme.fillColor ??
-                        theme.colorScheme.surface.withValues(alpha: 0.8)
-                    : null,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(

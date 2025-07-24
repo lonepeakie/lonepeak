@@ -17,7 +17,7 @@ import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/estate_treasury_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
-import 'package:lonepeak/ui/welcome/widgets/welcome_screen.dart';
+import 'package:lonepeak/ui/splash/widgets/splash_screen.dart'; // <- Use SplashScreen from main branch
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.watch(authStateProvider);
@@ -30,7 +30,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
     if (isAuthenticated && (isLoginPage || isWelcomePage)) {
       final estateId = await appState.getEstateId();
-
       if (estateId != null && estateId.isNotEmpty) {
         return Routes.estateHome;
       } else {
@@ -53,7 +52,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.welcome,
-        builder: (context, state) => const WelcomeScreen(),
+        builder:
+            (context, state) => const SplashScreen(), // <- Use SplashScreen
       ),
       GoRoute(
         path: Routes.estateHome,

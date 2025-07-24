@@ -24,25 +24,13 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(estateDashboardViewModelProvider.notifier).getEstate(),
-    );
-    Future.microtask(
-      () =>
-          ref.read(estateDashboardViewModelProvider.notifier).getMembersCount(),
-    );
-    Future.microtask(
-      () =>
-          ref
-              .read(estateDashboardViewModelProvider.notifier)
-              .getCommitteeMembers(),
-    );
-    Future.microtask(
-      () =>
-          ref
-              .read(estateDashboardViewModelProvider.notifier)
-              .getLatestNotices(),
-    );
+    final viewModel = ref.read(estateDashboardViewModelProvider.notifier);
+    Future.microtask(() {
+      viewModel.getEstate();
+      viewModel.getMembersCount();
+      viewModel.getCommitteeMembers();
+      viewModel.getLatestNotices();
+    });
   }
 
   Future<void> _navigateToDetails(Estate estate) async {
@@ -63,9 +51,9 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(estateDashboardViewModelProvider);
-    final estate = ref.watch(estateDashboardViewModelProvider.notifier).estate;
-    final membersCount =
-        ref.watch(estateDashboardViewModelProvider.notifier).membersCount;
+    final viewModel = ref.watch(estateDashboardViewModelProvider.notifier);
+    final estate = viewModel.estate;
+    final membersCount = viewModel.membersCount;
 
     return Scaffold(
       body: SafeArea(
@@ -150,11 +138,11 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                   ],
                 ),
               const SizedBox(height: 32),
-              overviewCard(context, estate, membersCount),
+              _overviewCard(context, estate, membersCount),
               const SizedBox(height: 16),
-              latestNoticesCard(),
+              _latestNoticesCard(),
               const SizedBox(height: 16),
-              committeCard(),
+              _committeeCard(),
               const SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: 2,
@@ -213,144 +201,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     );
   }
 
-  Card latestNoticesCard() {
-    final notices =
-        ref.watch(estateDashboardViewModelProvider.notifier).notices;
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: AppStyles.cardElevation,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.notifications_outlined,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Latest Notices',
-                      style: AppStyles.titleTextMedium(context),
-                    ),
-                  ],
-                ),
-                AppTextIconButton(
-                  onPressed: () {
-                    GoRouter.of(context).push(
-                      '${Routes.estateHome}/${Routes.estateNoticesRelative}',
-                    );
-                  },
-                  icon: Icons.arrow_forward_ios,
-                ),
-              ],
-            ),
-            Text(
-              'Recent announcements from your estate',
-              style: AppStyles.subtitleText(context),
-            ),
-            const SizedBox(height: 32),
-            Column(
-              children:
-                  notices.map((notice) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          NoticeWidget(notice: notice, displayActions: false),
-                          if (notices.last != notice) const Divider(),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Card committeCard() {
-    final committeeMembers =
-        ref.watch(estateDashboardViewModelProvider.notifier).committeeMembers;
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: AppStyles.cardElevation,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.groups_outlined, color: AppColors.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Committee',
-                      style: AppStyles.titleTextMedium(context),
-                    ),
-                  ],
-                ),
-                AppTextIconButton(
-                  onPressed: () {
-                    GoRouter.of(context).push(
-                      '${Routes.estateHome}/${Routes.estateMembersRelative}',
-                    );
-                  },
-                  icon: Icons.arrow_forward_ios,
-                ),
-              ],
-            ),
-            Text(
-              'Quickly reachout to your commitee',
-              style: AppStyles.subtitleText(context),
-            ),
-            const SizedBox(height: 32),
-            if (committeeMembers.isEmpty)
-              const Center(
-                child: Text(
-                  'No committee members available',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
-            else
-              ...committeeMembers.map((member) {
-                final isLast =
-                    committeeMembers.indexOf(member) ==
-                    committeeMembers.length - 1;
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      MemberTile(
-                        name: member.displayName,
-                        role: member.role.name,
-                        padding: EdgeInsets.zero,
-                      ),
-                      if (!isLast) const Divider(),
-                    ],
-                  ),
-                );
-              }),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Card overviewCard(BuildContext context, Estate estate, int membersCount) {
+  Card _overviewCard(BuildContext context, Estate estate, int membersCount) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       elevation: AppStyles.cardElevation,
@@ -416,6 +267,141 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card _latestNoticesCard() {
+    final notices =
+        ref.watch(estateDashboardViewModelProvider.notifier).notices;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: AppStyles.cardElevation,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Latest Notices',
+                      style: AppStyles.titleTextMedium(context),
+                    ),
+                  ],
+                ),
+                AppTextIconButton(
+                  onPressed: () {
+                    GoRouter.of(context).push(
+                      '${Routes.estateHome}/${Routes.estateNoticesRelative}',
+                    );
+                  },
+                  icon: Icons.arrow_forward_ios,
+                ),
+              ],
+            ),
+            Text(
+              'Recent announcements from your estate',
+              style: AppStyles.subtitleText(context),
+            ),
+            const SizedBox(height: 32),
+            Column(
+              children:
+                  notices.map((notice) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          NoticeWidget(notice: notice, displayActions: false),
+                          if (notices.last != notice) const Divider(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card _committeeCard() {
+    final committeeMembers =
+        ref.watch(estateDashboardViewModelProvider.notifier).committeeMembers;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: AppStyles.cardElevation,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.groups_outlined, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Committee',
+                      style: AppStyles.titleTextMedium(context),
+                    ),
+                  ],
+                ),
+                AppTextIconButton(
+                  onPressed: () {
+                    GoRouter.of(context).push(
+                      '${Routes.estateHome}/${Routes.estateMembersRelative}',
+                    );
+                  },
+                  icon: Icons.arrow_forward_ios,
+                ),
+              ],
+            ),
+            Text(
+              'Quickly reachout to your commitee',
+              style: AppStyles.subtitleText(context),
+            ),
+            const SizedBox(height: 32),
+            if (committeeMembers.isEmpty)
+              const Center(
+                child: Text(
+                  'No committee members available',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              )
+            else
+              ...committeeMembers.map((member) {
+                final isLast =
+                    committeeMembers.indexOf(member) ==
+                    committeeMembers.length - 1;
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      MemberTile(
+                        name: member.displayName,
+                        role: member.role.name,
+                        padding: EdgeInsets.zero,
+                      ),
+                      if (!isLast) const Divider(),
+                    ],
+                  ),
+                );
+              }),
             const SizedBox(height: 16),
           ],
         ),

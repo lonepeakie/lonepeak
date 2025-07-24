@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'MyEstate',
+                    'Meitheal',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -73,15 +73,11 @@ class WelcomeScreen extends StatelessWidget {
                       'Get Started',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: theme.colorScheme.onPrimary,
-                    ),
+                    Icon(Icons.arrow_forward, size: 20),
                   ],
                 ),
               ),
@@ -133,21 +129,24 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(8),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.15),
+          width: 0.2,
+        ),
         boxShadow: [
           BoxShadow(
             color:
-                isDarkMode
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: Offset(0, 4),
+                theme.brightness == Brightness.dark
+                    ? Colors.black.withValues(alpha: 0.4)
+                    : Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 2),
+            blurRadius: 3,
           ),
         ],
       ),
@@ -156,18 +155,17 @@ class _FeatureCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: theme.textTheme.titleMedium?.color,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           SizedBox(height: 8),
           Text(
             description,
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              // height: 1.4,
             ),
           ),
         ],

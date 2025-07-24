@@ -31,7 +31,7 @@ class MemberTile extends StatelessWidget {
                 ? theme.colorScheme.primary.withValues(alpha: 0.2)
                 : theme.colorScheme.primary.withValues(alpha: 0.1),
         child: Text(
-          name[0],
+          name.isNotEmpty ? name[0].toUpperCase() : '',
           style: TextStyle(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
