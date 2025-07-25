@@ -145,6 +145,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                 physics: NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
+                childAspectRatio: 1.2,
                 children: [
                   DashboardButton(
                     title: 'Documents',
@@ -184,6 +185,16 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                       GoRouter.of(
                         context,
                       ).go(Routes.estateHome + Routes.estateTreasury);
+                    },
+                  ),
+                  DashboardButton(
+                    title: 'Marketplace',
+                    subtitle: 'Buy and sell with neighbors',
+                    icon: Icons.store,
+                    onTap: () {
+                      GoRouter.of(
+                        context,
+                      ).go(Routes.estateHome + Routes.estateMarketplace);
                     },
                   ),
                 ],
