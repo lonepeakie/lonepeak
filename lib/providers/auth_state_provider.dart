@@ -35,7 +35,7 @@ class AuthState {
     _appState = _ref.read(appStateProvider);
     _ref.listen(isAuthenticatedProvider, (previous, next) {
       if (next && previous != next) {
-        _appState.setAppData();
+        _appState.initAppData();
       }
     });
   }

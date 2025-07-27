@@ -88,14 +88,20 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                   context,
                 ).colorScheme.primary.withValues(alpha: .1),
                 child: Text(
-                  member.displayName[0],
+                  member.displayName.isNotEmpty
+                      ? member.displayName[0].toUpperCase()
+                      : '?',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              title: Text(member.displayName),
+              title: Text(
+                member.displayName.isNotEmpty
+                    ? member.displayName
+                    : 'Unknown User',
+              ),
               subtitle: Text(member.email),
               trailing: Chip(
                 label: Text(member.role.name),
@@ -165,14 +171,14 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   }
 
   void _showRemoveMemberConfirmation(BuildContext context, Member member) {
+    final displayName =
+        member.displayName.isNotEmpty ? member.displayName : 'Unknown User';
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             title: const Text('Remove Member'),
-            content: Text(
-              'Are you sure you want to remove ${member.displayName}?',
-            ),
+            content: Text('Are you sure you want to remove $displayName?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -193,15 +199,15 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   }
 
   void _updateMemberRole(Member member, RoleType newRole) async {
+    final displayName =
+        member.displayName.isNotEmpty ? member.displayName : 'Unknown User';
     final viewModel = ref.read(estateMembersViewModelProvider.notifier);
     await viewModel.updateMemberRole(member.email, newRole);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '${member.displayName}\'s role updated to ${newRole.name}',
-          ),
+          content: Text('$displayName\'s role updated to ${newRole.name}'),
           backgroundColor: Colors.green,
         ),
       );
@@ -209,13 +215,15 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   }
 
   void _removeMember(Member member) async {
+    final displayName =
+        member.displayName.isNotEmpty ? member.displayName : 'Unknown User';
     final viewModel = ref.read(estateMembersViewModelProvider.notifier);
     await viewModel.removeMember(member.email);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${member.displayName} removed'),
+          content: Text('$displayName removed'),
           backgroundColor: Colors.red,
         ),
       );
@@ -253,7 +261,11 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         _searchQuery.isEmpty
             ? activeMembers
             : activeMembers.where((member) {
-              final name = member.displayName.toLowerCase();
+              final name =
+                  (member.displayName.isNotEmpty
+                          ? member.displayName
+                          : 'Unknown User')
+                      .toLowerCase();
               final email = member.email.toLowerCase();
               final role = member.role.name.toLowerCase();
               return name.contains(_searchQuery.toLowerCase()) ||
@@ -382,8 +394,12 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                           itemBuilder: (context, index) {
                             final member = filteredMembers[index];
                             final roleName = member.role.name;
+                            final displayName =
+                                member.displayName.isNotEmpty
+                                    ? member.displayName
+                                    : 'Unknown User';
                             return MemberTile(
-                              name: member.displayName,
+                              name: displayName,
                               email: member.email,
                               role: roleName,
                               onTap:
