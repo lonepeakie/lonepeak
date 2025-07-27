@@ -37,15 +37,20 @@ class RouterNotifier extends ChangeNotifier {
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.watch(routerNotifierProvider);
+  final appState = ref.read(appStateProvider);
 
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isAuthenticated = routerNotifier.isAuthenticated;
     final isLoginPage = state.matchedLocation == Routes.login;
     final isWelcomePage = state.matchedLocation == Routes.welcome;
-    final appState = ref.read(appStateProvider);
 
     if (isAuthenticated && (isLoginPage || isWelcomePage)) {
-      final estateId = await appState.getEstateId();
+      String? estateId;
+      try {
+        estateId = await appState.getEstateId();
+      } catch (e) {
+        return Routes.login;
+      }
 
       if (estateId != null && estateId.isNotEmpty) {
         return Routes.estateHome;

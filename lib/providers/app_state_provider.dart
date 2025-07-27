@@ -48,16 +48,31 @@ class AppState {
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
 
-    return _loadEstateId();
+    await _loadEstateId();
+    return _estateId;
   }
 
-  Future<String?> _loadEstateId() async {
-    try {
+  Future<void> _loadEstateId() async {
+    if (await _secureStorage.containsKey(key: _estateIdKey)) {
       _estateId = await _secureStorage.read(key: _estateIdKey);
-      return _estateId;
-    } catch (e) {
-      return null;
+    } else {
+      await _fetchEstateIdFromUser();
     }
+  }
+
+  Future<void> _fetchEstateIdFromUser() async {
+    final authResult = _authRepository.getCurrentUser();
+    if (authResult.isFailure) {
+      throw Exception('Failed to get current user');
+    }
+    final currentUser = authResult.data;
+
+    final storedUser = await _usersRepository.getUser(currentUser!.email);
+    if (storedUser.isFailure) {
+      throw Exception('Failed to get user');
+    }
+
+    _estateId = storedUser.data?.estateId;
   }
 
   Future<Result<void>> setEstateId(String? estateId) async {
