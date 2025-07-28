@@ -33,8 +33,7 @@ class AppState {
   }) : _authRepository = authRepository,
        _usersRepository = usersRepository,
        _secureStorage = secureStorage {
-    _loadEstateId();
-    _loadUserRole();
+    initAppData();
   }
 
   final AuthRepository _authRepository;
@@ -51,8 +50,7 @@ class AppState {
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
 
-    await _loadEstateId();
-    return _estateId;
+    return _loadEstateId();
   }
 
   Future<Result<void>> setEstateId(String estateId) async {
@@ -102,15 +100,6 @@ class AppState {
     }
   }
 
-  Future<String?> _loadUserRole() async {
-    try {
-      _userRole = await _secureStorage.read(key: _userRoleKey);
-      return _userRole;
-    } catch (e) {
-      return null;
-    }
-  }
-
   Future<Result<void>> clearUserRole() async {
     _userRole = null;
 
@@ -122,50 +111,90 @@ class AppState {
     }
   }
 
-  Future<Result<void>> _loadEstateId() async {
-    if (await _secureStorage.containsKey(key: _estateIdKey)) {
-      _log.d('Estate ID found in secure storage');
-      _estateId = await _secureStorage.read(key: _estateIdKey);
-      return Result.success(null);
-    }
-
-    final estateId = await _getEstateIdForLoggedInUser();
-    _log.d('Estate ID for logged-in user: $estateId');
-    if (estateId == null) {
-      return Result.failure('No estate ID found for the logged-in user');
-    }
-
-    await setEstateId(estateId);
-    return Result.success(null);
-  }
-
-  Future<String?> _getEstateIdForLoggedInUser() async {
-    final authResult = _authRepository.getCurrentUser();
-    if (authResult.isFailure) {
-      throw Exception('Failed to get current user');
-    }
-    final currentUser = authResult.data;
-
-    final storedUser = await _usersRepository.getUser(currentUser!.email);
-    if (storedUser.isFailure) {
-      throw Exception('Failed to get user');
-    }
-
-    _log.d('Fetched user: ${storedUser.data?.email}');
-    if (storedUser.data?.estateId == null ||
-        storedUser.data!.estateId!.isEmpty) {
-      _log.w('No estate ID found for user: ${storedUser.data?.email}');
-      return null;
-    }
-    return storedUser.data?.estateId;
-  }
-
   Future<Result<void>> initAppData() async {
     final estateId = await getEstateId();
     if (estateId == null || estateId.isEmpty) {
       return Result.failure('Estate ID is not set');
     }
 
-    return await clearUserRole();
+    final userRole = await getUserRole();
+    if (userRole == null || userRole.isEmpty) {
+      return Result.failure('User role is not set');
+    }
+
+    return Result.success(null);
+  }
+
+  Future<String?> _loadEstateId() async {
+    try {
+      final storedEstateId = await _secureStorage.read(key: _estateIdKey);
+
+      if (storedEstateId != null && storedEstateId.isNotEmpty) {
+        _estateId = storedEstateId;
+        return _estateId;
+      }
+
+      _log.d('Estate ID not found in storage, fetching from user data');
+
+      final fetchedEstateId = await _getEstateIdForLoggedInUser();
+
+      if (fetchedEstateId == null || fetchedEstateId.isEmpty) {
+        _log.w('No estate ID found for logged-in user');
+        _estateId = null;
+        return null;
+      }
+
+      _log.d('Saving fetched estate ID to storage: $fetchedEstateId');
+      await _secureStorage.write(key: _estateIdKey, value: fetchedEstateId);
+      _estateId = fetchedEstateId;
+
+      return _estateId;
+    } catch (e) {
+      _log.e('Failed to load estate ID: $e');
+      _estateId = null;
+      return null;
+    }
+  }
+
+  Future<String?> _getEstateIdForLoggedInUser() async {
+    final authResult = _authRepository.getCurrentUser();
+    if (authResult.isFailure) {
+      _log.e('Failed to get current user: ${authResult.error}');
+      throw Exception('Failed to get current user: ${authResult.error}');
+    }
+
+    final currentUser = authResult.data;
+    if (currentUser?.email == null) {
+      _log.e('Current user has no email');
+      throw Exception('Current user has no email');
+    }
+
+    final userResult = await _usersRepository.getUser(currentUser!.email);
+    if (userResult.isFailure) {
+      _log.e(
+        'Failed to get user data for ${currentUser.email}: ${userResult.error}',
+      );
+      throw Exception('Failed to get user data: ${userResult.error}');
+    }
+
+    final userData = userResult.data;
+    _log.d('Fetched user data for: ${userData?.email}');
+
+    final estateId = userData?.estateId;
+    if (estateId == null || estateId.isEmpty) {
+      _log.w('No estate ID found for user: ${userData?.email}');
+      return null;
+    }
+
+    return estateId;
+  }
+
+  Future<String?> _loadUserRole() async {
+    try {
+      _userRole = await _secureStorage.read(key: _userRoleKey);
+      return _userRole;
+    } catch (e) {
+      return null;
+    }
   }
 }

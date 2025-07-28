@@ -1,29 +1,40 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/domain/features/estate_features.dart';
+import 'package:lonepeak/data/repositories/members/members_repository.dart';
+import 'package:lonepeak/data/repositories/members/members_repository_firestore.dart';
+import 'package:lonepeak/domain/models/member.dart';
+import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 final estateHomeViewModelProvider =
     StateNotifierProvider<EstateHomeViewmodel, UIState>((ref) {
       return EstateHomeViewmodel(
-        estateFeatures: ref.read(estateFeaturesProvider),
+        membersRepository: ref.read(membersRepositoryProvider),
+        appState: ref.read(appStateProvider),
       );
     });
 
 class EstateHomeViewmodel extends StateNotifier<UIState> {
-  EstateHomeViewmodel({required EstateFeatures estateFeatures})
-    : _estateFeatures = estateFeatures,
-      super(UIStateInitial());
+  EstateHomeViewmodel({
+    required MembersRepository membersRepository,
+    required AppState appState,
+  }) : _membersRepository = membersRepository,
+       _appState = appState,
+       super(UIStateInitial());
 
-  final EstateFeatures _estateFeatures;
+  final MembersRepository _membersRepository;
+  final AppState _appState;
 
-  Future<void> setUserAndEstateId() async {
-    state = UIStateLoading();
+  Member? get member => _member;
+  Member? _member;
 
-    final result = await _estateFeatures.setUserAndEstateId();
+  Future<void> getMember() async {
+    final email = _appState.getUserId();
+    final result = await _membersRepository.getMemberById(email!);
     if (result.isSuccess) {
+      _member = result.data;
       state = UIStateSuccess();
     } else {
-      state = UIStateFailure('User not found');
+      state = UIStateFailure(result.error ?? 'Failed to load member data');
     }
   }
 }

@@ -49,10 +49,9 @@ class EstateFeatures {
   final AppState _appState;
 
   Future<Result<void>> createEstateAndAddMember(Estate estateData) async {
-    // Get the current user
     final authResult = _authRepository.getCurrentUser();
     if (authResult.isFailure) {
-      return Result.failure('Failed to get current user');
+      return Result.failure('Failed to get current user: ${authResult.error}');
     }
     final currentUser = authResult.data;
     if (currentUser == null) {
@@ -61,23 +60,20 @@ class EstateFeatures {
 
     final estateResult = await _estateRepository.addEstate(estateData);
     if (estateResult.isFailure) {
-      return Result.failure('Failed to create estate');
+      return Result.failure('Failed to create estate: ${estateResult.error}');
     }
 
     final String estateId = estateResult.data as String;
     _appState.setEstateId(estateId);
 
-    // Create the member
     final member = Member(
       email: currentUser.email,
       displayName: currentUser.displayName,
       role: RoleType.admin,
     );
 
-    // Add the member
     final memberResult = await _membersRepository.addMember(member);
     if (memberResult.isFailure) {
-      // If adding the member fails, delete the estate
       final estateDeleteResult = await _estateRepository.deleteEstate();
       if (estateDeleteResult.isFailure) {
         return Result.failure(
@@ -85,36 +81,10 @@ class EstateFeatures {
         );
       }
 
-      return Result.failure('Failed to add member');
+      return Result.failure('Failed to add member: ${memberResult.error}');
     }
 
     _appState.setEstateId(estateId);
-    return Result.success(null);
-  }
-
-  Future<Result<void>> setUserAndEstateId() async {
-    final authResult = _authRepository.getCurrentUser();
-    if (authResult.isFailure) {
-      return Result.failure('Failed to get current user');
-    }
-    final currentUser = authResult.data;
-    if (currentUser == null) {
-      return Result.failure('Current user is null');
-    }
-
-    final storedUser = await _usersRepository.getUser(currentUser.email);
-    if (storedUser.isFailure) {
-      return Result.failure('Failed to get user');
-    }
-    final user = storedUser.data;
-    if (user == null) {
-      return Result.failure('User not found');
-    }
-
-    if (user.estateId != null) {
-      _appState.setEstateId(user.estateId!);
-    }
-
     return Result.success(null);
   }
 
@@ -126,9 +96,11 @@ class EstateFeatures {
 
     final currentUserResult = await _usersRepository.getUser(userEmail);
     if (currentUserResult.isFailure || currentUserResult.data == null) {
-      return Result.failure('Failed to get user');
+      return Result.failure('Failed to get user: ${currentUserResult.error}');
     }
     final currentUser = currentUserResult.data;
+
+    _appState.setEstateId(estateId);
 
     final member = Member(
       email: currentUser?.email ?? '',
@@ -137,11 +109,21 @@ class EstateFeatures {
       status: MemberStatus.pending,
     );
 
-    _appState.setEstateId(estateId);
-
     final result = await _membersRepository.addMember(member);
     if (result.isFailure) {
-      return Result.failure('Failed to add member');
+      return Result.failure('Failed to add member: ${result.error}');
+    }
+
+    final userResult = await _usersRepository.getUser(userEmail);
+    if (userResult.isFailure || userResult.data == null) {
+      return Result.failure('Failed to get user: ${userResult.error}');
+    }
+
+    final user = userResult.data!;
+    final updatedUser = user.copyWith(estateId: estateId);
+    final userUpdateResult = await _usersRepository.updateUser(updatedUser);
+    if (userUpdateResult.isFailure) {
+      return Result.failure('Failed to update user: ${userUpdateResult.error}');
     }
 
     return Result.success(null);
@@ -155,7 +137,7 @@ class EstateFeatures {
 
     final memberResult = await _membersRepository.getMemberById(userEmail);
     if (memberResult.isFailure) {
-      return Result.failure('Failed to remove member');
+      return Result.failure('Failed to remove member: ${memberResult.error}');
     }
 
     final member = memberResult.data;
@@ -167,23 +149,27 @@ class EstateFeatures {
 
     final updateResult = await _membersRepository.updateMember(updatedMember);
     if (updateResult.isFailure) {
-      return Result.failure('Failed to update member status');
+      return Result.failure(
+        'Failed to update member status: ${updateResult.error}',
+      );
     }
 
     final user = await _usersRepository.getUser(userEmail);
     if (user.isFailure || user.data == null) {
-      return Result.failure('Failed to get user');
+      return Result.failure('Failed to get user: ${user.error}');
     }
 
     final updatedUser = user.data!.copyWithEmptyEstateId();
     final userUpdateResult = await _usersRepository.updateUser(updatedUser);
     if (userUpdateResult.isFailure) {
-      return Result.failure('Failed to update user');
+      return Result.failure('Failed to update user: ${userUpdateResult.error}');
     }
 
     final clearEstateResult = await _appState.clearEstateId();
     if (clearEstateResult.isFailure) {
-      return Result.failure('Failed to clear estate ID');
+      return Result.failure(
+        'Failed to clear estate ID: ${clearEstateResult.error}',
+      );
     }
 
     return Result.success(null);
