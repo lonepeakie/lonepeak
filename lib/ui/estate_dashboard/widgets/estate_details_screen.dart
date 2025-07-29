@@ -13,6 +13,7 @@ class EstateDetailsScreen extends StatefulWidget {
 }
 
 class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
+  // --- Basic Info State ---
   bool _isBasicInfoEditing = false;
   final _basicInfoFormKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
@@ -21,9 +22,15 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
   late final TextEditingController _cityController;
   late final TextEditingController _countyController;
 
+  // --- Web Links State ---
   bool _isWebLinksEditing = false;
   late List<Map<String, String>> _currentWebLinks;
   late List<Map<String, String>> _savedWebLinks;
+
+  // MODIFIED: State for the inline "add link" form
+  final _addLinkFormKey = GlobalKey<FormState>();
+  late final TextEditingController _newLinkTitleController;
+  late final TextEditingController _newLinkUrlController;
 
   @override
   void initState() {
@@ -47,23 +54,34 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
   }
 
   void _initializeControllers() {
+    // Basic Info
     final e = widget.estate;
     _nameController = TextEditingController(text: e.name);
     _descriptionController = TextEditingController(text: e.description ?? '');
     _addressController = TextEditingController(text: e.address ?? '');
     _cityController = TextEditingController(text: e.city);
     _countyController = TextEditingController(text: e.county);
+
+    // New Link Form
+    _newLinkTitleController = TextEditingController();
+    _newLinkUrlController = TextEditingController();
   }
 
   @override
   void dispose() {
+    // Basic Info
     _nameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
     _cityController.dispose();
     _countyController.dispose();
+    // New Link Form
+    _newLinkTitleController.dispose();
+    _newLinkUrlController.dispose();
     super.dispose();
   }
+
+  // --- Logic Methods ---
 
   Future<void> _onBasicInfoSave() async {
     if (_basicInfoFormKey.currentState?.validate() ?? false) {
@@ -109,6 +127,22 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
     });
   }
 
+  // ADDED: Logic to add a link to the temporary list in the UI
+  void _onAddNewLink() {
+    if (_addLinkFormKey.currentState?.validate() ?? false) {
+      setState(() {
+        _currentWebLinks.add({
+          'title': _newLinkTitleController.text.trim(),
+          'url': _newLinkUrlController.text.trim(),
+          'subtitle': 'Custom',
+        });
+        _newLinkTitleController.clear();
+        _newLinkUrlController.clear();
+        FocusScope.of(context).unfocus();
+      });
+    }
+  }
+
   void _popWithResult() {
     final updatedEstate = widget.estate.copyWith(
       name: _nameController.text,
@@ -131,88 +165,14 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
     }
   }
 
-  Future<void> _showAddLinkDialog() async {
-    final titleController = TextEditingController();
-    final urlController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Add New Link'),
-            content: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
-                      hintText: 'e.g., Estate Website',
-                    ),
-                    validator:
-                        (value) =>
-                            value!.isEmpty ? 'Please enter a title' : null,
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: urlController,
-                    decoration: const InputDecoration(
-                      labelText: 'URL',
-                      hintText: 'e.g., https://...',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a URL';
-                      }
-                      final uri = Uri.tryParse(value);
-                      if (uri == null || !uri.isAbsolute) {
-                        return 'Please enter a valid URL';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('CANCEL'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    Navigator.of(context).pop({
-                      'title': titleController.text,
-                      'url': urlController.text,
-                      'subtitle': 'Custom',
-                    });
-                  }
-                },
-                child: const Text('ADD'),
-              ),
-            ],
-          ),
-    );
-
-    if (result != null) {
-      setState(() {
-        _currentWebLinks.add(result);
-      });
-    }
-  }
+  // --- Build Methods ---
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         _popWithResult();
       },
       child: Scaffold(
@@ -348,66 +308,103 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
               style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 16),
-            if (_currentWebLinks.isEmpty)
+            if (_currentWebLinks.isEmpty && !_isWebLinksEditing)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Center(
                   child: Text(
-                    _isWebLinksEditing
-                        ? 'No links. Add one below.'
-                        : 'No web links have been added.',
+                    'No web links have been added.',
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _currentWebLinks.length,
-                itemBuilder: (context, index) {
-                  final link = _currentWebLinks[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withAlpha(26),
-                      child: const Icon(Icons.public, color: AppColors.primary),
-                    ),
-                    title: Text(link['title'] ?? 'No Title'),
-                    subtitle: Text(link['url'] ?? 'No URL'),
-                    trailing:
-                        _isWebLinksEditing
-                            ? IconButton(
-                              icon: Icon(
-                                Icons.remove_circle_outline,
-                                color: Colors.red.shade400,
-                              ),
-                              tooltip: 'Delete Link',
-                              onPressed:
-                                  () => setState(
-                                    () => _currentWebLinks.removeAt(index),
-                                  ),
-                            )
-                            : null,
-                    onTap:
-                        _isWebLinksEditing
-                            ? null
-                            : () => _launchUrl(link['url'] ?? ''),
-                  );
-                },
               ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _currentWebLinks.length,
+              itemBuilder: (context, index) {
+                final link = _currentWebLinks[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withAlpha(26),
+                    child: const Icon(Icons.public, color: AppColors.primary),
+                  ),
+                  title: Text(link['title'] ?? 'No Title'),
+                  subtitle: Text(link['url'] ?? 'No URL'),
+                  trailing:
+                      _isWebLinksEditing
+                          ? IconButton(
+                            icon: Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.red.shade400,
+                            ),
+                            tooltip: 'Delete Link',
+                            onPressed:
+                                () => setState(
+                                  () => _currentWebLinks.removeAt(index),
+                                ),
+                          )
+                          : null,
+                  onTap:
+                      _isWebLinksEditing
+                          ? null
+                          : () => _launchUrl(link['url'] ?? ''),
+                );
+              },
+            ),
+            // MODIFIED: Show the inline form instead of a button/popup
             if (_isWebLinksEditing) ...[
-              const SizedBox(height: 16),
-              Center(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add New Link'),
-                  onPressed: _showAddLinkDialog,
-                ),
-              ),
+              const Divider(height: 32),
+              _buildAddLinkForm(),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  // ADDED: A new widget for the inline form
+  Widget _buildAddLinkForm() {
+    return Form(
+      key: _addLinkFormKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Add a new link', style: AppStyles.titleTextSmall(context)),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _newLinkTitleController,
+            decoration: const InputDecoration(labelText: 'Title'),
+            validator:
+                (value) => value!.isEmpty ? 'Please enter a title' : null,
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _newLinkUrlController,
+            decoration: const InputDecoration(labelText: 'URL'),
+            keyboardType: TextInputType.url,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a URL';
+              }
+              final uri = Uri.tryParse(value);
+              if (uri == null || !uri.isAbsolute) {
+                return 'Please enter a valid URL';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+              onPressed: _onAddNewLink,
+            ),
+          ),
+        ],
       ),
     );
   }
