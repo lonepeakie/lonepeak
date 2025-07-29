@@ -10,6 +10,9 @@ import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class EstateTreasuryScreen extends ConsumerStatefulWidget {
   const EstateTreasuryScreen({super.key});
@@ -43,7 +46,18 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.download_outlined),
-            onPressed: () {},
+            onPressed: () {
+              if (treasuryState.transactions.isNotEmpty) {
+                _generateAndSharePdf(treasuryState.transactions);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('No transactions to export.'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
           ),
           AppbarActionButton(
             icon: Icons.add,
@@ -75,6 +89,79 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   ),
                 ),
       ),
+    );
+  }
+
+  Future<void> _generateAndSharePdf(
+    List<TreasuryTransaction> transactions,
+  ) async {
+    final doc = pw.Document();
+    final currencyFormatter = NumberFormat.currency(
+      symbol: '€',
+      decimalDigits: 2,
+    );
+    final dateFormatter = DateFormat('yyyy-MM-dd');
+    final font = await PdfGoogleFonts.openSansRegular();
+
+    const headers = ['Date', 'Title', 'Amount', 'Type', 'Income/Expense'];
+
+    final data =
+        transactions.map((transaction) {
+          return [
+            dateFormatter.format(transaction.date),
+            transaction.title,
+            currencyFormatter.format(transaction.amount),
+            transaction.type.displayName,
+            transaction.isIncome ? 'Income' : 'Expense',
+          ];
+        }).toList();
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return [
+            pw.Header(
+              level: 0,
+              child: pw.Text(
+                'Estate Treasury Transactions',
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.TableHelper.fromTextArray(
+              headers: headers,
+              data: data,
+              border: pw.TableBorder.all(),
+              headerStyle: pw.TextStyle(
+                font: font,
+                fontWeight: pw.FontWeight.bold,
+              ),
+              cellStyle: pw.TextStyle(font: font),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColors.grey300,
+              ),
+              cellHeight: 30,
+              cellAlignments: {
+                0: pw.Alignment.centerLeft,
+                1: pw.Alignment.centerLeft,
+                2: pw.Alignment.centerRight,
+                3: pw.Alignment.centerLeft,
+                4: pw.Alignment.center,
+              },
+            ),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => doc.save(),
     );
   }
 
