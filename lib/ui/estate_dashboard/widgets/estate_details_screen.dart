@@ -13,7 +13,6 @@ class EstateDetailsScreen extends StatefulWidget {
 }
 
 class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
-  // --- Basic Info State ---
   bool _isBasicInfoEditing = false;
   final _basicInfoFormKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
@@ -22,15 +21,8 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
   late final TextEditingController _cityController;
   late final TextEditingController _countyController;
 
-  // --- Web Links State ---
-  bool _isWebLinksEditing = false;
   late List<Map<String, String>> _currentWebLinks;
   late List<Map<String, String>> _savedWebLinks;
-
-  // MODIFIED: State for the inline "add link" form
-  final _addLinkFormKey = GlobalKey<FormState>();
-  late final TextEditingController _newLinkTitleController;
-  late final TextEditingController _newLinkUrlController;
 
   @override
   void initState() {
@@ -54,34 +46,23 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
   }
 
   void _initializeControllers() {
-    // Basic Info
     final e = widget.estate;
     _nameController = TextEditingController(text: e.name);
     _descriptionController = TextEditingController(text: e.description ?? '');
     _addressController = TextEditingController(text: e.address ?? '');
     _cityController = TextEditingController(text: e.city);
     _countyController = TextEditingController(text: e.county);
-
-    // New Link Form
-    _newLinkTitleController = TextEditingController();
-    _newLinkUrlController = TextEditingController();
   }
 
   @override
   void dispose() {
-    // Basic Info
     _nameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
     _cityController.dispose();
     _countyController.dispose();
-    // New Link Form
-    _newLinkTitleController.dispose();
-    _newLinkUrlController.dispose();
     super.dispose();
   }
-
-  // --- Logic Methods ---
 
   Future<void> _onBasicInfoSave() async {
     if (_basicInfoFormKey.currentState?.validate() ?? false) {
@@ -109,37 +90,124 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
     });
   }
 
-  Future<void> _onWebLinksSave() async {
-    await FirebaseFirestore.instance
-        .collection('estates')
-        .doc(widget.estate.id)
-        .update({'webLinks': _currentWebLinks});
-    setState(() {
-      _isWebLinksEditing = false;
-      _savedWebLinks = List<Map<String, String>>.from(_currentWebLinks);
-    });
-  }
+  Future<void> _showAddLinkBottomSheet() async {
+    final newLink = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: const _AddLinkBottomSheetContent(),
+        );
+      },
+    );
 
-  void _onWebLinksCancel() {
-    setState(() {
-      _isWebLinksEditing = false;
-      _currentWebLinks = List<Map<String, String>>.from(_savedWebLinks);
-    });
-  }
+    if (newLink != null) {
+      final updatedLinks = List<Map<String, String>>.from(_currentWebLinks)
+        ..add(newLink);
 
-  // ADDED: Logic to add a link to the temporary list in the UI
-  void _onAddNewLink() {
-    if (_addLinkFormKey.currentState?.validate() ?? false) {
-      setState(() {
-        _currentWebLinks.add({
-          'title': _newLinkTitleController.text.trim(),
-          'url': _newLinkUrlController.text.trim(),
-          'subtitle': 'Custom',
+      try {
+        await FirebaseFirestore.instance
+            .collection('estates')
+            .doc(widget.estate.id)
+            .update({'webLinks': updatedLinks});
+
+        setState(() {
+          _currentWebLinks = updatedLinks;
+          _savedWebLinks = updatedLinks;
         });
-        _newLinkTitleController.clear();
-        _newLinkUrlController.clear();
-        FocusScope.of(context).unfocus();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Link added successfully.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to add link: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _showDeleteLinkConfirmationDialog(int index) async {
+    final linkToDelete = _currentWebLinks[index];
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Link?'),
+          content: Text(
+            "Are you sure you want to delete '${linkToDelete['title']}'?",
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('CANCEL'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('DELETE'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      _deleteLink(index);
+    }
+  }
+
+  Future<void> _deleteLink(int index) async {
+    final updatedLinks = List<Map<String, String>>.from(_currentWebLinks)
+      ..removeAt(index);
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('estates')
+          .doc(widget.estate.id)
+          .update({'webLinks': updatedLinks});
+
+      setState(() {
+        _currentWebLinks = updatedLinks;
+        _savedWebLinks = updatedLinks;
       });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Link deleted.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete link: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -164,8 +232,6 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
       ).showSnackBar(SnackBar(content: Text('Could not launch $urlString')));
     }
   }
-
-  // --- Build Methods ---
 
   @override
   Widget build(BuildContext context) {
@@ -203,10 +269,7 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
   Widget _buildCardHeader({
     required String title,
     required IconData icon,
-    required bool isEditing,
-    required VoidCallback onEdit,
-    required VoidCallback onSave,
-    required VoidCallback onCancel,
+    Widget? actions,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,28 +281,7 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
             Text(title, style: AppStyles.titleTextMedium(context)),
           ],
         ),
-        isEditing
-            ? Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  color: AppColors.primary,
-                  tooltip: 'Cancel',
-                  onPressed: onCancel,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.save_outlined),
-                  color: AppColors.primary,
-                  tooltip: 'Save',
-                  onPressed: onSave,
-                ),
-              ],
-            )
-            : IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-              tooltip: 'Edit',
-              onPressed: onEdit,
-            ),
+        if (actions != null) actions,
       ],
     );
   }
@@ -258,10 +300,33 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
               _buildCardHeader(
                 title: 'Basic Information',
                 icon: Icons.business_outlined,
-                isEditing: _isBasicInfoEditing,
-                onEdit: () => setState(() => _isBasicInfoEditing = true),
-                onSave: _onBasicInfoSave,
-                onCancel: _onBasicInfoCancel,
+                actions:
+                    _isBasicInfoEditing
+                        ? Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              color: AppColors.primary,
+                              tooltip: 'Cancel',
+                              onPressed: _onBasicInfoCancel,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.save_outlined),
+                              color: AppColors.primary,
+                              tooltip: 'Save',
+                              onPressed: _onBasicInfoSave,
+                            ),
+                          ],
+                        )
+                        : IconButton(
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.primary,
+                          ),
+                          tooltip: 'Edit',
+                          onPressed:
+                              () => setState(() => _isBasicInfoEditing = true),
+                        ),
               ),
               const SizedBox(height: 24),
               _buildEditableInfoRow('NAME', _nameController, isRequired: true),
@@ -297,10 +362,14 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
             _buildCardHeader(
               title: 'Web Links',
               icon: Icons.link_outlined,
-              isEditing: _isWebLinksEditing,
-              onEdit: () => setState(() => _isWebLinksEditing = true),
-              onSave: _onWebLinksSave,
-              onCancel: _onWebLinksCancel,
+              actions: IconButton(
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: AppColors.primary,
+                ),
+                tooltip: 'Add New Link',
+                onPressed: _showAddLinkBottomSheet,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -308,7 +377,7 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
               style: AppStyles.subtitleText(context),
             ),
             const SizedBox(height: 16),
-            if (_currentWebLinks.isEmpty && !_isWebLinksEditing)
+            if (_currentWebLinks.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Center(
@@ -317,94 +386,52 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ),
-              ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _currentWebLinks.length,
-              itemBuilder: (context, index) {
-                final link = _currentWebLinks[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.primary.withAlpha(26),
-                    child: const Icon(Icons.public, color: AppColors.primary),
-                  ),
-                  title: Text(link['title'] ?? 'No Title'),
-                  subtitle: Text(link['url'] ?? 'No URL'),
-                  trailing:
-                      _isWebLinksEditing
-                          ? IconButton(
-                            icon: Icon(
-                              Icons.remove_circle_outline,
-                              color: Colors.red.shade400,
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _currentWebLinks.length,
+                itemBuilder: (context, index) {
+                  final link = _currentWebLinks[index];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primary.withAlpha(26),
+                      child: const Icon(Icons.public, color: AppColors.primary),
+                    ),
+                    title: Text(link['title'] ?? 'No Title'),
+                    subtitle: Text(link['url'] ?? 'No URL'),
+                    onTap: () => _launchUrl(link['url'] ?? ''),
+                    trailing: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _showDeleteLinkConfirmationDialog(index);
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Delete'),
+                                ],
+                              ),
                             ),
-                            tooltip: 'Delete Link',
-                            onPressed:
-                                () => setState(
-                                  () => _currentWebLinks.removeAt(index),
-                                ),
-                          )
-                          : null,
-                  onTap:
-                      _isWebLinksEditing
-                          ? null
-                          : () => _launchUrl(link['url'] ?? ''),
-                );
-              },
-            ),
-            // MODIFIED: Show the inline form instead of a button/popup
-            if (_isWebLinksEditing) ...[
-              const Divider(height: 32),
-              _buildAddLinkForm(),
-            ],
+                          ],
+                    ),
+                  );
+                },
+              ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ADDED: A new widget for the inline form
-  Widget _buildAddLinkForm() {
-    return Form(
-      key: _addLinkFormKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Add a new link', style: AppStyles.titleTextSmall(context)),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _newLinkTitleController,
-            decoration: const InputDecoration(labelText: 'Title'),
-            validator:
-                (value) => value!.isEmpty ? 'Please enter a title' : null,
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _newLinkUrlController,
-            decoration: const InputDecoration(labelText: 'URL'),
-            keyboardType: TextInputType.url,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a URL';
-              }
-              final uri = Uri.tryParse(value);
-              if (uri == null || !uri.isAbsolute) {
-                return 'Please enter a valid URL';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('Add'),
-              onPressed: _onAddNewLink,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -416,10 +443,6 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
     bool isRequired = false,
     int maxLines = 1,
   }) {
-    final errorBorder = UnderlineInputBorder(
-      borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-    );
-
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 20.0),
       child: Column(
@@ -432,8 +455,16 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
                 maxLines: maxLines,
                 decoration: InputDecoration(
                   isDense: true,
-                  errorBorder: errorBorder,
-                  focusedErrorBorder: errorBorder,
+                  errorBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  focusedErrorBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
                 validator: (value) {
                   if (isRequired && (value == null || value.isEmpty)) {
@@ -453,6 +484,125 @@ class _EstateDetailsScreenState extends State<EstateDetailsScreen> {
                 ),
               ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddLinkBottomSheetContent extends StatefulWidget {
+  const _AddLinkBottomSheetContent();
+
+  @override
+  State<_AddLinkBottomSheetContent> createState() =>
+      _AddLinkBottomSheetContentState();
+}
+
+class _AddLinkBottomSheetContentState
+    extends State<_AddLinkBottomSheetContent> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _urlController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final result = {
+        'title': _titleController.text.trim(),
+        'url': _urlController.text.trim(),
+        'subtitle': 'Custom',
+      };
+      Navigator.of(context).pop(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add New Link',
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Provide a title and a valid URL for the new link.',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withAlpha(153),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                hintText: 'e.g., Estate Website',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator:
+                  (value) => value!.isEmpty ? 'Please enter a title' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _urlController,
+              decoration: const InputDecoration(
+                labelText: 'URL',
+                hintText: 'https://www.example.com',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              keyboardType: TextInputType.url,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a URL';
+                }
+                final uri = Uri.tryParse(value);
+                if (uri == null || !uri.isAbsolute) {
+                  return 'Please enter a valid URL';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _submit,
+                child: const Text('ADD LINK'),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
