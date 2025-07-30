@@ -5,6 +5,7 @@ import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -146,9 +147,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                               _buildEditableDisplayNameField(),
                               const SizedBox(height: 16),
 
-                              _buildInfoField(
-                                'Email Address',
-                                user?.email ?? 'N/A',
+                              AppInfoField(
+                                label: 'Email Address',
+                                value: user?.email ?? 'N/A',
                               ),
                             ],
                           ),
@@ -165,18 +166,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             children: [
                               const SizedBox(height: 24),
 
-                              _buildInfoField(
-                                'Estate Name',
-                                estate?.name ?? 'No Estate',
+                              AppInfoField(
+                                label: 'Estate Name',
+                                value: estate?.name ?? 'No Estate',
                               ),
                               const SizedBox(height: 16),
 
-                              _buildInfoField(
-                                'Address',
-                                estate?.address != null &&
-                                        estate!.address!.isNotEmpty
-                                    ? '${estate.address}, ${estate.city}'
-                                    : estate?.city ?? 'N/A',
+                              AppInfoField(
+                                label: 'Address',
+                                value:
+                                    estate?.displayAddress ?? 'Unknown Address',
                               ),
                               const SizedBox(height: 24),
 
@@ -319,33 +318,6 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           child,
         ],
       ),
-    );
-  }
-
-  Widget _buildInfoField(String label, String value) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppStyles.labelText(context)),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

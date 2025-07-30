@@ -23,34 +23,6 @@ class EstateDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
-  bool _isBasicInfoEditing = false;
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _addressController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _cityController;
-  late TextEditingController _countyController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController();
-    _addressController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _cityController = TextEditingController();
-    _countyController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _addressController.dispose();
-    _descriptionController.dispose();
-    _cityController.dispose();
-    _countyController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final dashboardNotifier = ref.watch(
@@ -58,13 +30,13 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
     );
     final estate = dashboardNotifier.estate;
 
-    if (_nameController.text.isEmpty) {
-      _nameController.text = estate.name;
-      _addressController.text = estate.address ?? '';
-      _descriptionController.text = estate.description ?? '';
-      _cityController.text = estate.city;
-      _countyController.text = estate.county;
-    }
+    ref.listen<UIState>(estateDetailsViewModelProvider, (previous, next) {
+      if (next is UIStateFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error), backgroundColor: Colors.red),
+        );
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const AppbarTitle(text: 'Details')),
@@ -98,39 +70,11 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
     );
   }
 
-  void _onBasicInfoCancel() {
-    setState(() {
-      _isBasicInfoEditing = false;
-      final estate = ref.read(estateDashboardViewModelProvider.notifier).estate;
-      _nameController.text = estate.name;
-      _addressController.text = estate.address ?? '';
-      _descriptionController.text = estate.description ?? '';
-      _cityController.text = estate.city;
-      _countyController.text = estate.county;
-    });
-  }
-
-  void _onBasicInfoSave() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final detailsNotifier = ref.read(estateDetailsViewModelProvider.notifier);
-
-      await detailsNotifier.updateBasicInfo(
-        name: _nameController.text,
-        address: _addressController.text,
-        description: _descriptionController.text,
-      );
-
-      setState(() {
-        _isBasicInfoEditing = false;
-      });
-    }
-  }
-
   Widget _buildBasicInfoCard(estate) {
     return Consumer(
       builder: (context, ref, child) {
-        final detailsState = ref.watch(estateDetailsViewModelProvider);
-        final isLoading = detailsState is UIStateLoading;
+        final currentEstate =
+            ref.watch(estateDashboardViewModelProvider.notifier).estate;
 
         return Card(
           shape: RoundedRectangleBorder(
@@ -139,106 +83,51 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
           elevation: AppStyles.cardElevation,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppCardHeader(
-                    title: 'Basic Information',
-                    icon: Icons.business_outlined,
-                    subtitle: 'Manage your estate details',
-                    actions: [
-                      _isBasicInfoEditing
-                          ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                color: AppColors.primary,
-                                tooltip: 'Cancel',
-                                onPressed:
-                                    isLoading ? null : _onBasicInfoCancel,
-                              ),
-                              IconButton(
-                                icon:
-                                    isLoading
-                                        ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                        : const Icon(Icons.save_outlined),
-                                color: AppColors.primary,
-                                tooltip: 'Save',
-                                onPressed: isLoading ? null : _onBasicInfoSave,
-                              ),
-                            ],
-                          )
-                          : IconButton(
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: AppColors.primary,
-                            ),
-                            tooltip: 'Edit',
-                            onPressed:
-                                () =>
-                                    setState(() => _isBasicInfoEditing = true),
-                          ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  AppTextInput(
-                    controller: _nameController,
-                    labelText: 'Estate Name',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Estate name is required';
-                      }
-                      return null;
-                    },
-                    hintText: 'Enter estate name',
-                    enabled: _isBasicInfoEditing,
-                  ),
-                  const SizedBox(height: 16),
-                  AppTextInput(
-                    controller: _addressController,
-                    labelText: 'Address',
-                    hintText: 'Enter address',
-                    enabled: _isBasicInfoEditing,
-                  ),
-                  const SizedBox(height: 16),
-                  AppTextInput(
-                    controller: _descriptionController,
-                    labelText: 'Description',
-                    hintText: 'Enter description',
-                    enabled: _isBasicInfoEditing,
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
-                  AppTextInput(
-                    controller: _cityController,
-                    labelText: 'City',
-                    hintText: 'Enter city',
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 16),
-                  AppTextInput(
-                    controller: _countyController,
-                    labelText: 'County',
-                    hintText: 'Enter county',
-                    enabled: false,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'County is required';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppCardHeader(
+                  title: 'Basic Information',
+                  icon: Icons.business_outlined,
+                  subtitle: 'Manage your estate details',
+                  actions: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.primary,
+                      ),
+                      tooltip: 'Edit',
+                      onPressed:
+                          () => _showEditEstateBottomSheet(currentEstate),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                AppInfoField(
+                  label: 'Estate Name',
+                  value:
+                      currentEstate.name.isEmpty
+                          ? 'Unknown Estate'
+                          : currentEstate.name,
+                ),
+                const SizedBox(height: 16),
+                AppInfoField(
+                  label: 'Address',
+                  value:
+                      currentEstate.displayAddress.isEmpty
+                          ? 'Unknown Address'
+                          : currentEstate.displayAddress,
+                ),
+                const SizedBox(height: 16),
+                AppInfoField(
+                  label: 'Description',
+                  value:
+                      currentEstate.description?.isEmpty ?? true
+                          ? 'Unknown Description'
+                          : currentEstate.description!,
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
         );
@@ -430,6 +319,131 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
     }
   }
 
+  void _showEditEstateBottomSheet(Estate estate) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: estate.name);
+    final addressController = TextEditingController(text: estate.address);
+    final descriptionController = TextEditingController(
+      text: estate.description,
+    );
+
+    showModalBottomSheet<EstateWebLink>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SizedBox(width: 24),
+                            Text(
+                              'Edit Estate Details',
+                              style: AppStyles.titleTextSmall(context),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                        Center(
+                          child: Text(
+                            'Edit the details of your estate.',
+                            style: AppStyles.subtitleText(context),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextInput(
+                          controller: nameController,
+                          labelText: 'Estate Name',
+                          hintText: 'Enter estate name',
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Link title is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextInput(
+                          controller: addressController,
+                          labelText: 'Address',
+                          hintText: 'Enter estate address',
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Address is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextInput(
+                          controller: descriptionController,
+                          labelText: 'Description',
+                          hintText: 'Enter estate description',
+                          maxLines: 3,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Description is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            AppElevatedButton(
+                              onPressed: () async {
+                                if (formKey.currentState?.validate() ?? false) {
+                                  final notifier = ref.read(
+                                    estateDetailsViewModelProvider.notifier,
+                                  );
+
+                                  await notifier.updateBasicInfo(
+                                    name: nameController.text.trim(),
+                                    address: addressController.text.trim(),
+                                    description:
+                                        descriptionController.text.trim(),
+                                  );
+
+                                  if (!context.mounted) return;
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              buttonText: 'Update',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+    );
+  }
+
   void _showAddLinkBottomSheet() {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
@@ -473,7 +487,6 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                         Center(
                           child: Text(
                             'Add a new web link related to your estate.',
@@ -594,6 +607,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),

@@ -78,6 +78,16 @@ class Estate {
     };
   }
 
+  String get displayName {
+    return name.isNotEmpty ? name : 'Unknown Estate';
+  }
+
+  String get displayAddress {
+    return address != null && address!.isNotEmpty
+        ? '$address, $city, Co. $county'
+        : '$city, Co. $county';
+  }
+
   Estate copyWith({
     String? id,
     String? name,

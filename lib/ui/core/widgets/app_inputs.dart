@@ -8,7 +8,6 @@ class AppTextInput extends StatefulWidget {
   final String hintText;
   final int? maxLines;
   final bool required;
-  final bool enabled;
   final String? errorText;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
@@ -20,7 +19,6 @@ class AppTextInput extends StatefulWidget {
     required this.hintText,
     this.maxLines,
     this.required = false,
-    this.enabled = true,
     this.errorText,
     this.validator,
     this.keyboardType,
@@ -61,8 +59,6 @@ class _AppTextInputState extends State<AppTextInput> {
           validator: validator,
           keyboardType: widget.keyboardType,
           style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-          enabled: widget.enabled,
-          readOnly: !widget.enabled,
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: TextStyle(color: theme.hintColor),

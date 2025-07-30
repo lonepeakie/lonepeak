@@ -90,7 +90,7 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${estate.address ?? ''} ${estate.city} Co.${estate.county}',
+                                  estate.displayAddress,
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodyMedium?.copyWith(
