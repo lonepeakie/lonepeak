@@ -8,6 +8,7 @@ class AppTextInput extends StatefulWidget {
   final String hintText;
   final int? maxLines;
   final bool required;
+  final bool enabled;
   final String? errorText;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
@@ -19,6 +20,7 @@ class AppTextInput extends StatefulWidget {
     required this.hintText,
     this.maxLines,
     this.required = false,
+    this.enabled = true,
     this.errorText,
     this.validator,
     this.keyboardType,
@@ -59,17 +61,23 @@ class _AppTextInputState extends State<AppTextInput> {
           validator: validator,
           keyboardType: widget.keyboardType,
           style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+          enabled: widget.enabled,
+          readOnly: !widget.enabled,
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: TextStyle(color: theme.hintColor),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
-                color:
-                    theme.brightness == Brightness.dark
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
-                        : Colors.grey,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 width: 1.2,
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -228,6 +236,7 @@ class AppDropdown<T> extends StatelessWidget {
   final void Function(T?) onChanged;
   final String? Function(T?)? validator;
   final bool required;
+  final bool enabled;
   final String? errorText;
 
   const AppDropdown({
@@ -238,6 +247,7 @@ class AppDropdown<T> extends StatelessWidget {
     required this.onChanged,
     this.validator,
     this.required = false,
+    this.enabled = true,
     this.errorText,
   });
 

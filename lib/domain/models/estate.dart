@@ -10,7 +10,8 @@ class Estate {
   final String county;
   final String? logoUrl;
   final String? iban;
-  Metadata? metadata;
+  final List<Map<String, dynamic>>? webLinks;
+  final Metadata? metadata;
 
   Estate({
     this.id,
@@ -21,6 +22,7 @@ class Estate {
     required this.county,
     this.logoUrl,
     this.iban,
+    this.webLinks,
     this.metadata,
   });
 
@@ -34,6 +36,7 @@ class Estate {
       county: 'Unknown',
       logoUrl: null,
       iban: null,
+      webLinks: [],
       metadata: null,
     );
   }
@@ -52,6 +55,10 @@ class Estate {
       county: data?['county'],
       logoUrl: data?['logoUrl'],
       iban: data?['iban'],
+      webLinks:
+          (data?['webLinks'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList(),
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }
@@ -65,6 +72,7 @@ class Estate {
       "county": county,
       if (logoUrl != null) "logoUrl": logoUrl,
       if (iban != null) "iban": iban,
+      if (webLinks != null) "webLinks": webLinks,
       if (metadata != null) "metadata": metadata!.toJson(),
     };
   }
@@ -78,6 +86,7 @@ class Estate {
     String? county,
     String? logoUrl,
     String? iban,
+    List<Map<String, dynamic>>? webLinks,
     Metadata? metadata,
   }) {
     return Estate(
@@ -89,6 +98,7 @@ class Estate {
       county: county ?? this.county,
       logoUrl: logoUrl ?? this.logoUrl,
       iban: iban ?? this.iban,
+      webLinks: webLinks ?? this.webLinks,
       metadata: metadata ?? this.metadata,
     );
   }
