@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/router/routes.dart';
-import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
-import 'package:lonepeak/ui/core/widgets/member_tile.dart';
+import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateMembersScreen extends ConsumerStatefulWidget {

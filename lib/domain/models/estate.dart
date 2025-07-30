@@ -10,7 +10,8 @@ class Estate {
   final String county;
   final String? logoUrl;
   final String? iban;
-  Metadata? metadata;
+  final List<EstateWebLink>? webLinks;
+  final Metadata? metadata;
 
   Estate({
     this.id,
@@ -21,6 +22,7 @@ class Estate {
     required this.county,
     this.logoUrl,
     this.iban,
+    this.webLinks,
     this.metadata,
   });
 
@@ -34,6 +36,7 @@ class Estate {
       county: 'Unknown',
       logoUrl: null,
       iban: null,
+      webLinks: [],
       metadata: null,
     );
   }
@@ -52,6 +55,10 @@ class Estate {
       county: data?['county'],
       logoUrl: data?['logoUrl'],
       iban: data?['iban'],
+      webLinks:
+          (data?['webLinks'] as List?)
+              ?.map((e) => EstateWebLink.fromJson(e as Map<String, dynamic>))
+              .toList(),
       metadata: Metadata.fromJson(data?['metadata']),
     );
   }
@@ -65,8 +72,20 @@ class Estate {
       "county": county,
       if (logoUrl != null) "logoUrl": logoUrl,
       if (iban != null) "iban": iban,
+      if (webLinks != null)
+        "webLinks": webLinks!.map((e) => e.toJson()).toList(),
       if (metadata != null) "metadata": metadata!.toJson(),
     };
+  }
+
+  String get displayName {
+    return name.isNotEmpty ? name : 'Unknown Estate';
+  }
+
+  String get displayAddress {
+    return address != null && address!.isNotEmpty
+        ? '$address, $city, Co. $county'
+        : '$city, Co. $county';
   }
 
   Estate copyWith({
@@ -78,6 +97,7 @@ class Estate {
     String? county,
     String? logoUrl,
     String? iban,
+    List<EstateWebLink>? webLinks,
     Metadata? metadata,
   }) {
     return Estate(
@@ -89,7 +109,57 @@ class Estate {
       county: county ?? this.county,
       logoUrl: logoUrl ?? this.logoUrl,
       iban: iban ?? this.iban,
+      webLinks: webLinks ?? this.webLinks,
       metadata: metadata ?? this.metadata,
     );
+  }
+}
+
+class EstateWebLink {
+  final String title;
+  final String url;
+  final EstateWebLinkCategory category;
+
+  EstateWebLink({
+    required this.title,
+    required this.url,
+    required this.category,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {'title': title, 'url': url, 'category': category.name};
+  }
+
+  factory EstateWebLink.fromJson(Map<String, dynamic> json) {
+    return EstateWebLink(
+      title: json['title'] as String,
+      url: json['url'] as String,
+      category: (json['category'] as String).toEstateWebLinkCategory()!,
+    );
+  }
+}
+
+enum EstateWebLinkCategory { website, community }
+
+extension EstateWebLinkCategoryExtension on EstateWebLinkCategory {
+  String get name {
+    switch (this) {
+      case EstateWebLinkCategory.website:
+        return 'Website';
+      case EstateWebLinkCategory.community:
+        return 'Community';
+    }
+  }
+}
+
+extension EstateWebLinkCategoryFromString on String {
+  EstateWebLinkCategory? toEstateWebLinkCategory() {
+    switch (this) {
+      case 'Website':
+        return EstateWebLinkCategory.website;
+      case 'Community':
+        return EstateWebLinkCategory.community;
+    }
+    return null;
   }
 }

@@ -5,7 +5,6 @@ import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
-import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmodel.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 
@@ -126,17 +125,54 @@ class _LikeButton extends ConsumerWidget {
       color: hasLiked ? AppColors.primary : Colors.grey,
       onPressed: () {
         if (notice.id != null) {
-          // Try to update using the notices screen viewmodel first
           final noticesVM = ref.read(estateNoticesViewModelProvider.notifier);
           noticesVM.toggleLike(notice.id!);
 
-          // Also update the dashboard if the notice is shown there
-          final dashboardVM = ref.read(
-            estateDashboardViewModelProvider.notifier,
-          );
+          final dashboardVM = ref.read(estateNoticesViewModelProvider.notifier);
           dashboardVM.toggleLike(notice.id!);
         }
       },
+    );
+  }
+}
+
+class AppCardHeader extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final List<Widget> actions;
+
+  const AppCardHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.icon,
+    this.actions = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                Text(title, style: AppStyles.titleTextMedium(context)),
+              ],
+            ),
+            const Spacer(),
+            ...actions,
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (subtitle != null)
+          Text(subtitle!, style: AppStyles.subtitleText(context)),
+      ],
     );
   }
 }

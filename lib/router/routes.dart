@@ -9,6 +9,8 @@ abstract final class Routes {
   static const estateCreateRelative = 'estate-create';
   static const estateJoin = '/$estateJoinRelative';
   static const estateJoinRelative = 'estate-join';
+  static const estateDetails = '/$estateDetailsRelative';
+  static const estateDetailsRelative = 'estate-details';
   static const estateMembers = '/$estateMembersRelative';
   static const estateMembersRelative = 'estate-members';
   static const estateMembersPending = '/$estateMembersPendingRelative';
