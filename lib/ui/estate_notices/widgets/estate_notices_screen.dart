@@ -5,9 +5,9 @@ import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
-import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
-import 'package:lonepeak/ui/core/widgets/notice_card.dart';
+import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 

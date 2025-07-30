@@ -69,7 +69,6 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
   ) async {
     state = UIStateLoading();
 
-    // Find the member in the current list
     final memberIndex = _members.indexWhere(
       (member) => member.email == memberEmail,
     );
@@ -78,7 +77,6 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
       return;
     }
 
-    // Create updated member with new status
     final currentMember = _members[memberIndex];
     final updatedMember = Member(
       email: currentMember.email,

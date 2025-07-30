@@ -278,7 +278,7 @@ class AppDropdown<T> extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 icon: const Icon(Icons.keyboard_arrow_down),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                menuMaxHeight: 300, // Limit max height of dropdown
+                menuMaxHeight: 300,
                 itemHeight: 48,
                 onChanged: (T? newValue) {
                   state.didChange(newValue);
