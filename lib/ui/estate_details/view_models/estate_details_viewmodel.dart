@@ -2,27 +2,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmodel.dart';
 
 final estateDetailsViewModelProvider =
     StateNotifierProvider<EstateDetailsViewmodel, UIState>(
       (ref) => EstateDetailsViewmodel(
         estateRepository: ref.read(estateRepositoryProvider),
-        dashboardViewModel: ref.read(estateDashboardViewModelProvider.notifier),
+        estateNotifier: ref.read(estateProvider.notifier),
       ),
     );
 
 class EstateDetailsViewmodel extends StateNotifier<UIState> {
   EstateDetailsViewmodel({
     required EstateRepository estateRepository,
-    required EstateDashboardViewmodel dashboardViewModel,
+    required EstateNotifier estateNotifier,
   }) : _estateRepository = estateRepository,
-       _dashboardViewModel = dashboardViewModel,
+       _estateNotifier = estateNotifier,
        super(UIStateInitial());
 
   final EstateRepository _estateRepository;
-  final EstateDashboardViewmodel _dashboardViewModel;
+  final EstateNotifier _estateNotifier;
 
   Future<void> updateBasicInfo({
     required String name,
@@ -32,7 +32,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _dashboardViewModel.estate;
+      final currentEstate = _estateNotifier.estate;
 
       final updatedEstate = currentEstate.copyWith(
         name: name.trim(),
@@ -43,7 +43,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _dashboardViewModel.getEstate();
+        await _estateNotifier.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to update estate');
@@ -57,7 +57,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _dashboardViewModel.estate;
+      final currentEstate = _estateNotifier.estate;
       final currentWebLinks = List<EstateWebLink>.from(
         currentEstate.webLinks ?? [],
       );
@@ -68,7 +68,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _dashboardViewModel.getEstate();
+        await _estateNotifier.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to add web link');
@@ -82,7 +82,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _dashboardViewModel.estate;
+      final currentEstate = _estateNotifier.estate;
       final currentWebLinks = List<EstateWebLink>.from(
         currentEstate.webLinks ?? [],
       );
@@ -95,7 +95,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _dashboardViewModel.getEstate();
+        await _estateNotifier.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to delete web link');

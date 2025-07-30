@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
@@ -9,7 +10,6 @@ import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/estate_dashboard/view_models/estate_dashboard_viewmodel.dart';
 import 'package:lonepeak/ui/estate_details/view_models/estate_details_viewmodel.dart';
 import 'package:lonepeak/ui/estate_details/widgets/weblink_category.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,11 +25,6 @@ class EstateDetailsScreen extends ConsumerStatefulWidget {
 class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    final dashboardNotifier = ref.watch(
-      estateDashboardViewModelProvider.notifier,
-    );
-    final estate = dashboardNotifier.estate;
-
     ref.listen<UIState>(estateDetailsViewModelProvider, (previous, next) {
       if (next is UIStateFailure) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -51,7 +46,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _buildBasicInfoCard(estate),
+                      _buildBasicInfoCard(),
                       const SizedBox(height: 16),
                       _buildWebLinksCard(),
                     ],
@@ -70,11 +65,10 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
     );
   }
 
-  Widget _buildBasicInfoCard(estate) {
+  Widget _buildBasicInfoCard() {
     return Consumer(
       builder: (context, ref, child) {
-        final currentEstate =
-            ref.watch(estateDashboardViewModelProvider.notifier).estate;
+        final currentEstate = ref.watch(estateProvider.notifier).estate;
 
         return Card(
           shape: RoundedRectangleBorder(
@@ -136,7 +130,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
   }
 
   Widget _buildWebLinksCard() {
-    final estate = ref.watch(estateDashboardViewModelProvider.notifier).estate;
+    final estate = ref.watch(estateProvider.notifier).estate;
     var webLinks = estate.webLinks ?? [];
 
     return Card(
@@ -327,7 +321,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
       text: estate.description,
     );
 
-    showModalBottomSheet<EstateWebLink>(
+    showModalBottomSheet<Estate>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -387,12 +381,6 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                           controller: addressController,
                           labelText: 'Address',
                           hintText: 'Enter estate address',
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Address is required';
-                            }
-                            return null;
-                          },
                         ),
                         const SizedBox(height: 16),
                         AppTextInput(
@@ -400,12 +388,6 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                           labelText: 'Description',
                           hintText: 'Enter estate description',
                           maxLines: 3,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Description is required';
-                            }
-                            return null;
-                          },
                         ),
                         const SizedBox(height: 32),
                         Row(

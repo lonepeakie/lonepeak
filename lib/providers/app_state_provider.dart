@@ -125,6 +125,11 @@ class AppState {
     return Result.success(null);
   }
 
+  Future<void> clearAppData() async {
+    await clearEstateId();
+    await clearUserRole();
+  }
+
   Future<String?> _loadEstateId() async {
     try {
       final storedEstateId = await _secureStorage.read(key: _estateIdKey);
