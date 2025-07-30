@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:lonepeak/data/repositories/auth/auth_credentials.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
 import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
 import 'package:lonepeak/data/repositories/auth/auth_type.dart';
@@ -32,18 +33,22 @@ class UserSiginFeature {
     required AuthState authState,
   }) : _authRepository = authRepository,
        _usersRepository = usersRepository,
-       _authState = authState,
        _appState = appState;
 
   final AuthRepository _authRepository;
   final UsersRepository _usersRepository;
   final AppState _appState;
-  final AuthState _authState;
 
   final _log = Logger(printer: PrefixedLogPrinter('UserSiginFeature'));
 
-  Future<Result<bool>> logInAndAddUserIfNotExists() async {
-    Result result = await _authRepository.signIn(AuthType.google);
+  Future<Result<bool>> logInAndAddUserIfNotExists(
+    AuthType authType, {
+    AuthCredentials? credentials,
+  }) async {
+    Result result = await _authRepository.signIn(
+      authType,
+      credentials: credentials,
+    );
     if (result.isFailure) {
       _log.e('Log-in failed: ${result.error}');
       return Result.failure(result.error ?? 'Log-in failed');
@@ -52,14 +57,14 @@ class UserSiginFeature {
     result = _authRepository.getCurrentUser();
     if (result.isFailure) {
       _log.e('Failed to get current user: ${result.error}');
-      await _authRepository.signOut(AuthType.google);
+      await _authRepository.signOut();
       return Result.failure(result.error ?? 'Failed to get current user');
     }
 
     final currentUser = result.data;
     if (currentUser == null) {
       _log.e('Current user is null after sign-in');
-      await _authRepository.signOut(AuthType.google);
+      await _authRepository.signOut();
       return Result.failure('Current user is null');
     }
 
@@ -74,7 +79,7 @@ class UserSiginFeature {
       final addUserResult = await _usersRepository.addUser(user);
       if (addUserResult.isFailure) {
         _log.e('Failed to add user: ${addUserResult.error}');
-        await _authRepository.signOut(AuthType.google);
+        await _authRepository.signOut();
         return Result.failure(addUserResult.error ?? 'Failed to add user');
       }
 
@@ -86,13 +91,11 @@ class UserSiginFeature {
       }
     }
 
-    _authState.refreshAuthState();
-
     return Result.success(false);
   }
 
   Future<Result<bool>> logOut() async {
-    final result = await _authRepository.signOut(AuthType.google);
+    final result = await _authRepository.signOut();
     if (result.isFailure) {
       _log.e('Log-out failed: ${result.error}');
       return Result.failure(result.error ?? 'Log-out failed');
@@ -113,8 +116,6 @@ class UserSiginFeature {
         clearRoleResult.error ?? 'Failed to clear user role',
       );
     }
-
-    _authState.refreshAuthState();
 
     return Result.success(true);
   }

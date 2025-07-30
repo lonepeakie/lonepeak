@@ -91,19 +91,6 @@ class EstateSelectScreen extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      context.go(Routes.estateHome);
-                    },
-                    child: const Text(
-                      'Go to Dashboard',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

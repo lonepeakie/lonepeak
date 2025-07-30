@@ -156,14 +156,12 @@ class PendingMemberTile extends StatelessWidget {
                 ],
               ),
             ),
-            // Approve button
             IconButton(
               icon: const Icon(Icons.check_circle_outline),
               color: Colors.green,
               onPressed: onApprove,
               tooltip: 'Approve',
             ),
-            // Reject button
             IconButton(
               icon: const Icon(Icons.cancel_outlined),
               color: Colors.red,

@@ -5,8 +5,10 @@ import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create_screen.dart';
+import 'package:lonepeak/ui/estate_dashboard/widgets/estate_dashboard_screen.dart';
 import 'package:lonepeak/ui/estate_home/widgets/estate_home_screen.dart';
 import 'package:lonepeak/ui/estate_join/widgets/estate_join_screen.dart';
+import 'package:lonepeak/ui/estate_join_pending/widgets/estate_join_pending_screen.dart';
 import 'package:lonepeak/ui/estate_members/widgets/estate_members_screen.dart';
 import 'package:lonepeak/ui/estate_members/widgets/pending_members_screen.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/estate_notices_screen.dart';
@@ -18,17 +20,40 @@ import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
 import 'package:lonepeak/ui/splash/widgets/splash_screen.dart';
 
+final routerNotifierProvider = ChangeNotifierProvider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
+    _ref.listen(isAuthenticatedProvider, (previous, next) {
+      if (previous != next) {
+        notifyListeners();
+      }
+    });
+  }
+
+  final Ref _ref;
+
+  bool get isAuthenticated => _ref.read(isAuthenticatedProvider);
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final routerNotifier = ref.watch(authStateProvider);
+  final routerNotifier = ref.watch(routerNotifierProvider);
+  final appState = ref.read(appStateProvider);
 
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isAuthenticated = routerNotifier.isAuthenticated;
     final isLoginPage = state.matchedLocation == Routes.login;
     final isWelcomePage = state.matchedLocation == Routes.welcome;
-    final appState = ref.read(appStateProvider);
 
     if (isAuthenticated && (isLoginPage || isWelcomePage)) {
-      final estateId = await appState.getEstateId();
+      String? estateId;
+      try {
+        estateId = await appState.getEstateId();
+      } catch (e) {
+        return Routes.login;
+      }
 
       if (estateId != null && estateId.isNotEmpty) {
         return Routes.estateHome;
@@ -58,6 +83,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: Routes.estateHome,
         builder: (context, state) => const EstateHomeScreen(),
         routes: [
+          GoRoute(
+            path: Routes.estateDashboardRelative,
+            builder: (context, state) => const EstateDashboardScreen(),
+          ),
           GoRoute(
             path: Routes.estateDetailsRelative,
             builder: (context, state) => const EstateDetailsScreen(),
@@ -97,6 +126,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.estateJoinRelative,
             builder: (context, state) => const EstateJoinScreen(),
+          ),
+          GoRoute(
+            path: Routes.estateJoinPendingRelative,
+            builder: (context, state) => const EstateJoinPendingScreen(),
           ),
         ],
       ),

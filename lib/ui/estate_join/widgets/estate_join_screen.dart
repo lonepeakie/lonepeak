@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -179,6 +181,7 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                 ref
                     .read(estateJoinViewModelProvider.notifier)
                     .requestToJoinEstate(estateId);
+                context.go('${Routes.estateSelect}${Routes.estateJoinPending}');
               },
               buttonText: 'Request to Join',
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
