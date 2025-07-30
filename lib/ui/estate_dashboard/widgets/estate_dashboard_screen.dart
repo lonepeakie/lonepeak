@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -24,7 +25,6 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
     super.initState();
     Future.microtask(() {
       final notifier = ref.read(estateDashboardViewModelProvider.notifier);
-      notifier.getEstate();
       notifier.getMembersCount();
       notifier.getCommitteeMembers();
       notifier.getLatestNotices();
@@ -35,7 +35,8 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
   Widget build(BuildContext context) {
     final notifier = ref.watch(estateDashboardViewModelProvider.notifier);
     final state = ref.watch(estateDashboardViewModelProvider);
-    final estate = notifier.estate;
+    final estateState = ref.watch(estateProvider);
+    final estate = ref.watch(estateProvider.notifier).estate;
     final membersCount = notifier.membersCount;
 
     return Scaffold(
@@ -45,10 +46,12 @@ class _EstateDashboardScreenState extends ConsumerState<EstateDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (state is UIStateLoading)
+              if (state is UIStateLoading || estateState is UIStateLoading)
                 const Center(child: CircularProgressIndicator())
               else if (state is UIStateFailure)
                 Center(child: Text('Error: ${state.error}'))
+              else if (estateState is UIStateFailure)
+                Center(child: Text('Error: ${estateState.error}'))
               else
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

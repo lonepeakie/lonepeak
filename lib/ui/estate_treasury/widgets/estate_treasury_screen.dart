@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
@@ -31,7 +33,9 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   @override
   Widget build(BuildContext context) {
     final treasuryState = ref.watch(treasuryViewModelProvider);
-    final iban = treasuryState.estate?.iban;
+    final estateState = ref.watch(estateProvider);
+    final estate = ref.watch(estateProvider.notifier).estate;
+    final iban = estate.iban;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,10 +57,12 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
       ),
       body: SafeArea(
         child:
-            treasuryState.isLoading
+            treasuryState.isLoading || estateState is UIStateLoading
                 ? const Center(child: CircularProgressIndicator())
                 : treasuryState.errorMessage != null
                 ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
+                : estateState is UIStateFailure
+                ? Center(child: Text('Error: ${estateState.error}'))
                 : SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
