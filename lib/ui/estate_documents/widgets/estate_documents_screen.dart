@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/document.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_documents/view_models/estate_documents_viewmodel.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/create_folder_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_breadcrumbs.dart';

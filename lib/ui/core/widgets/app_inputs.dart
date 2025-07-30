@@ -65,11 +65,15 @@ class _AppTextInputState extends State<AppTextInput> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
-                color:
-                    theme.brightness == Brightness.dark
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
-                        : Colors.grey,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 width: 1.2,
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -228,6 +232,7 @@ class AppDropdown<T> extends StatelessWidget {
   final void Function(T?) onChanged;
   final String? Function(T?)? validator;
   final bool required;
+  final bool enabled;
   final String? errorText;
 
   const AppDropdown({
@@ -238,6 +243,7 @@ class AppDropdown<T> extends StatelessWidget {
     required this.onChanged,
     this.validator,
     this.required = false,
+    this.enabled = true,
     this.errorText,
   });
 
@@ -278,7 +284,7 @@ class AppDropdown<T> extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 icon: const Icon(Icons.keyboard_arrow_down),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                menuMaxHeight: 300, // Limit max height of dropdown
+                menuMaxHeight: 300,
                 itemHeight: 48,
                 onChanged: (T? newValue) {
                   state.didChange(newValue);

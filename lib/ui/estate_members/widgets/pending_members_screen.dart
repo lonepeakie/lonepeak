@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/member.dart';
-import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 

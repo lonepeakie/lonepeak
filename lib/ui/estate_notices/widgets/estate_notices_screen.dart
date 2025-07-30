@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
+import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
-import 'package:lonepeak/ui/core/widgets/appbar_title.dart';
+import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
-import 'package:lonepeak/ui/core/widgets/notice_card.dart';
+import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
@@ -94,9 +95,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SizedBox(
-                            width: 24,
-                          ), // Placeholder for alignment
+                          const SizedBox(width: 24),
                           Text(
                             'Create New Notice',
                             style: AppStyles.titleTextSmall(context),
@@ -142,22 +141,10 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                               final chipLabel =
                                   type.name[0].toUpperCase() +
                                   type.name.substring(1);
-                              return ChoiceChip(
-                                label: Text(
-                                  chipLabel,
-                                  style: TextStyle(
-                                    color: chipColor,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              return AppChoiceChip(
+                                label: chipLabel,
+                                color: chipColor,
                                 selected: selectedType == type,
-                                backgroundColor: chipColor.withAlpha(50),
-                                selectedColor: chipColor.withAlpha(50),
-                                side: BorderSide.none,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
                                 onSelected: (isSelected) {
                                   if (isSelected) {
                                     setState(() {

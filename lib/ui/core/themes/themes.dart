@@ -95,6 +95,7 @@ abstract final class AppThemes {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.background,
+    primaryColor: AppColors.primary,
     colorScheme: ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: AppColors.primaryForeground,
@@ -165,6 +166,7 @@ abstract final class AppThemes {
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.backgroundDark,
+    primaryColor: AppColors.primary,
     colorScheme: ColorScheme.dark(
       primary: AppColors.primary,
       onPrimary: AppColors.primaryForeground,
