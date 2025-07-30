@@ -67,7 +67,6 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header
             Center(
               child: Container(
                 width: 40,
@@ -80,7 +79,6 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Member info
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
@@ -110,7 +108,6 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
             ),
             const Divider(height: 32),
 
-            // Change role option
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.edit),
@@ -118,7 +115,6 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               onTap: () => _showChangeRoleDialog(context, member),
             ),
 
-            // Remove member option
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.person_remove, color: Colors.red),

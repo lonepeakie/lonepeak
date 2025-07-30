@@ -5,8 +5,10 @@ import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/providers/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/estate_create/widget/estate_create_screen.dart';
+import 'package:lonepeak/ui/estate_dashboard/widgets/estate_dashboard_screen.dart';
 import 'package:lonepeak/ui/estate_home/widgets/estate_home_screen.dart';
 import 'package:lonepeak/ui/estate_join/widgets/estate_join_screen.dart';
+import 'package:lonepeak/ui/estate_join_pending/widgets/estate_join_pending_screen.dart';
 import 'package:lonepeak/ui/estate_members/widgets/estate_members_screen.dart';
 import 'package:lonepeak/ui/estate_members/widgets/pending_members_screen.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/estate_notices_screen.dart';
@@ -82,6 +84,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const EstateHomeScreen(),
         routes: [
           GoRoute(
+            path: Routes.estateDashboardRelative,
+            builder: (context, state) => const EstateDashboardScreen(),
+          ),
+          GoRoute(
             path: Routes.estateDetailsRelative,
             builder: (context, state) => const EstateDetailsScreen(),
           ),
@@ -120,6 +126,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.estateJoinRelative,
             builder: (context, state) => const EstateJoinScreen(),
+          ),
+          GoRoute(
+            path: Routes.estateJoinPendingRelative,
+            builder: (context, state) => const EstateJoinPendingScreen(),
           ),
         ],
       ),

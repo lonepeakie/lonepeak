@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
+import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/estate_dashboard/widgets/estate_dashboard_screen.dart';
 import 'package:lonepeak/ui/estate_home/view_models/estate_home_viewmodel.dart';
 
 class EstateHomeScreen extends ConsumerStatefulWidget {
@@ -62,29 +63,14 @@ class _EstateHomeState extends ConsumerState<EstateHomeScreen> {
     }
 
     if (member.status != MemberStatus.active) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.pending, size: 64, color: Colors.orange),
-              const SizedBox(height: 16),
-              const Text(
-                'Membership Pending',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your membership is pending approval from the estate admin.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
+      print('Member status is not active: ${member.status}');
+
+      context.go('${Routes.estateSelect}${Routes.estateJoinPending}');
+    } else {
+      print('Member status is active: ${member.status}');
+      context.go('${Routes.estateHome}${Routes.estateDashboard}');
     }
 
-    return const Scaffold(body: EstateDashboardScreen());
+    return const SizedBox.shrink();
   }
 }

@@ -48,7 +48,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             Icons.arrow_back,
             color: Theme.of(context).colorScheme.onSurface,
           ),
-          onPressed: () => GoRouter.of(context).go(Routes.estateHome),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(

@@ -70,6 +70,7 @@ class EstateFeatures {
       email: currentUser.email,
       displayName: currentUser.displayName,
       role: RoleType.admin,
+      status: MemberStatus.active,
     );
 
     final memberResult = await _membersRepository.addMember(member);
@@ -82,6 +83,16 @@ class EstateFeatures {
       }
 
       return Result.failure('Failed to add member: ${memberResult.error}');
+    }
+
+    final addEstateToUserResult = await _addEstateToUser(
+      currentUser.email,
+      estateId,
+    );
+    if (addEstateToUserResult.isFailure) {
+      return Result.failure(
+        'Failed to add estate to user: ${addEstateToUserResult.error}',
+      );
     }
 
     _appState.setEstateId(estateId);
@@ -114,16 +125,11 @@ class EstateFeatures {
       return Result.failure('Failed to add member: ${result.error}');
     }
 
-    final userResult = await _usersRepository.getUser(userEmail);
-    if (userResult.isFailure || userResult.data == null) {
-      return Result.failure('Failed to get user: ${userResult.error}');
-    }
-
-    final user = userResult.data!;
-    final updatedUser = user.copyWith(estateId: estateId);
-    final userUpdateResult = await _usersRepository.updateUser(updatedUser);
-    if (userUpdateResult.isFailure) {
-      return Result.failure('Failed to update user: ${userUpdateResult.error}');
+    final addEstateToUserResult = await _addEstateToUser(userEmail, estateId);
+    if (addEstateToUserResult.isFailure) {
+      return Result.failure(
+        'Failed to add estate to user: ${addEstateToUserResult.error}',
+      );
     }
 
     return Result.success(null);
@@ -170,6 +176,25 @@ class EstateFeatures {
       return Result.failure(
         'Failed to clear estate ID: ${clearEstateResult.error}',
       );
+    }
+
+    return Result.success(null);
+  }
+
+  Future<Result<void>> _addEstateToUser(
+    String userEmail,
+    String estateId,
+  ) async {
+    final userResult = await _usersRepository.getUser(userEmail);
+    if (userResult.isFailure || userResult.data == null) {
+      return Result.failure('Failed to get user: ${userResult.error}');
+    }
+    final currentUser = userResult.data!;
+
+    final updatedUser = currentUser.copyWith(estateId: estateId);
+    final updateResult = await _usersRepository.updateUser(updatedUser);
+    if (updateResult.isFailure) {
+      return Result.failure('Failed to update user: ${updateResult.error}');
     }
 
     return Result.success(null);
