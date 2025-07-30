@@ -35,9 +35,7 @@ class AppInfoField extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withAlpha(80),
+            color: Theme.of(context).colorScheme.primary.withAlpha(10),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(value, style: TextStyle(fontSize: 16)),
