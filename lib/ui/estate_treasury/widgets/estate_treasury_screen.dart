@@ -47,15 +47,15 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           IconButton(
             icon: const Icon(Icons.download_outlined),
             onPressed: () {
-              if (treasuryState.transactions.isNotEmpty) {
-                _generateAndSharePdf(treasuryState.transactions);
-              } else {
+              if (ref.read(treasuryViewModelProvider).transactions.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('No transactions to export.'),
                     backgroundColor: Colors.orange,
                   ),
                 );
+              } else {
+                _showDownloadOptionsBottomSheet(context);
               }
             },
           ),
@@ -92,9 +92,13 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  Future<void> _generateAndSharePdf(
-    List<TreasuryTransaction> transactions,
-  ) async {
+  Future<void> _generateAndSharePdf({
+    required List<TreasuryTransaction> transactions,
+    required String estateName,
+    required String estateAddress,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
     final doc = pw.Document();
     final currencyFormatter = NumberFormat.currency(
       symbol: '€',
@@ -122,16 +126,36 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           return [
-            pw.Header(
-              level: 0,
-              child: pw.Text(
-                'Estate Treasury Transactions',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Estate Treasury Report',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
-              ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Estate: $estateName',
+                  style: pw.TextStyle(font: font, fontSize: 14),
+                ),
+                pw.Text(
+                  'Address: $estateAddress',
+                  style: pw.TextStyle(font: font, fontSize: 14),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  'Report Period: ${dateFormatter.format(startDate)} to ${dateFormatter.format(endDate)}',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 12,
+                    fontStyle: pw.FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
@@ -162,6 +186,53 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
 
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
+    );
+  }
+
+  void _downloadReportForPeriod(Duration? period) {
+    Navigator.of(context).pop();
+
+    final treasuryState = ref.read(treasuryViewModelProvider);
+    final allTransactions = treasuryState.transactions;
+
+    final DateTime endDate = DateTime.now();
+    final DateTime startDate;
+    List<TreasuryTransaction> filteredTransactions;
+
+    if (period == null) {
+      startDate = allTransactions
+          .map((t) => t.date)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      filteredTransactions = allTransactions;
+    } else {
+      startDate = endDate.subtract(period);
+      filteredTransactions =
+          allTransactions
+              .where(
+                (t) => t.date.isAfter(startDate) && t.date.isBefore(endDate),
+              )
+              .toList();
+    }
+
+    if (filteredTransactions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No transactions found for the selected period.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final estateName = treasuryState.estate?.name ?? 'Not Provided';
+    final estateAddress = treasuryState.estate?.address ?? 'Not Provided';
+
+    _generateAndSharePdf(
+      transactions: filteredTransactions,
+      estateName: estateName,
+      estateAddress: estateAddress,
+      startDate: startDate,
+      endDate: endDate,
     );
   }
 
@@ -523,6 +594,58 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => FilterTransactionsBottomSheet(),
+    );
+  }
+
+  void _showDownloadOptionsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Select Report Period',
+                    style: AppStyles.titleTextSmall(context),
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.calendar_view_month_outlined),
+                  title: const Text('Last 3 Months'),
+                  onTap:
+                      () => _downloadReportForPeriod(const Duration(days: 90)),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.calendar_view_month_outlined),
+                  title: const Text('Last 6 Months'),
+                  onTap:
+                      () => _downloadReportForPeriod(const Duration(days: 180)),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.calendar_today_outlined),
+                  title: const Text('Last 1 Year'),
+                  onTap:
+                      () => _downloadReportForPeriod(const Duration(days: 365)),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.all_inclusive_outlined),
+                  title: const Text('All Time'),
+                  onTap: () => _downloadReportForPeriod(null),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
