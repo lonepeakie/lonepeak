@@ -63,11 +63,8 @@ class _EstateHomeState extends ConsumerState<EstateHomeScreen> {
     }
 
     if (member.status != MemberStatus.active) {
-      print('Member status is not active: ${member.status}');
-
       context.go('${Routes.estateSelect}${Routes.estateJoinPending}');
     } else {
-      print('Member status is active: ${member.status}');
       context.go('${Routes.estateHome}${Routes.estateDashboard}');
     }
 
