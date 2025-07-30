@@ -14,6 +14,7 @@ import 'package:lonepeak/ui/estate_details/widgets/estate_details_screen.dart';
 import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/estate_treasury_screen.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/estate_documents_screen.dart';
+import 'package:lonepeak/ui/estate_listings/widgets/estate_listings_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
 import 'package:lonepeak/ui/splash/widgets/splash_screen.dart';
@@ -83,6 +84,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.estateDocumentsRelative,
             builder: (context, state) => const EstateDocumentsScreen(),
+          ),
+          GoRoute(
+            path: Routes.estateListingsRelative,
+            builder: (context, state) {
+              return const EstateListingsScreen();
+            },
           ),
         ],
       ),
