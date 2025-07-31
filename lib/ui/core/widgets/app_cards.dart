@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 
@@ -65,13 +64,6 @@ class NoticeWidget extends ConsumerWidget {
             Icon(categoryIcon, color: categoryColor, size: 22),
             const SizedBox(width: 8),
             Text(notice.title, style: AppStyles.titleTextSmall(context)),
-            const Spacer(),
-            AppChip(
-              label:
-                  notice.type.name[0].toUpperCase() +
-                  notice.type.name.substring(1),
-              color: categoryColor,
-            ),
           ],
         ),
         const SizedBox(height: 8),

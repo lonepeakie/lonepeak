@@ -1,40 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 
-enum TransactionType { maintenance, insurance, utilities, rental, fees, other }
+enum TransactionType {
+  maintenance('Maintenance'),
+  insurance('Insurance'),
+  utilities('Utilities'),
+  rental('Rental'),
+  fees('Annual Fees'),
+  other('Other');
 
-extension TransactionTypeExtension on TransactionType {
-  String get displayName {
-    switch (this) {
-      case TransactionType.maintenance:
-        return 'Maintenance';
-      case TransactionType.insurance:
-        return 'Insurance';
-      case TransactionType.utilities:
-        return 'Utilities';
-      case TransactionType.rental:
-        return 'Rental';
-      case TransactionType.fees:
-        return 'Annual Fees';
-      case TransactionType.other:
-        return 'Other';
-    }
-  }
+  final String displayName;
 
-  String get iconData {
-    switch (this) {
-      case TransactionType.maintenance:
-        return 'construction';
-      case TransactionType.insurance:
-        return 'shield';
-      case TransactionType.utilities:
-        return 'power';
-      case TransactionType.rental:
-        return 'home';
-      case TransactionType.fees:
-        return 'payments';
-      case TransactionType.other:
-        return 'more_horiz';
+  const TransactionType(this.displayName);
+
+  static TransactionType fromString(String type) {
+    switch (type.toLowerCase()) {
+      case 'maintenance':
+        return TransactionType.maintenance;
+      case 'insurance':
+        return TransactionType.insurance;
+      case 'utilities':
+        return TransactionType.utilities;
+      case 'rental':
+        return TransactionType.rental;
+      case 'fees':
+        return TransactionType.fees;
+      default:
+        return TransactionType.other;
     }
   }
 }

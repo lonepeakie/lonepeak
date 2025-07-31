@@ -65,12 +65,12 @@ class Notice {
 }
 
 enum NoticeType {
-  general('general'),
-  urgent('urgent'),
-  event('event');
+  general('General'),
+  urgent('Urgent'),
+  event('Event');
 
   static NoticeType fromString(String type) {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'urgent':
         return NoticeType.urgent;
       case 'event':

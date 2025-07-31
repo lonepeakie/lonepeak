@@ -118,7 +118,7 @@ class Estate {
 class EstateWebLink {
   final String title;
   final String url;
-  final EstateWebLinkCategory category;
+  final WebLinkType category;
 
   EstateWebLink({
     required this.title,
@@ -134,32 +134,26 @@ class EstateWebLink {
     return EstateWebLink(
       title: json['title'] as String,
       url: json['url'] as String,
-      category: (json['category'] as String).toEstateWebLinkCategory()!,
+      category: WebLinkType.fromString(json['category'] as String),
     );
   }
 }
 
-enum EstateWebLinkCategory { website, community }
+enum WebLinkType {
+  website('Website'),
+  community('Community');
 
-extension EstateWebLinkCategoryExtension on EstateWebLinkCategory {
-  String get name {
-    switch (this) {
-      case EstateWebLinkCategory.website:
-        return 'Website';
-      case EstateWebLinkCategory.community:
-        return 'Community';
-    }
-  }
-}
+  final String name;
 
-extension EstateWebLinkCategoryFromString on String {
-  EstateWebLinkCategory? toEstateWebLinkCategory() {
-    switch (this) {
-      case 'Website':
-        return EstateWebLinkCategory.website;
-      case 'Community':
-        return EstateWebLinkCategory.community;
+  const WebLinkType(this.name);
+
+  static WebLinkType fromString(String type) {
+    switch (type.toLowerCase()) {
+      case 'community':
+        return WebLinkType.community;
+      case 'website':
+      default:
+        return WebLinkType.website;
     }
-    return null;
   }
 }

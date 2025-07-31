@@ -2,22 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 import 'package:lonepeak/domain/models/role.dart';
 
-enum MemberStatus { active, inactive, pending }
+enum MemberStatus {
+  active('Active'),
+  inactive('Inactive'),
+  pending('Pending');
 
-extension MemberStatusExtension on MemberStatus {
-  String get name {
-    switch (this) {
-      case MemberStatus.active:
-        return 'active';
-      case MemberStatus.inactive:
-        return 'inactive';
-      case MemberStatus.pending:
-        return 'pending';
-    }
-  }
+  final String name;
 
-  static MemberStatus fromName(String name) {
-    switch (name.toLowerCase()) {
+  const MemberStatus(this.name);
+
+  static MemberStatus fromString(String status) {
+    switch (status.toLowerCase()) {
       case 'active':
         return MemberStatus.active;
       case 'inactive':
@@ -25,7 +20,7 @@ extension MemberStatusExtension on MemberStatus {
       case 'pending':
         return MemberStatus.pending;
       default:
-        throw ArgumentError('Invalid member status: $name');
+        throw ArgumentError('Invalid member status: $status');
     }
   }
 }
@@ -53,10 +48,10 @@ class Member {
     return Member(
       email: snapshot.id,
       displayName: data?['displayName'],
-      role: RoleTypeExtension.fromString(data?['role']),
+      role: RoleType.fromString(data?['role'] as String),
       status:
           data?['status'] != null
-              ? MemberStatusExtension.fromName(data!['status'])
+              ? MemberStatus.fromString(data!['status'])
               : MemberStatus.pending,
       metadata: Metadata.fromJson(data?['metadata']),
     );

@@ -11,7 +11,7 @@ import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/estate_details/view_models/estate_details_viewmodel.dart';
-import 'package:lonepeak/ui/estate_details/widgets/weblink_category.dart';
+import 'package:lonepeak/ui/estate_details/widgets/weblink_type.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EstateDetailsScreen extends ConsumerStatefulWidget {
@@ -212,7 +212,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  WeblinkCategoryUI.getCategoryIcon(link.category),
+                  WeblinkTypeUI.getCategoryIcon(link.category),
                   color: AppColors.primary,
                   size: 24,
                 ),
@@ -430,7 +430,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final urlController = TextEditingController();
-    EstateWebLinkCategory selectedCategory = EstateWebLinkCategory.website;
+    WebLinkType selectedCategory = WebLinkType.website;
 
     showModalBottomSheet<EstateWebLink>(
       context: context,
@@ -541,11 +541,9 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                         Wrap(
                           spacing: 8.0,
                           children:
-                              EstateWebLinkCategory.values.map((category) {
+                              WebLinkType.values.map((category) {
                                 final chipColor =
-                                    WeblinkCategoryUI.getCategoryColor(
-                                      category,
-                                    );
+                                    WeblinkTypeUI.getCategoryColor(category);
                                 return AppChoiceChip(
                                   label: category.name,
                                   color: chipColor,

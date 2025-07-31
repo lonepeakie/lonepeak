@@ -147,9 +147,7 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
   Future<bool> hasAdminPrivileges() async {
     final role = await _appState.getUserRole();
     if (role != null) {
-      return RoleTypeExtension.hasAdminPrivileges(
-        RoleTypeExtension.fromString(role),
-      );
+      return RoleType.hasAdminPrivileges(RoleType.fromString(role));
     }
 
     final userEmail = _appState.getUserId();
@@ -167,6 +165,6 @@ class EstateMembersViewmodel extends StateNotifier<UIState> {
 
     _appState.setUserRole(memberRole.name);
 
-    return RoleTypeExtension.hasAdminPrivileges(memberRole);
+    return RoleType.hasAdminPrivileges(memberRole);
   }
 }

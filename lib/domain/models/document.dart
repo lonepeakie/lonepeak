@@ -1,25 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lonepeak/domain/models/metadata.dart';
 
-enum DocumentType { pdf, image, word, excel, folder, other }
+enum DocumentType {
+  pdf('PDF'),
+  image('Image'),
+  word('Word'),
+  excel('Excel'),
+  folder('Folder'),
+  other('Other');
 
-extension DocumentTypeExtension on DocumentType {
-  String get name {
-    switch (this) {
-      case DocumentType.pdf:
-        return 'PDF';
-      case DocumentType.image:
-        return 'Image';
-      case DocumentType.word:
-        return 'Word';
-      case DocumentType.excel:
-        return 'Excel';
-      case DocumentType.folder:
-        return 'Folder';
-      case DocumentType.other:
-        return 'Other';
-    }
-  }
+  final String name;
+
+  const DocumentType(this.name);
 
   static DocumentType fromString(String type) {
     switch (type.toLowerCase()) {
@@ -89,7 +81,7 @@ class Document {
       id: snapshot.id,
       name: data?['name'] ?? '',
       description: data?['description'],
-      type: DocumentTypeExtension.fromString(data?['type'] ?? 'other'),
+      type: DocumentType.fromString(data?['type'] ?? 'other'),
       fileUrl: data?['fileUrl'],
       parentId: data?['parentId'],
       thumbnailUrl: data?['thumbnailUrl'],

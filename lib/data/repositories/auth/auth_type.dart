@@ -1,20 +1,19 @@
 enum AuthType {
-  google,
-  email;
+  google('Google'),
+  email('Email');
 
-  @override
-  String toString() {
-    return name;
-  }
+  final String name;
 
-  static AuthType fromString(String value) {
-    switch (value) {
+  const AuthType(this.name);
+
+  static AuthType fromString(String type) {
+    switch (type.toLowerCase()) {
       case 'google':
         return AuthType.google;
       case 'email':
         return AuthType.email;
       default:
-        throw ArgumentError('Invalid auth type: $value');
+        throw ArgumentError('Unknown AuthType: $type');
     }
   }
 }

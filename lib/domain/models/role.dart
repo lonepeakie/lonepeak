@@ -47,34 +47,17 @@ class Permission {
 }
 
 enum RoleType {
-  admin,
-  president,
-  vicepresident,
-  secretary,
-  treasurer,
-  member,
-  resident,
-}
+  admin('Admin'),
+  president('President'),
+  vicepresident('Vice President'),
+  secretary('Secretary'),
+  treasurer('Treasurer'),
+  member('Member'),
+  resident('Resident');
 
-extension RoleTypeExtension on RoleType {
-  String get name {
-    switch (this) {
-      case RoleType.admin:
-        return 'Admin';
-      case RoleType.president:
-        return 'President';
-      case RoleType.vicepresident:
-        return 'Vice President';
-      case RoleType.secretary:
-        return 'Secretary';
-      case RoleType.treasurer:
-        return 'Treasurer';
-      case RoleType.member:
-        return 'Member';
-      case RoleType.resident:
-        return 'Resident';
-    }
-  }
+  final String name;
+
+  const RoleType(this.name);
 
   static RoleType fromString(String role) {
     switch (role.toLowerCase()) {
@@ -97,16 +80,10 @@ extension RoleTypeExtension on RoleType {
     }
   }
 
-  static bool hasAdminPrivileges(RoleType? role) {
-    if (role == null) return false;
-
-    final adminRoles = [
-      RoleType.admin,
-      RoleType.president,
-      RoleType.vicepresident,
-    ];
-
-    return adminRoles.contains(role);
+  static bool hasAdminPrivileges(RoleType role) {
+    return role == RoleType.admin ||
+        role == RoleType.president ||
+        role == RoleType.vicepresident;
   }
 }
 
