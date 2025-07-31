@@ -204,6 +204,30 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       builder: (context, ref, child) {
         final currentEstate = ref.watch(estateProvider.notifier).estate;
 
+        // Check if estate is empty or unknown
+        if (currentEstate.id == null || currentEstate.id!.isEmpty) {
+          return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            elevation: AppStyles.cardElevation,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppCardHeader(
+                    title: 'Estate Information',
+                    icon: Icons.business_outlined,
+                    subtitle: 'Details about your current estate',
+                  ),
+                  _buildEmptyEstateState(),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -269,6 +293,23 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEmptyEstateState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      width: double.infinity,
+      child: Column(
+        children: [
+          Icon(Icons.home, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No estate joined yet',
+            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 

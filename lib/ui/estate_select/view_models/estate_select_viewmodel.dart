@@ -1,36 +1,52 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/data/repositories/auth/auth_repository.dart';
-import 'package:lonepeak/data/repositories/auth/auth_repository_firebase.dart';
-import 'package:lonepeak/domain/features/user_sigin_feature.dart';
+import 'package:lonepeak/data/repositories/users/users_repository.dart';
+import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
+import 'package:lonepeak/domain/models/user.dart';
+import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 
-final estateSelectViewModelProvider = Provider<EstateSelectViewmodel>((ref) {
-  return EstateSelectViewmodel(
-    authRepository: ref.read(authRepositoryProvider),
-    userSiginFeature: ref.read(userSiginFeatureProvider),
-  );
-});
+final estateSelectViewModelProvider =
+    StateNotifierProvider<EstateSelectViewmodel, UIState>((ref) {
+      return EstateSelectViewmodel(
+        usersRepository: ref.read(usersRepositoryProvider),
+        appState: ref.read(appStateProvider),
+      );
+    });
 
-class EstateSelectViewmodel {
+class EstateSelectViewmodel extends StateNotifier<UIState> {
   EstateSelectViewmodel({
-    required AuthRepository authRepository,
-    required UserSiginFeature userSiginFeature,
-  }) : _authRepository = authRepository,
-       _userSiginFeature = userSiginFeature;
+    required UsersRepository usersRepository,
+    required AppState appState,
+  }) : _usersRepository = usersRepository,
+       _appState = appState,
+       super(UIStateInitial());
 
-  final AuthRepository _authRepository;
-  final UserSiginFeature _userSiginFeature;
+  final UsersRepository _usersRepository;
+  final AppState _appState;
 
-  Future<void> logout() async {
-    await _userSiginFeature.logOut();
-  }
+  User get user => _user;
+  User _user = User.empty();
 
-  Future<String> getDisplayName() async {
-    final result = _authRepository.getCurrentUser();
-    if (result.isFailure) {
-      return '';
+  Future<void> loadUser() async {
+    state = UIStateLoading();
+
+    final userId = _appState.getUserId();
+    if (userId == null) {
+      state = UIStateFailure('User ID is null');
+      return;
     }
 
-    final user = result.data;
-    return user?.displayName ?? '';
+    final result = await _usersRepository.getUser(userId);
+    if (result.isFailure) {
+      state = UIStateFailure(result.error ?? 'Unknown error');
+      return;
+    }
+
+    if (result.data == null) {
+      state = UIStateFailure('User not found');
+      return;
+    }
+    _user = result.data ?? User.empty();
+    state = UIStateSuccess();
   }
 }

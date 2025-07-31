@@ -36,7 +36,7 @@ class AuthService {
     try {
       final User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        _log.i('Current user: ${currentUser.displayName}');
+        _log.i('Current user: ${currentUser.email}');
       } else {
         _log.w('No user is currently signed in.');
       }

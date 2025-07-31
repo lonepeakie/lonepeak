@@ -5,6 +5,7 @@ import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
@@ -102,9 +103,9 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                     : 'Unknown User',
               ),
               subtitle: Text(member.email),
-              trailing: Chip(
-                label: Text(member.role.name),
-                backgroundColor: AppColors.getRoleColor(member.role.name),
+              trailing: AppChip(
+                label: member.role.name,
+                color: AppColors.getRoleColor(member.role.name),
               ),
             ),
             const Divider(height: 32),

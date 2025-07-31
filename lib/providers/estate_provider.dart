@@ -4,13 +4,13 @@ import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dar
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
-final estateProvider = StateNotifierProvider<EstateNotifier, UIState>((ref) {
+final estateProvider = StateNotifierProvider<EstateProvider, UIState>((ref) {
   final estateRepository = ref.watch(estateRepositoryProvider);
-  return EstateNotifier(estateRepository);
+  return EstateProvider(estateRepository);
 });
 
-class EstateNotifier extends StateNotifier<UIState> {
-  EstateNotifier(this._estateRepository) : super(UIStateLoading()) {
+class EstateProvider extends StateNotifier<UIState> {
+  EstateProvider(this._estateRepository) : super(UIStateLoading()) {
     loadEstate();
   }
 
@@ -30,6 +30,11 @@ class EstateNotifier extends StateNotifier<UIState> {
     } else {
       state = UIStateFailure(result.error ?? 'Unknown error');
     }
+  }
+
+  Future<void> clearEstate() async {
+    _estate = Estate.empty();
+    state = UIStateInitial();
   }
 
   Future<void> refreshEstate() async {

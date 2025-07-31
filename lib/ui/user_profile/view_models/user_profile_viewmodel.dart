@@ -5,6 +5,7 @@ import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 final userProfileViewModelProvider =
@@ -14,6 +15,7 @@ final userProfileViewModelProvider =
         usersRepository: ref.read(usersRepositoryProvider),
         estateFeatures: ref.read(estateFeaturesProvider),
         appState: ref.read(appStateProvider),
+        estateProvider: ref.read(estateProvider.notifier),
       );
     });
 
@@ -22,6 +24,7 @@ class UserProfileViewModel extends StateNotifier<UIState> {
   final UsersRepository usersRepository;
   final EstateFeatures estateFeatures;
   final AppState appState;
+  final EstateProvider estateProvider;
 
   User? _user;
 
@@ -32,6 +35,7 @@ class UserProfileViewModel extends StateNotifier<UIState> {
     required this.usersRepository,
     required this.estateFeatures,
     required this.appState,
+    required this.estateProvider,
   }) : super(UIStateInitial()) {
     getUserProfile();
   }
@@ -64,6 +68,7 @@ class UserProfileViewModel extends StateNotifier<UIState> {
 
     try {
       await appState.clearAppData();
+      estateProvider.clearEstate();
 
       final result = await userSiginFeature.logOut();
       if (result.isSuccess) {

@@ -82,4 +82,15 @@ class User {
       metadata: metadata ?? this.metadata,
     );
   }
+
+  factory User.empty() {
+    return User(
+      displayName: '',
+      email: '',
+      mobile: null,
+      photoUrl: null,
+      estateId: null,
+      metadata: null,
+    );
+  }
 }

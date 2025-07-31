@@ -9,20 +9,20 @@ final estateDetailsViewModelProvider =
     StateNotifierProvider<EstateDetailsViewmodel, UIState>(
       (ref) => EstateDetailsViewmodel(
         estateRepository: ref.read(estateRepositoryProvider),
-        estateNotifier: ref.read(estateProvider.notifier),
+        estateProvider: ref.read(estateProvider.notifier),
       ),
     );
 
 class EstateDetailsViewmodel extends StateNotifier<UIState> {
   EstateDetailsViewmodel({
     required EstateRepository estateRepository,
-    required EstateNotifier estateNotifier,
+    required EstateProvider estateProvider,
   }) : _estateRepository = estateRepository,
-       _estateNotifier = estateNotifier,
+       _estateProvider = estateProvider,
        super(UIStateInitial());
 
   final EstateRepository _estateRepository;
-  final EstateNotifier _estateNotifier;
+  final EstateProvider _estateProvider;
 
   Future<void> updateBasicInfo({
     required String name,
@@ -32,7 +32,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _estateNotifier.estate;
+      final currentEstate = _estateProvider.estate;
 
       final updatedEstate = currentEstate.copyWith(
         name: name.trim(),
@@ -43,7 +43,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _estateNotifier.refreshEstate();
+        await _estateProvider.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to update estate');
@@ -57,7 +57,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _estateNotifier.estate;
+      final currentEstate = _estateProvider.estate;
       final currentWebLinks = List<EstateWebLink>.from(
         currentEstate.webLinks ?? [],
       );
@@ -68,7 +68,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _estateNotifier.refreshEstate();
+        await _estateProvider.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to add web link');
@@ -82,7 +82,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
     state = UIStateLoading();
 
     try {
-      final currentEstate = _estateNotifier.estate;
+      final currentEstate = _estateProvider.estate;
       final currentWebLinks = List<EstateWebLink>.from(
         currentEstate.webLinks ?? [],
       );
@@ -95,7 +95,7 @@ class EstateDetailsViewmodel extends StateNotifier<UIState> {
       final result = await _estateRepository.updateEstate(updatedEstate);
 
       if (result.isSuccess) {
-        await _estateNotifier.refreshEstate();
+        await _estateProvider.refreshEstate();
         state = UIStateSuccess();
       } else {
         state = UIStateFailure(result.error ?? 'Failed to delete web link');

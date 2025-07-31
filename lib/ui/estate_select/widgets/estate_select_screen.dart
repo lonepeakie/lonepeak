@@ -3,27 +3,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
+import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
 
-class EstateSelectScreen extends ConsumerWidget {
+class EstateSelectScreen extends ConsumerStatefulWidget {
   const EstateSelectScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EstateSelectScreen> createState() => _EstateSelectScreenState();
+}
+
+class _EstateSelectScreenState extends ConsumerState<EstateSelectScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(estateSelectViewModelProvider.notifier).loadUser();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(estateSelectViewModelProvider).logout();
-              if (context.mounted) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go(Routes.login);
-                });
-              }
+            icon: Icon(
+              Icons.person_outline,
+              size: 24,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+            onPressed: () {
+              GoRouter.of(context).push(Routes.userProfile);
             },
           ),
         ],
@@ -33,23 +48,30 @@ class EstateSelectScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            FutureBuilder<String>(
-              future: ref.watch(estateSelectViewModelProvider).getDisplayName(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return const Text(
+            Consumer(
+              builder: (context, ref, child) {
+                final state = ref.watch(estateSelectViewModelProvider);
+                final viewModel = ref.watch(
+                  estateSelectViewModelProvider.notifier,
+                );
+
+                return switch (state) {
+                  UIStateLoading() => const CircularProgressIndicator(),
+                  UIStateFailure() => const Text(
                     'Error loading display name',
                     style: TextStyle(fontSize: 16, color: Colors.red),
-                  );
-                } else {
-                  return Text(
-                    'Welcome, ${snapshot.data}!',
+                  ),
+                  UIStateSuccess() => Text(
+                    'Welcome, ${viewModel.user.displayName.isNotEmpty ? viewModel.user.displayName : 'User'}!',
                     style: AppStyles.titleTextLarge(context),
                     textAlign: TextAlign.center,
-                  );
-                }
+                  ),
+                  _ => Text(
+                    'Welcome!',
+                    style: AppStyles.titleTextLarge(context),
+                    textAlign: TextAlign.center,
+                  ),
+                };
               },
             ),
             const SizedBox(height: 10),
