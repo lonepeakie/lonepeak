@@ -89,6 +89,40 @@ abstract final class AppColors {
     green: 0,
     blue: 0,
   );
+
+  static Color getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return Colors.blue;
+      case 'president':
+        return Colors.teal;
+      case 'vicepresident':
+        return Colors.orange;
+      case 'treasurer':
+        return Colors.green;
+      case 'member':
+        return Colors.cyan;
+      case 'secretary':
+        return Colors.purple;
+      case 'resident':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  static Color getNoticeTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'urgent':
+        return AppColors.red.withValues(alpha: 0.65);
+      case 'general':
+        return Colors.blue.withValues(alpha: 0.8);
+      case 'event':
+        return Colors.green.withValues(alpha: 0.7);
+      default:
+        return Colors.grey.withValues(alpha: 0.5);
+    }
+  }
 }
 
 abstract final class AppThemes {

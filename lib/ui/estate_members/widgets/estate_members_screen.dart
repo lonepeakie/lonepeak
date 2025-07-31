@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/router/routes.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
@@ -103,7 +104,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               subtitle: Text(member.email),
               trailing: Chip(
                 label: Text(member.role.name),
-                backgroundColor: _getRoleColor(member.role.name),
+                backgroundColor: AppColors.getRoleColor(member.role.name),
               ),
             ),
             const Divider(height: 32),
@@ -223,27 +224,6 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           backgroundColor: Colors.red,
         ),
       );
-    }
-  }
-
-  Color _getRoleColor(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return Colors.blue;
-      case 'president':
-        return Colors.teal;
-      case 'vice president':
-        return Colors.orange;
-      case 'treasurer':
-        return Colors.green;
-      case 'member':
-        return Colors.cyan;
-      case 'secretary':
-        return Colors.purple;
-      case 'resident':
-        return Colors.grey;
-      default:
-        return Colors.grey;
     }
   }
 

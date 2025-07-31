@@ -5,7 +5,6 @@ import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
-import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 
 class NoticeCard extends ConsumerWidget {
   const NoticeCard({
@@ -44,8 +43,8 @@ class NoticeWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final IconData categoryIcon = NoticeTypeUI.getCategoryIcon(notice.type);
-    final Color categoryColor = NoticeTypeUI.getCategoryColor(notice.type);
+    final IconData categoryIcon = AppIcons.getNoticeTypeIcon(notice.type.name);
+    final Color categoryColor = AppColors.getNoticeTypeColor(notice.type.name);
     final String formattedDate =
         notice.metadata?.createdAt != null
             ? DateFormat(

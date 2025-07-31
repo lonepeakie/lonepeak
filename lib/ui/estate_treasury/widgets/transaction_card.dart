@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 
@@ -19,7 +20,9 @@ class TransactionCard extends ConsumerWidget {
         transaction.isIncome
             ? '+${formatter.format(transaction.amount)}'
             : '-${formatter.format(transaction.amount)}';
-    final categoryColor = _getCategoryColor(transaction.type);
+    final categoryColor = AppColors.getTransactionTypeColor(
+      transaction.type.name,
+    );
     final theme = Theme.of(context);
 
     return Card(
@@ -169,22 +172,5 @@ class TransactionCard extends ConsumerWidget {
         );
       },
     );
-  }
-}
-
-Color _getCategoryColor(TransactionType type) {
-  switch (type) {
-    case TransactionType.maintenance:
-      return Colors.blue;
-    case TransactionType.insurance:
-      return Colors.purple;
-    case TransactionType.utilities:
-      return Colors.yellow.shade800;
-    case TransactionType.rental:
-      return Colors.green;
-    case TransactionType.fees:
-      return Colors.teal;
-    case TransactionType.other:
-      return Colors.deepPurpleAccent;
   }
 }

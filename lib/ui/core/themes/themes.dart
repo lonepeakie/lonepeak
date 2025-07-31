@@ -143,6 +143,111 @@ abstract final class AppColors {
     green: 0,
     blue: 0,
   );
+
+  static Color getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return Colors.blue;
+      case 'president':
+        return Colors.teal;
+      case 'vicepresident':
+        return Colors.orange;
+      case 'treasurer':
+        return Colors.green;
+      case 'member':
+        return Colors.cyan;
+      case 'secretary':
+        return Colors.purple;
+      case 'resident':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  static Color getNoticeTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'urgent':
+        return AppColors.red.withValues(alpha: 0.65);
+      case 'general':
+        return Colors.blue.withValues(alpha: 0.8);
+      case 'event':
+        return Colors.green.withValues(alpha: 0.7);
+      default:
+        return Colors.grey.withValues(alpha: 0.5);
+    }
+  }
+
+  static Color getWebLinkColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'community':
+        return Colors.green.withValues(alpha: 0.65);
+      case 'website':
+        return Colors.blue.withValues(alpha: 0.8);
+      default:
+        return Colors.grey.withValues(alpha: 0.5);
+    }
+  }
+
+  static Color getTransactionTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'maintenance':
+        return Colors.blue;
+      case 'insurance':
+        return Colors.purple;
+      case 'utilities':
+        return Colors.yellow.shade800;
+      case 'rental':
+        return Colors.green;
+      case 'fees':
+        return Colors.teal;
+      default:
+        return Colors.deepPurpleAccent;
+    }
+  }
+}
+
+abstract final class AppIcons {
+  static IconData getNoticeTypeIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'urgent':
+        return Icons.warning_amber_outlined;
+      case 'general':
+        return Icons.info_outline;
+      case 'event':
+        return Icons.group_outlined;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  static IconData getWebLinkIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'community':
+        return Icons.language_outlined;
+      case 'website':
+        return Icons.forum_outlined;
+      default:
+        return Icons.link_outlined;
+    }
+  }
+
+  static IconData getDocumentTypeIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'folder':
+        return Icons.folder;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'image':
+        return Icons.image;
+      case 'word':
+        return Icons.description;
+      case 'excel':
+        return Icons.table_chart;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
 }
 
 abstract final class AppThemes {

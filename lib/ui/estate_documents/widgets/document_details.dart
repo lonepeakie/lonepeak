@@ -30,7 +30,7 @@ class DocumentDetails extends StatelessWidget {
         Row(
           children: [
             Icon(
-              _getIconForDocumentType(document.type),
+              AppIcons.getDocumentTypeIcon(document.type.name),
               size: 32,
               color: theme.colorScheme.primary,
             ),
@@ -175,23 +175,6 @@ class DocumentDetails extends StatelessWidget {
 
     final i = (bytes > 0 ? (log(bytes) / log(1024)).floor() : 0);
     return '${(bytes / pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
-  }
-
-  IconData _getIconForDocumentType(DocumentType type) {
-    switch (type) {
-      case DocumentType.folder:
-        return Icons.folder;
-      case DocumentType.pdf:
-        return Icons.picture_as_pdf;
-      case DocumentType.image:
-        return Icons.image;
-      case DocumentType.word:
-        return Icons.description;
-      case DocumentType.excel:
-        return Icons.table_chart;
-      case DocumentType.other:
-        return Icons.insert_drive_file;
-    }
   }
 
   // Helper to calculate logarithm for file size formatting

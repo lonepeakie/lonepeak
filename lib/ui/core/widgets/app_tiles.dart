@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 
 class MemberTile extends StatelessWidget {
@@ -19,7 +20,7 @@ class MemberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color roleColor = _getRoleColor(role);
+    final Color roleColor = AppColors.getRoleColor(role);
     final theme = Theme.of(context);
 
     return ListTile(
@@ -58,26 +59,5 @@ class MemberTile extends StatelessWidget {
               : null,
       trailing: AppChip(label: role, color: roleColor),
     );
-  }
-}
-
-Color _getRoleColor(String role) {
-  switch (role.toLowerCase()) {
-    case 'admin':
-      return Colors.blue;
-    case 'president':
-      return Colors.teal;
-    case 'vicepresident':
-      return Colors.orange;
-    case 'treasurer':
-      return Colors.green;
-    case 'member':
-      return Colors.cyan;
-    case 'secretary':
-      return Colors.purple;
-    case 'resident':
-      return Colors.grey;
-    default:
-      return Colors.grey;
   }
 }

@@ -11,7 +11,6 @@ import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/estate_details/view_models/estate_details_viewmodel.dart';
-import 'package:lonepeak/ui/estate_details/widgets/weblink_type.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EstateDetailsScreen extends ConsumerStatefulWidget {
@@ -212,7 +211,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  WeblinkTypeUI.getCategoryIcon(link.category),
+                  AppIcons.getWebLinkIcon(link.category.name),
                   color: AppColors.primary,
                   size: 24,
                 ),
@@ -542,8 +541,9 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                           spacing: 8.0,
                           children:
                               WebLinkType.values.map((category) {
-                                final chipColor =
-                                    WeblinkTypeUI.getCategoryColor(category);
+                                final chipColor = AppColors.getWebLinkColor(
+                                  category.name,
+                                );
                                 return AppChoiceChip(
                                   label: category.name,
                                   color: chipColor,

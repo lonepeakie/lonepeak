@@ -9,7 +9,6 @@ import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
-import 'package:lonepeak/ui/estate_notices/widgets/notice_color.dart';
 import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateNoticesScreen extends ConsumerStatefulWidget {
@@ -135,8 +134,8 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                         spacing: 8.0,
                         children:
                             NoticeType.values.map((type) {
-                              final chipColor = NoticeTypeUI.getCategoryColor(
-                                type,
+                              final chipColor = AppColors.getNoticeTypeColor(
+                                type.name,
                               );
                               final chipLabel =
                                   type.name[0].toUpperCase() +
