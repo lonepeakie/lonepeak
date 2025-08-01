@@ -144,7 +144,7 @@ abstract final class AppThemes {
       onError: AppColors.destructiveForeground,
       surfaceContainer: AppColors.muted,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.card,
       elevation: 0.3,
       shape: RoundedRectangleBorder(
@@ -214,7 +214,7 @@ abstract final class AppThemes {
       onError: AppColors.destructiveForeground,
       surfaceContainer: AppColors.mutedDark,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.cardDark,
       elevation: 0.3,
       shape: RoundedRectangleBorder(
