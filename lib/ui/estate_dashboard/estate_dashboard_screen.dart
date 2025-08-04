@@ -7,7 +7,7 @@ import 'package:lonepeak/providers/notices_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/estate_dashboard/widgets/dashboard_button.dart';
+import 'package:lonepeak/ui/estate_dashboard/dashboard_button.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
 

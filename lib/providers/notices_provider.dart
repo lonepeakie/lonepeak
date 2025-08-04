@@ -1,16 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository_firestore.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/utils/log_printer.dart';
 
-/// Provider for all notices with caching and state management
 final noticesProvider =
     StateNotifierProvider<NoticesProvider, AsyncValue<List<Notice>>>((ref) {
       final repository = ref.watch(noticesRepositoryProvider);
       return NoticesProvider(repository);
     });
 
-/// Provider for latest notices (subset of all notices)
 final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
   final repository = ref.watch(noticesRepositoryProvider);
   final result = await repository.getLatestNotices();
@@ -23,24 +23,43 @@ final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
 });
 
 class NoticesProvider extends StateNotifier<AsyncValue<List<Notice>>> {
-  NoticesProvider(this._repository) : super(const AsyncValue.data([]));
+  NoticesProvider(this._repository) : super(const AsyncValue.loading()) {
+    _loadNotices();
+  }
 
   final NoticesRepository _repository;
-  List<Notice> _cachedNotices = [];
+  final _log = Logger(printer: PrefixedLogPrinter('NoticesProvider'));
 
-  /// Get all notices from cache or fetch if empty
+  Future<void> _loadNotices() async {
+    await getNotices();
+  }
+
+  void ensureNoticesLoaded() {
+    if (state is! AsyncLoading &&
+        (!state.hasValue || state.value?.isEmpty == true)) {
+      _loadNotices();
+    }
+  }
+
+  List<Notice> get cachedNotices => state.value ?? [];
+
   Future<void> getNotices() async {
-    if (_cachedNotices.isNotEmpty) {
-      state = AsyncValue.data(_cachedNotices);
+    if (state.hasValue &&
+        state.value?.isNotEmpty == true &&
+        state is! AsyncError) {
       return;
     }
 
-    state = const AsyncValue.loading();
+    if (state is! AsyncLoading) {
+      state = const AsyncValue.loading();
+    }
 
     try {
+      _log.i('Fetching notices');
       final result = await _repository.getNotices();
 
       if (result.isFailure) {
+        _log.e('Failed to fetch notices: ${result.error}');
         state = AsyncValue.error(
           Exception('Failed to fetch notices: ${result.error}'),
           StackTrace.current,
@@ -48,105 +67,117 @@ class NoticesProvider extends StateNotifier<AsyncValue<List<Notice>>> {
         return;
       }
 
-      _cachedNotices = result.data ?? [];
-      state = AsyncValue.data(_cachedNotices);
+      final notices = result.data ?? [];
+      _log.i('Successfully fetched ${notices.length} notices');
+      state = AsyncValue.data(notices);
     } catch (error, stackTrace) {
+      _log.e(
+        'Error fetching notices: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
       state = AsyncValue.error(error, stackTrace);
     }
   }
 
-  /// Add a new notice
   Future<void> addNotice(Notice notice) async {
     try {
+      _log.i('Adding new notice: ${notice.title}');
       final result = await _repository.addNotice(notice);
 
       if (result.isFailure) {
+        _log.e('Failed to create notice: ${result.error}');
         throw Exception('Failed to create notice: ${result.error}');
       }
 
-      // Add to cached list and update state
-      _cachedNotices.add(notice);
-      state = AsyncValue.data([..._cachedNotices]);
+      _log.i('Successfully added notice: ${notice.title}');
+      await refreshNotices();
     } catch (error) {
-      // Don't update state on error, just throw for UI to handle
-      throw error;
+      _log.e('Error adding notice: $error');
+      rethrow;
     }
   }
 
-  /// Toggle like on a notice
   Future<void> toggleLike(String noticeId) async {
     try {
+      _log.i('Toggling like for notice: $noticeId');
       final result = await _repository.toggleLike(noticeId);
 
       if (result.isFailure) {
+        _log.e('Failed to toggle like: ${result.error}');
         throw Exception('Failed to toggle like: ${result.error}');
       }
 
-      // Update the notice in cached list
       final updatedNotice = result.data!;
-      final index = _cachedNotices.indexWhere(
+      final currentNotices = state.value ?? [];
+      final index = currentNotices.indexWhere(
         (notice) => notice.id == noticeId,
       );
 
       if (index != -1) {
-        _cachedNotices[index] = updatedNotice;
-        state = AsyncValue.data([..._cachedNotices]);
+        final updatedNotices = [...currentNotices];
+        updatedNotices[index] = updatedNotice;
+        _log.i('Successfully toggled like for notice: $noticeId');
+        state = AsyncValue.data(updatedNotices);
       }
     } catch (error) {
-      // Don't throw for likes to avoid UI disruption
-      // Just fail silently or log the error
+      _log.e('Error toggling like: $error');
     }
   }
 
-  /// Update an existing notice
   Future<void> updateNotice(Notice notice) async {
     try {
+      _log.i('Updating notice: ${notice.title}');
       final result = await _repository.updateNotice(notice);
 
       if (result.isFailure) {
+        _log.e('Failed to update notice: ${result.error}');
         throw Exception('Failed to update notice: ${result.error}');
       }
 
-      // Update in cached list
-      final index = _cachedNotices.indexWhere((n) => n.id == notice.id);
+      final currentNotices = state.value ?? [];
+      final index = currentNotices.indexWhere((n) => n.id == notice.id);
       if (index != -1) {
-        _cachedNotices[index] = notice;
-        state = AsyncValue.data([..._cachedNotices]);
+        final updatedNotices = [...currentNotices];
+        updatedNotices[index] = notice;
+        _log.i('Successfully updated notice: ${notice.title}');
+        state = AsyncValue.data(updatedNotices);
       }
     } catch (error) {
-      throw error;
+      _log.e('Error updating notice: $error');
+      rethrow;
     }
   }
 
-  /// Delete a notice
   Future<void> deleteNotice(String noticeId) async {
     try {
+      _log.i('Deleting notice: $noticeId');
       final result = await _repository.deleteNotice(noticeId);
 
       if (result.isFailure) {
+        _log.e('Failed to delete notice: ${result.error}');
         throw Exception('Failed to delete notice: ${result.error}');
       }
 
-      // Remove from cached list
-      _cachedNotices.removeWhere((notice) => notice.id == noticeId);
-      state = AsyncValue.data([..._cachedNotices]);
+      final currentNotices = state.value ?? [];
+      final updatedNotices =
+          currentNotices.where((notice) => notice.id != noticeId).toList();
+      _log.i('Successfully deleted notice: $noticeId');
+      state = AsyncValue.data(updatedNotices);
     } catch (error) {
-      throw error;
+      _log.e('Error deleting notice: $error');
+      rethrow;
     }
   }
 
-  /// Refresh notices from repository
   Future<void> refreshNotices() async {
-    _cachedNotices.clear();
+    _log.i('Refreshing notices');
+    state = const AsyncValue.loading();
     await getNotices();
   }
 
-  /// Clear cached notices
   void clearNotices() {
-    _cachedNotices.clear();
+    _log.i('Clearing notices');
     state = const AsyncValue.data([]);
   }
-
-  /// Get cached notices (synchronous)
-  List<Notice> get cachedNotices => _cachedNotices;
 }

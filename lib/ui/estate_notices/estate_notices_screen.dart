@@ -10,23 +10,11 @@ import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 
-class EstateNoticesScreen extends ConsumerStatefulWidget {
+class EstateNoticesScreen extends ConsumerWidget {
   const EstateNoticesScreen({super.key});
 
   @override
-  ConsumerState<EstateNoticesScreen> createState() =>
-      _EstateNoticesScreenState();
-}
-
-class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load notices when watched
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final noticesState = ref.watch(noticesProvider);
 
     return Scaffold(
@@ -35,7 +23,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
         actions: [
           AppbarActionButton(
             icon: Icons.notification_add,
-            onPressed: () => _showCreateNoticeBottomSheet(context),
+            onPressed: () => _showCreateNoticeBottomSheet(context, ref),
           ),
         ],
       ),
@@ -80,7 +68,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
     );
   }
 
-  void _showCreateNoticeBottomSheet(BuildContext context) {
+  void _showCreateNoticeBottomSheet(BuildContext context, WidgetRef ref) {
     final titleController = TextEditingController();
     final contentController = TextEditingController();
     NoticeType selectedType = NoticeType.general;
