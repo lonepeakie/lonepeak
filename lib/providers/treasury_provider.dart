@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository_firestore.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/utils/log_printer.dart';
 
 /// Transaction filters for treasury data
 class TransactionFilters {
@@ -106,28 +108,54 @@ final treasurySummaryProvider = FutureProvider<Map<String, double>>((
 
 class TreasuryProvider extends StateNotifier<TreasuryState> {
   TreasuryProvider(this._repository) : super(const TreasuryState()) {
-    loadTransactions();
+    _loadTransactions();
   }
 
   final TreasuryRepository _repository;
-  List<TreasuryTransaction> _cachedTransactions = [];
-  double _cachedBalance = 0.0;
+  final _log = Logger(printer: PrefixedLogPrinter('TreasuryProvider'));
 
-  /// Get cached transactions (synchronous)
-  List<TreasuryTransaction> get cachedTransactions => _cachedTransactions;
-  double get cachedBalance => _cachedBalance;
+  /// Get current transactions from state
+  List<TreasuryTransaction> get transactions => state.transactions.value ?? [];
+
+  /// Get current balance from state
+  double get balance => state.currentBalance.value ?? 0.0;
+
+  Future<void> _loadTransactions() async {
+    await loadTransactions();
+  }
+
+  void ensureDataLoaded() {
+    if (state.transactions is! AsyncLoading &&
+        (!state.transactions.hasValue ||
+            state.transactions.value?.isEmpty == true)) {
+      _loadTransactions();
+    }
+  }
 
   /// Load all transactions and current balance
   Future<void> loadTransactions() async {
-    state = state.copyWith(
-      transactions: const AsyncValue.loading(),
-      currentBalance: const AsyncValue.loading(),
-    );
+    if (state.transactions.hasValue &&
+        state.transactions.value?.isNotEmpty == true &&
+        state.transactions is! AsyncError) {
+      _log.i(
+        'Using existing transaction data (${state.transactions.value?.length ?? 0} transactions)',
+      );
+      return;
+    }
+
+    if (state.transactions is! AsyncLoading) {
+      state = state.copyWith(
+        transactions: const AsyncValue.loading(),
+        currentBalance: const AsyncValue.loading(),
+      );
+    }
 
     try {
+      _log.i('Fetching transactions from repository');
       // Load transactions
       final transactionsResult = await _repository.getTransactions();
       if (transactionsResult.isFailure) {
+        _log.e('Failed to load transactions: ${transactionsResult.error}');
         state = state.copyWith(
           transactions: AsyncValue.error(
             Exception(
@@ -139,11 +167,13 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
         return;
       }
 
-      _cachedTransactions = transactionsResult.data ?? [];
+      final transactions = transactionsResult.data ?? [];
+      _log.i('Successfully fetched ${transactions.length} transactions');
 
       // Load current balance
       final balanceResult = await _repository.getCurrentBalance();
       if (balanceResult.isFailure) {
+        _log.e('Failed to load balance: ${balanceResult.error}');
         state = state.copyWith(
           currentBalance: AsyncValue.error(
             Exception('Failed to load balance: ${balanceResult.error}'),
@@ -153,18 +183,24 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
         return;
       }
 
-      _cachedBalance = balanceResult.data ?? 0.0;
+      final balance = balanceResult.data ?? 0.0;
+      _log.i('Successfully fetched balance: \$${balance.toStringAsFixed(2)}');
 
       // Apply current filters if any
       if (state.filters.hasAnyFilter) {
-        await _applyFiltersToTransactions();
+        await _applyFiltersToTransactions(transactions);
       } else {
         state = state.copyWith(
-          transactions: AsyncValue.data([..._cachedTransactions]),
-          currentBalance: AsyncValue.data(_cachedBalance),
+          transactions: AsyncValue.data(transactions),
+          currentBalance: AsyncValue.data(balance),
         );
       }
     } catch (error, stackTrace) {
+      _log.e(
+        'Error loading transactions: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
       state = state.copyWith(
         transactions: AsyncValue.error(error, stackTrace),
         currentBalance: AsyncValue.error(error, stackTrace),
@@ -175,30 +211,40 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
   /// Add a new transaction
   Future<void> addTransaction(TreasuryTransaction transaction) async {
     try {
+      _log.i('Adding new transaction: ${transaction.description}');
       final result = await _repository.addTransaction(transaction);
 
       if (result.isFailure) {
+        _log.e('Failed to add transaction: ${result.error}');
         throw Exception('Failed to add transaction: ${result.error}');
       }
 
-      // Add to cached list and update balance
-      _cachedTransactions.add(transaction);
-      if (transaction.isIncome) {
-        _cachedBalance += transaction.amount;
-      } else {
-        _cachedBalance -= transaction.amount;
-      }
+      // Get current transactions and balance from state
+      final currentTransactions = state.transactions.value ?? [];
+      final currentBalance = state.currentBalance.value ?? 0.0;
+
+      // Add to transaction list and update balance
+      final updatedTransactions = [...currentTransactions, transaction];
+      final updatedBalance =
+          transaction.isIncome
+              ? currentBalance + transaction.amount
+              : currentBalance - transaction.amount;
+
+      _log.i(
+        'Successfully added transaction, new balance: \$${updatedBalance.toStringAsFixed(2)}',
+      );
 
       // Reapply filters if needed
       if (state.filters.hasAnyFilter) {
-        await _applyFiltersToTransactions();
+        await _applyFiltersToTransactions(updatedTransactions);
       } else {
         state = state.copyWith(
-          transactions: AsyncValue.data([..._cachedTransactions]),
-          currentBalance: AsyncValue.data(_cachedBalance),
+          transactions: AsyncValue.data(updatedTransactions),
+          currentBalance: AsyncValue.data(updatedBalance),
         );
       }
     } catch (error) {
+      _log.e('Error adding transaction: $error');
       throw error;
     }
   }
@@ -206,44 +252,61 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
   /// Update an existing transaction
   Future<void> updateTransaction(TreasuryTransaction transaction) async {
     try {
+      _log.i('Updating transaction: ${transaction.description}');
       final result = await _repository.updateTransaction(transaction);
 
       if (result.isFailure) {
+        _log.e('Failed to update transaction: ${result.error}');
         throw Exception('Failed to update transaction: ${result.error}');
       }
 
-      // Update in cached list
-      final index = _cachedTransactions.indexWhere(
+      // Get current transactions and balance from state
+      final currentTransactions = List<TreasuryTransaction>.from(
+        state.transactions.value ?? [],
+      );
+      final currentBalance = state.currentBalance.value ?? 0.0;
+
+      // Update in transaction list
+      final index = currentTransactions.indexWhere(
         (t) => t.id == transaction.id,
       );
       if (index != -1) {
-        final oldTransaction = _cachedTransactions[index];
-        _cachedTransactions[index] = transaction;
+        final oldTransaction = currentTransactions[index];
+        currentTransactions[index] = transaction;
 
         // Update balance calculation
+        var updatedBalance = currentBalance;
+
+        // Remove old transaction's effect on balance
         if (oldTransaction.isIncome) {
-          _cachedBalance -= oldTransaction.amount;
+          updatedBalance -= oldTransaction.amount;
         } else {
-          _cachedBalance += oldTransaction.amount;
+          updatedBalance += oldTransaction.amount;
         }
 
+        // Add new transaction's effect on balance
         if (transaction.isIncome) {
-          _cachedBalance += transaction.amount;
+          updatedBalance += transaction.amount;
         } else {
-          _cachedBalance -= transaction.amount;
+          updatedBalance -= transaction.amount;
         }
-      }
 
-      // Reapply filters if needed
-      if (state.filters.hasAnyFilter) {
-        await _applyFiltersToTransactions();
-      } else {
-        state = state.copyWith(
-          transactions: AsyncValue.data([..._cachedTransactions]),
-          currentBalance: AsyncValue.data(_cachedBalance),
+        _log.i(
+          'Successfully updated transaction, new balance: \$${updatedBalance.toStringAsFixed(2)}',
         );
+
+        // Reapply filters if needed
+        if (state.filters.hasAnyFilter) {
+          await _applyFiltersToTransactions(currentTransactions);
+        } else {
+          state = state.copyWith(
+            transactions: AsyncValue.data(currentTransactions),
+            currentBalance: AsyncValue.data(updatedBalance),
+          );
+        }
       }
     } catch (error) {
+      _log.e('Error updating transaction: $error');
       throw error;
     }
   }
@@ -251,52 +314,66 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
   /// Delete a transaction
   Future<void> deleteTransaction(String transactionId) async {
     try {
+      _log.i('Deleting transaction: $transactionId');
       final result = await _repository.deleteTransaction(transactionId);
 
       if (result.isFailure) {
+        _log.e('Failed to delete transaction: ${result.error}');
         throw Exception('Failed to delete transaction: ${result.error}');
       }
 
-      // Remove from cached list and update balance
-      final transactionIndex = _cachedTransactions.indexWhere(
+      // Get current transactions and balance from state
+      final currentTransactions = List<TreasuryTransaction>.from(
+        state.transactions.value ?? [],
+      );
+      final currentBalance = state.currentBalance.value ?? 0.0;
+
+      // Remove from transaction list and update balance
+      final transactionIndex = currentTransactions.indexWhere(
         (t) => t.id == transactionId,
       );
       if (transactionIndex != -1) {
-        final transaction = _cachedTransactions[transactionIndex];
-        _cachedTransactions.removeAt(transactionIndex);
+        final transaction = currentTransactions[transactionIndex];
+        currentTransactions.removeAt(transactionIndex);
 
-        if (transaction.isIncome) {
-          _cachedBalance -= transaction.amount;
+        final updatedBalance =
+            transaction.isIncome
+                ? currentBalance - transaction.amount
+                : currentBalance + transaction.amount;
+
+        _log.i(
+          'Successfully deleted transaction, new balance: \$${updatedBalance.toStringAsFixed(2)}',
+        );
+
+        // Reapply filters if needed
+        if (state.filters.hasAnyFilter) {
+          await _applyFiltersToTransactions(currentTransactions);
         } else {
-          _cachedBalance += transaction.amount;
+          state = state.copyWith(
+            transactions: AsyncValue.data(currentTransactions),
+            currentBalance: AsyncValue.data(updatedBalance),
+          );
         }
       }
-
-      // Reapply filters if needed
-      if (state.filters.hasAnyFilter) {
-        await _applyFiltersToTransactions();
-      } else {
-        state = state.copyWith(
-          transactions: AsyncValue.data([..._cachedTransactions]),
-          currentBalance: AsyncValue.data(_cachedBalance),
-        );
-      }
     } catch (error) {
+      _log.e('Error deleting transaction: $error');
       throw error;
     }
   }
 
   /// Apply transaction filters
   Future<void> applyFilters(TransactionFilters newFilters) async {
+    _log.i(
+      'Applying filters: ${newFilters.hasAnyFilter ? 'with filters' : 'no filters'}',
+    );
     state = state.copyWith(filters: newFilters);
 
     if (newFilters.hasAnyFilter) {
       await _applyFiltersToTransactions();
     } else {
-      // Show all cached transactions
-      state = state.copyWith(
-        transactions: AsyncValue.data([..._cachedTransactions]),
-      );
+      // Show all transactions from state
+      final allTransactions = await _getAllTransactions();
+      state = state.copyWith(transactions: AsyncValue.data(allTransactions));
     }
   }
 
@@ -306,10 +383,14 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
   }
 
   /// Apply current filters to transactions
-  Future<void> _applyFiltersToTransactions() async {
+  Future<void> _applyFiltersToTransactions([
+    List<TreasuryTransaction>? transactions,
+  ]) async {
     final currentFilters = state.filters;
+    final sourceTransactions = transactions ?? await _getAllTransactions();
 
     try {
+      _log.i('Applying filters to ${sourceTransactions.length} transactions');
       // Get filtered transactions from repository if date filters are applied
       List<TreasuryTransaction> filteredTransactions;
 
@@ -320,6 +401,7 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
         );
 
         if (result.isFailure) {
+          _log.e('Failed to filter transactions: ${result.error}');
           state = state.copyWith(
             transactions: AsyncValue.error(
               Exception('Failed to filter transactions: ${result.error}'),
@@ -331,7 +413,7 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
 
         filteredTransactions = result.data ?? [];
       } else {
-        filteredTransactions = [..._cachedTransactions];
+        filteredTransactions = [...sourceTransactions];
       }
 
       // Apply income/expense filter
@@ -342,36 +424,48 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
                 .toList();
       }
 
+      _log.i('Filtered to ${filteredTransactions.length} transactions');
       state = state.copyWith(
         transactions: AsyncValue.data(filteredTransactions),
       );
     } catch (error, stackTrace) {
+      _log.e('Error applying filters: $error');
       state = state.copyWith(transactions: AsyncValue.error(error, stackTrace));
     }
   }
 
+  /// Get all transactions from repository
+  Future<List<TreasuryTransaction>> _getAllTransactions() async {
+    final result = await _repository.getTransactions();
+    if (result.isFailure) {
+      throw Exception('Failed to get transactions: ${result.error}');
+    }
+    return result.data ?? [];
+  }
+
   /// Refresh all treasury data
   Future<void> refreshTreasury() async {
-    _cachedTransactions.clear();
-    _cachedBalance = 0.0;
+    _log.i('Refreshing treasury data');
+    state = const TreasuryState();
     await loadTransactions();
   }
 
   /// Clear all cached data
   void clearCache() {
-    _cachedTransactions.clear();
-    _cachedBalance = 0.0;
+    _log.i('Clearing treasury cache');
     state = const TreasuryState();
   }
 
   /// Get transactions by type (income/expense)
   List<TreasuryTransaction> getTransactionsByType(bool isIncome) {
-    return _cachedTransactions.where((t) => t.isIncome == isIncome).toList();
+    final transactions = state.transactions.value ?? [];
+    return transactions.where((t) => t.isIncome == isIncome).toList();
   }
 
   /// Get total amount for a specific type
   double getTotalByType(bool isIncome) {
-    return _cachedTransactions
+    final transactions = state.transactions.value ?? [];
+    return transactions
         .where((t) => t.isIncome == isIncome)
         .fold(0.0, (sum, t) => sum + t.amount);
   }
@@ -381,7 +475,8 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
     DateTime start,
     DateTime end,
   ) {
-    return _cachedTransactions
+    final transactions = state.transactions.value ?? [];
+    return transactions
         .where(
           (t) =>
               t.date.isAfter(start.subtract(const Duration(days: 1))) &&

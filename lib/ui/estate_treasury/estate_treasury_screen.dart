@@ -9,28 +9,14 @@ import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
-import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions.dart';
-import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
+import 'package:lonepeak/ui/estate_treasury/filter_transactions.dart';
+import 'package:lonepeak/ui/estate_treasury/transaction_card.dart';
 
-class EstateTreasuryScreen extends ConsumerStatefulWidget {
+class EstateTreasuryScreen extends ConsumerWidget {
   const EstateTreasuryScreen({super.key});
 
   @override
-  ConsumerState<EstateTreasuryScreen> createState() =>
-      _EstateTreasuryScreenState();
-}
-
-class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      ref.read(treasuryProvider.notifier).loadTransactions();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final treasuryState = ref.watch(treasuryProvider);
     final estateState = ref.watch(estateProvider);
 
@@ -48,26 +34,69 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
           ),
           AppbarActionButton(
             icon: Icons.add,
-            onPressed: () => _showAddTransactionBottomSheet(context),
+            onPressed: () => _showAddTransactionBottomSheet(context, ref),
           ),
         ],
       ),
       body: SafeArea(
         child: estateState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
+          error:
+              (error, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: $error'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.invalidate(estateProvider);
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
           data:
               (estate) => treasuryState.transactions.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
+                error:
+                    (error, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Error: $error'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              ref.invalidate(treasuryProvider);
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
                 data:
                     (transactions) => treasuryState.currentBalance.when(
                       loading:
                           () =>
                               const Center(child: CircularProgressIndicator()),
                       error:
-                          (error, stack) =>
-                              Center(child: Text('Error: $error')),
+                          (error, stack) => Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Error: $error'),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ref.invalidate(treasuryProvider);
+                                  },
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          ),
                       data:
                           (balance) => SingleChildScrollView(
                             padding: const EdgeInsets.all(16.0),
@@ -80,7 +109,10 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                                   estate?.iban,
                                 ),
                                 const SizedBox(height: 24),
-                                _buildRecentTransactionsContainer(transactions),
+                                _buildRecentTransactionsContainer(
+                                  context,
+                                  transactions,
+                                ),
                               ],
                             ),
                           ),
@@ -171,6 +203,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   }
 
   Widget _buildRecentTransactionsContainer(
+    BuildContext context,
     List<TreasuryTransaction> transactions,
   ) {
     return SizedBox(
@@ -196,7 +229,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
     );
   }
 
-  void _showAddTransactionBottomSheet(BuildContext context) {
+  void _showAddTransactionBottomSheet(BuildContext context, WidgetRef ref) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final amountController = TextEditingController();
@@ -262,7 +295,7 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   const SnackBar(content: Text('Invalid data provided')),
                 );
               } finally {
-                if (mounted) {
+                if (context.mounted) {
                   setState(() {
                     isSubmitting = false;
                   });

@@ -20,6 +20,7 @@ class _FilterTransactionsBottomSheetState
   final TextEditingController _endDateController = TextEditingController();
 
   bool? _isIncome;
+  bool _isApplying = false;
 
   final DateFormat _parserFormat = DateFormat('MMM d, yyyy');
 
@@ -39,6 +40,13 @@ class _FilterTransactionsBottomSheetState
     _isIncome = currentFilters.isIncome;
   }
 
+  @override
+  void dispose() {
+    _startDateController.dispose();
+    _endDateController.dispose();
+    super.dispose();
+  }
+
   void _resetFilters() {
     setState(() {
       _startDateController.clear();
@@ -47,21 +55,65 @@ class _FilterTransactionsBottomSheetState
     });
   }
 
-  void _applyFilters() {
-    final newFilters = TransactionFilters(
-      startDate:
-          _startDateController.text.isNotEmpty
-              ? _parserFormat.parse(_startDateController.text)
-              : null,
-      endDate:
-          _endDateController.text.isNotEmpty
-              ? _parserFormat.parse(_endDateController.text)
-              : null,
-      isIncome: _isIncome,
-    );
+  void _applyFilters() async {
+    if (_isApplying) return;
 
-    ref.read(treasuryProvider.notifier).applyFilters(newFilters);
-    Navigator.pop(context);
+    setState(() {
+      _isApplying = true;
+    });
+
+    try {
+      DateTime? startDate;
+      DateTime? endDate;
+
+      // Parse dates if provided
+      if (_startDateController.text.isNotEmpty) {
+        startDate = _parserFormat.parse(_startDateController.text);
+      }
+      if (_endDateController.text.isNotEmpty) {
+        endDate = _parserFormat.parse(_endDateController.text);
+      }
+
+      // Validate date range
+      if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Start date must be before end date'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      final newFilters = TransactionFilters(
+        startDate: startDate,
+        endDate: endDate,
+        isIncome: _isIncome,
+      );
+
+      await ref.read(treasuryProvider.notifier).applyFilters(newFilters);
+
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error applying filters: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isApplying = false;
+        });
+      }
+    }
   }
 
   @override
@@ -119,6 +171,7 @@ class _FilterTransactionsBottomSheetState
                     _isIncome == true,
                   ],
                   onPressed: (int index) {
+                    if (_isApplying) return;
                     setState(() {
                       if (index == 0) _isIncome = null;
                       if (index == 1) _isIncome = false;
@@ -149,15 +202,26 @@ class _FilterTransactionsBottomSheetState
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: _resetFilters, child: const Text('Reset')),
+              TextButton(
+                onPressed: () {
+                  if (!_isApplying) {
+                    _resetFilters();
+                  }
+                },
+                child: const Text('Reset'),
+              ),
               const SizedBox(width: 16),
               AppElevatedButton(
-                onPressed: _applyFilters,
+                onPressed: () {
+                  if (!_isApplying) {
+                    _applyFilters();
+                  }
+                },
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
-                buttonText: 'Apply Filters',
+                buttonText: _isApplying ? 'Applying...' : 'Apply Filters',
               ),
             ],
           ),

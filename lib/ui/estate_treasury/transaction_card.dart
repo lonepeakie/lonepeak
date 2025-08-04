@@ -118,14 +118,56 @@ class TransactionCard extends ConsumerWidget {
     }
   }
 
+  Future<void> _deleteTransaction(BuildContext context, WidgetRef ref) async {
+    if (transaction.id == null) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Cannot delete transaction without ID'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      await ref
+          .read(treasuryProvider.notifier)
+          .deleteTransaction(transaction.id!);
+
+      if (context.mounted) {
+        navigator.pop();
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Transaction deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Error deleting transaction: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Transaction'),
-          content: const Text(
-            'Are you sure you want to delete this transaction?',
+          content: Text(
+            'Are you sure you want to delete "${transaction.title}"?\n\nThis action cannot be undone.',
           ),
           actions: [
             TextButton(
@@ -133,40 +175,7 @@ class TransactionCard extends ConsumerWidget {
               child: const Text('Cancel'),
             ),
             AppButton(
-              onPressed: () async {
-                if (transaction.id != null) {
-                  try {
-                    await ref
-                        .read(treasuryProvider.notifier)
-                        .deleteTransaction(transaction.id!);
-
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Transaction deleted successfully'),
-                        ),
-                      );
-                    }
-                  } catch (error) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $error')));
-                    }
-                  }
-                } else {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Error: Cannot delete transaction without ID',
-                      ),
-                    ),
-                  );
-                }
-              },
+              onPressed: () => _deleteTransaction(context, ref),
               buttonText: 'Delete',
               backgroundColor: Colors.red.shade400,
             ),
