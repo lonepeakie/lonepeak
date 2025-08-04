@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
+import 'package:lonepeak/providers/member_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
-import 'package:lonepeak/ui/estate_members/view_models/estate_members_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateMembersScreen extends ConsumerStatefulWidget {
   const EstateMembersScreen({super.key});
@@ -26,9 +25,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(estateMembersViewModelProvider.notifier).getMembers(),
-    );
+    // The provider will automatically load members when watched
   }
 
   @override
@@ -38,27 +35,37 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   }
 
   void _showMemberActionSheet(BuildContext context, Member member) async {
-    final viewModel = ref.read(estateMembersViewModelProvider.notifier);
-    final isAdmin = await viewModel.hasAdminPrivileges();
-    if (!context.mounted) return;
+    try {
+      final hasAdminAccess =
+          await ref.read(memberProvider.notifier).hasAdminPrivileges();
+      if (!context.mounted) return;
 
-    if (!isAdmin) {
+      if (!hasAdminAccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You need admin privileges to modify members'),
+          ),
+        );
+        return;
+      }
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (context) => _buildMemberActionsSheet(context, member),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You need admin privileges to modify members'),
+        SnackBar(
+          content: Text('Error checking admin privileges: $error'),
+          backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _buildMemberActionsSheet(context, member),
-    );
   }
 
   Widget _buildMemberActionsSheet(BuildContext context, Member member) {
@@ -199,105 +206,130 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   void _updateMemberRole(Member member, RoleType newRole) async {
     final displayName =
         member.displayName.isNotEmpty ? member.displayName : 'Unknown User';
-    final viewModel = ref.read(estateMembersViewModelProvider.notifier);
-    await viewModel.updateMemberRole(member.email, newRole);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$displayName\'s role updated to ${newRole.name}'),
-          backgroundColor: Colors.green,
-        ),
-      );
+    try {
+      await ref
+          .read(estateMembersProvider.notifier)
+          .updateMemberRole(member.email, newRole);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$displayName\'s role updated to ${newRole.name}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating role: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   void _removeMember(Member member) async {
     final displayName =
         member.displayName.isNotEmpty ? member.displayName : 'Unknown User';
-    final viewModel = ref.read(estateMembersViewModelProvider.notifier);
-    await viewModel.removeMember(member.email);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$displayName removed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    try {
+      await ref.read(estateMembersProvider.notifier).removeMember(member.email);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$displayName removed'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error removing member: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModelState = ref.watch(estateMembersViewModelProvider);
-    final activeMembers =
-        ref.watch(estateMembersViewModelProvider.notifier).activeMembers;
-
-    final filteredMembers =
-        _searchQuery.isEmpty
-            ? activeMembers
-            : activeMembers.where((member) {
-              final name =
-                  (member.displayName.isNotEmpty
-                          ? member.displayName
-                          : 'Unknown User')
-                      .toLowerCase();
-              final email = member.email.toLowerCase();
-              final role = member.role.name.toLowerCase();
-              return name.contains(_searchQuery.toLowerCase()) ||
-                  email.contains(_searchQuery.toLowerCase()) ||
-                  role.contains(_searchQuery.toLowerCase());
-            }).toList();
+    final membersState = ref.watch(estateMembersProvider);
+    final memberState = ref.watch(memberProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const AppbarTitle(text: 'Members'),
         actions: [
-          FutureBuilder<bool>(
-            future:
-                ref
-                    .watch(estateMembersViewModelProvider.notifier)
-                    .hasAdminPrivileges(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data == true) {
-                return Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.admin_panel_settings),
-                      onPressed: () {
-                        context.go(
-                          '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
-                        );
-                      },
-                    ),
-                    Positioned(
-                      right: 4,
-                      top: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4.0),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade300,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          ref
-                              .watch(estateMembersViewModelProvider.notifier)
-                              .pendingMembersCount
-                              .toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
+          memberState.when(
+            loading: () => const SizedBox.shrink(),
+            error: (error, stack) => const SizedBox.shrink(),
+            data:
+                (member) => FutureBuilder<bool>(
+                  future:
+                      ref.read(memberProvider.notifier).hasAdminPrivileges(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data == true) {
+                      return Consumer(
+                        builder: (context, ref, _) {
+                          final pendingMembersAsync = ref.watch(
+                            pendingMembersCountProvider,
+                          );
+                          return Stack(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.admin_panel_settings),
+                                onPressed: () {
+                                  context.go(
+                                    '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
+                                  );
+                                },
+                              ),
+                              pendingMembersAsync.when(
+                                loading: () => const SizedBox.shrink(),
+                                error:
+                                    (error, stack) => const SizedBox.shrink(),
+                                data:
+                                    (count) =>
+                                        count > 0
+                                            ? Positioned(
+                                              right: 4,
+                                              top: 4,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  4.0,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.shade300,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Text(
+                                                  count.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            : const SizedBox.shrink(),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
           ),
         ],
       ),
@@ -335,59 +367,77 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               ),
             ),
             Expanded(
-              child: Builder(
-                builder: (context) {
-                  if (viewModelState is UIStateLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (viewModelState is UIStateFailure) {
-                    return Center(
+              child: membersState.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error:
+                    (error, stack) => Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Error: ${viewModelState.error}'),
+                          Text('Error: $error'),
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () {
-                              ref
-                                  .read(estateMembersViewModelProvider.notifier)
-                                  .getMembers();
+                              ref.invalidate(estateMembersProvider);
                             },
                             child: const Text('Retry'),
                           ),
                         ],
                       ),
-                    );
-                  } else {
-                    return filteredMembers.isEmpty
-                        ? Center(
-                          child: Text(
-                            _searchQuery.isEmpty
-                                ? 'No members found'
-                                : 'No matching members found',
-                          ),
-                        )
-                        : ListView.builder(
-                          itemCount: filteredMembers.length,
-                          itemBuilder: (context, index) {
-                            final member = filteredMembers[index];
-                            final roleName = member.role.name;
-                            final displayName =
-                                member.displayName.isNotEmpty
-                                    ? member.displayName
-                                    : 'Unknown User';
-                            return MemberTile(
-                              name: displayName,
-                              email: member.email,
-                              role: roleName,
-                              onTap:
-                                  () => {
-                                    if (context.mounted)
-                                      {_showMemberActionSheet(context, member)},
-                                  },
-                            );
-                          },
-                        );
-                  }
+                    ),
+                data: (allMembers) {
+                  final activeMembers =
+                      allMembers
+                          .where(
+                            (member) => member.status == MemberStatus.active,
+                          )
+                          .toList();
+
+                  final filteredMembers =
+                      _searchQuery.isEmpty
+                          ? activeMembers
+                          : activeMembers.where((member) {
+                            final name =
+                                (member.displayName.isNotEmpty
+                                        ? member.displayName
+                                        : 'Unknown User')
+                                    .toLowerCase();
+                            final email = member.email.toLowerCase();
+                            final role = member.role.name.toLowerCase();
+                            return name.contains(_searchQuery.toLowerCase()) ||
+                                email.contains(_searchQuery.toLowerCase()) ||
+                                role.contains(_searchQuery.toLowerCase());
+                          }).toList();
+
+                  return filteredMembers.isEmpty
+                      ? Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? 'No members found'
+                              : 'No matching members found',
+                        ),
+                      )
+                      : ListView.builder(
+                        itemCount: filteredMembers.length,
+                        itemBuilder: (context, index) {
+                          final member = filteredMembers[index];
+                          final roleName = member.role.name;
+                          final displayName =
+                              member.displayName.isNotEmpty
+                                  ? member.displayName
+                                  : 'Unknown User';
+                          return MemberTile(
+                            name: displayName,
+                            email: member.email,
+                            role: roleName,
+                            onTap:
+                                () => {
+                                  if (context.mounted)
+                                    {_showMemberActionSheet(context, member)},
+                                },
+                          );
+                        },
+                      );
                 },
               ),
             ),

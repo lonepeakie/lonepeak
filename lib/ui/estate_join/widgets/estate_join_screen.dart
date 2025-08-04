@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/estate_join/view_models/estate_join_viewmodel.dart';
+import 'package:lonepeak/providers/estate_join_provider.dart';
 import 'package:lonepeak/ui/estate_join/widgets/estate_tile.dart';
 
 class EstateJoinScreen extends ConsumerStatefulWidget {
@@ -17,15 +16,11 @@ class EstateJoinScreen extends ConsumerStatefulWidget {
 
 class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () =>
-          ref.read(estateJoinViewModelProvider.notifier).loadAvailableEstates(),
-    );
+    // The provider will automatically load estates when first watched
   }
 
   @override
@@ -36,21 +31,8 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModelState = ref.watch(estateJoinViewModelProvider);
-    final availableEstates =
-        ref.watch(estateJoinViewModelProvider.notifier).availableEstates;
-
-    final filteredEstates =
-        _searchQuery.isEmpty
-            ? availableEstates
-            : availableEstates.where((estate) {
-              final name = estate.name.toLowerCase();
-              final city = estate.city.toLowerCase();
-              final county = estate.county.toLowerCase();
-              return name.contains(_searchQuery.toLowerCase()) ||
-                  city.contains(_searchQuery.toLowerCase()) ||
-                  county.contains(_searchQuery.toLowerCase());
-            }).toList();
+    final estatesState = ref.watch(estateJoinProvider);
+    final searchQuery = ref.watch(estateSearchProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -83,74 +65,75 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   suffixIcon:
-                      _searchQuery.isNotEmpty
+                      searchQuery.isNotEmpty
                           ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
+                              _searchController.clear();
+                              ref
+                                  .read(estateJoinProvider.notifier)
+                                  .clearSearch();
+                              ref.read(estateSearchProvider.notifier).state =
+                                  '';
                             },
                           )
                           : null,
                 ),
                 onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
+                  ref
+                      .read(estateJoinProvider.notifier)
+                      .updateSearchQuery(value);
+                  ref.read(estateSearchProvider.notifier).state = value;
                 },
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (viewModelState is UIStateLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (viewModelState is UIStateFailure) {
-                      return Center(
+                child: estatesState.when(
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error:
+                      (error, stack) => Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Error: ${viewModelState.error}'),
+                            Text('Error: $error'),
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () {
                                 ref
-                                    .read(estateJoinViewModelProvider.notifier)
-                                    .loadAvailableEstates();
+                                    .read(estateJoinProvider.notifier)
+                                    .refreshEstates();
                               },
                               child: const Text('Retry'),
                             ),
                           ],
                         ),
-                      );
-                    } else {
-                      return filteredEstates.isEmpty
-                          ? Center(
-                            child: Text(
-                              _searchQuery.isEmpty
-                                  ? 'No members found'
-                                  : 'No matching members found',
-                            ),
-                          )
-                          : ListView.builder(
-                            itemCount: filteredEstates.length,
-                            itemBuilder: (context, index) {
-                              final estate = filteredEstates[index];
-                              return EstateTile(
-                                estate: estate,
-                                onTap:
-                                    () => _showJoinConfirmationDialog(
-                                      context,
-                                      estate.id ?? '',
-                                      estate.name,
-                                    ),
-                              );
-                            },
-                          );
-                    }
-                  },
+                      ),
+                  data:
+                      (estates) =>
+                          estates.isEmpty
+                              ? Center(
+                                child: Text(
+                                  searchQuery.isEmpty
+                                      ? 'No estates found'
+                                      : 'No matching estates found',
+                                ),
+                              )
+                              : ListView.builder(
+                                itemCount: estates.length,
+                                itemBuilder: (context, index) {
+                                  final estate = estates[index];
+                                  return EstateTile(
+                                    estate: estate,
+                                    onTap:
+                                        () => _showJoinConfirmationDialog(
+                                          context,
+                                          estate.id ?? '',
+                                          estate.name,
+                                        ),
+                                  );
+                                },
+                              ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -179,7 +162,7 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 ref
-                    .read(estateJoinViewModelProvider.notifier)
+                    .read(joinRequestProvider.notifier)
                     .requestToJoinEstate(estateId);
                 context.go('${Routes.estateSelect}${Routes.estateJoinPending}');
               },

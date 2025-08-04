@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
+import 'package:lonepeak/providers/user_profile_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
-import 'package:lonepeak/ui/user_profile/view_models/user_profile_viewmodel.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -26,7 +26,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-      () => ref.read(userProfileViewModelProvider.notifier).getUserProfile(),
+      () => ref.read(userProfileProvider.notifier).getUserProfile(),
     );
   }
 
@@ -38,7 +38,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(userProfileViewModelProvider);
+    final userState = ref.watch(userProfileProvider);
     final estateState = ref.watch(estateProvider);
 
     return Scaffold(
@@ -56,243 +56,228 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child:
-              (state is UIStateLoading || estateState is UIStateLoading)
-                  ? const Center(child: CircularProgressIndicator())
-                  : (state is UIStateFailure)
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : (estateState is UIStateFailure)
-                  ? Center(child: Text('Error: ${estateState.error}'))
-                  : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+          child: userState.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('Error: $error')),
+            data:
+                (user) => estateState.when(
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
+                  data:
+                      (estate) => SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.person,
-                                size: 24,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Profile',
-                                    style: AppStyles.titleTextLarge(
-                                      context,
-                                    ).copyWith(fontSize: 28),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary
+                                        .withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
                                   ),
-                                  Text(
-                                    'Manage your account settings',
-                                    style: AppStyles.subtitleText(
-                                      context,
-                                    ).copyWith(fontSize: 16),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 24,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Profile',
+                                        style: AppStyles.titleTextLarge(
+                                          context,
+                                        ).copyWith(fontSize: 28),
+                                      ),
+                                      Text(
+                                        'Manage your account settings',
+                                        style: AppStyles.subtitleText(
+                                          context,
+                                        ).copyWith(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
+                            const SizedBox(height: 32),
+                            _buildPersonalInfoCard(user),
+                            const SizedBox(height: 32),
+                            _buildEstateCard(estate),
+                            const SizedBox(height: 32),
+                            _buildAccountActionsCard(),
+                            const SizedBox(height: 32),
                           ],
                         ),
-                        const SizedBox(height: 32),
-                        _buildPersonalInfoCard(),
-                        const SizedBox(height: 32),
-                        _buildEstateCard(),
-                        const SizedBox(height: 32),
-                        _buildAccountActionsCard(),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
+                      ),
+                ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPersonalInfoCard() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final user = ref.watch(userProfileViewModelProvider.notifier).user;
-
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          elevation: AppStyles.cardElevation,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppCardHeader(
-                  title: 'Personal Information',
-                  icon: Icons.person_outline,
-                  subtitle: 'Your personal account information',
-                  actions: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        color: AppColors.primary,
-                      ),
-                      tooltip: 'Edit',
-                      onPressed: () => {_showEditUserBottomSheet(user)},
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child:
-                            user?.photoUrl != null
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(40),
-                                  child: Image.network(
-                                    user!.photoUrl!,
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                                : const Text(
-                                  'f',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                      ),
-                    ],
+  Widget _buildPersonalInfoCard(User? user) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: AppStyles.cardElevation,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppCardHeader(
+              title: 'Personal Information',
+              icon: Icons.person_outline,
+              subtitle: 'Your personal account information',
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary,
                   ),
+                  tooltip: 'Edit',
+                  onPressed: () => {_showEditUserBottomSheet(user)},
                 ),
-                const SizedBox(height: 16),
-                AppInfoField(
-                  label: 'Display Name',
-                  value: user?.displayName ?? 'N/A',
-                ),
-                const SizedBox(height: 16),
-                AppInfoField(
-                  label: 'Email Address',
-                  value: user?.email ?? 'N/A',
-                ),
-                const SizedBox(height: 16),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEstateCard() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final currentEstate = ref.watch(estateProvider.notifier).estate;
-
-        // Check if estate is empty or unknown
-        if (currentEstate.id == null || currentEstate.id!.isEmpty) {
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            elevation: AppStyles.cardElevation,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 24),
+            Center(
+              child: Stack(
                 children: [
-                  AppCardHeader(
-                    title: 'Estate Information',
-                    icon: Icons.business_outlined,
-                    subtitle: 'Details about your current estate',
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child:
+                        user?.photoUrl != null
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: Image.network(
+                                user!.photoUrl!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                            : const Text(
+                              'f',
+                              style: TextStyle(
+                                fontSize: 28,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                   ),
-                  _buildEmptyEstateState(),
                 ],
               ),
             ),
-          );
-        }
+            const SizedBox(height: 16),
+            AppInfoField(
+              label: 'Display Name',
+              value: user?.displayName ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            AppInfoField(label: 'Email Address', value: user?.email ?? 'N/A'),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+  Widget _buildEstateCard(Estate? currentEstate) {
+    // Check if estate is empty or unknown
+    if (currentEstate == null ||
+        currentEstate.id == null ||
+        currentEstate.id!.isEmpty) {
+      return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        elevation: AppStyles.cardElevation,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppCardHeader(
+                title: 'Estate Information',
+                icon: Icons.business_outlined,
+                subtitle: 'Details about your current estate',
+              ),
+              _buildEmptyEstateState(),
+            ],
           ),
-          elevation: AppStyles.cardElevation,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppCardHeader(
-                  title: 'Estate Information',
-                  icon: Icons.business_outlined,
-                  subtitle: 'Details about your current estate',
+        ),
+      );
+    }
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: AppStyles.cardElevation,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppCardHeader(
+              title: 'Estate Information',
+              icon: Icons.business_outlined,
+              subtitle: 'Details about your current estate',
+            ),
+            const SizedBox(height: 24),
+            AppInfoField(
+              label: 'Estate Name',
+              value:
+                  currentEstate.name.isEmpty
+                      ? 'Unknown Estate'
+                      : currentEstate.name,
+            ),
+            const SizedBox(height: 16),
+            AppInfoField(
+              label: 'Address',
+              value:
+                  currentEstate.displayAddress.isEmpty
+                      ? 'Unknown Address'
+                      : currentEstate.displayAddress,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _confirmExitEstate,
+                icon: const Icon(Icons.exit_to_app),
+                label: const Text(
+                  'Exit Estate',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 24),
-                AppInfoField(
-                  label: 'Estate Name',
-                  value:
-                      currentEstate.name.isEmpty
-                          ? 'Unknown Estate'
-                          : currentEstate.name,
-                ),
-                const SizedBox(height: 16),
-                AppInfoField(
-                  label: 'Address',
-                  value:
-                      currentEstate.displayAddress.isEmpty
-                          ? 'Unknown Address'
-                          : currentEstate.displayAddress,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _confirmExitEstate,
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text(
-                      'Exit Estate',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
-                      side: BorderSide(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outline.withValues(alpha: 0.5),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onSurfaceVariant,
+                  side: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.5),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 
@@ -379,11 +364,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               AppElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
-                  final success =
-                      await ref
-                          .read(userProfileViewModelProvider.notifier)
-                          .logout();
-                  if (success && context.mounted) {
+                  await ref.read(userProfileProvider.notifier).signOut();
+                  if (context.mounted) {
                     context.go(Routes.welcome);
                   }
                 },
@@ -419,11 +401,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               AppElevatedButton(
                 onPressed: () async {
-                  final success =
-                      await ref
-                          .read(userProfileViewModelProvider.notifier)
-                          .exitEstate();
-                  if (success && context.mounted) {
+                  await ref.read(userProfileProvider.notifier).leaveEstate();
+                  if (context.mounted) {
                     context.go(Routes.estateSelect);
                   }
                 },
@@ -500,13 +479,26 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             AppElevatedButton(
                               onPressed: () async {
                                 if (formKey.currentState?.validate() ?? false) {
-                                  final notifier = ref.read(
-                                    userProfileViewModelProvider.notifier,
+                                  final userState = ref.read(
+                                    userProfileProvider,
                                   );
 
-                                  await notifier.update(
-                                    displayName: nameController.text.trim(),
-                                  );
+                                  userState.whenData((currentUser) async {
+                                    if (currentUser != null) {
+                                      final updatedUser = User(
+                                        displayName: nameController.text.trim(),
+                                        email: currentUser.email,
+                                        mobile: currentUser.mobile,
+                                        photoUrl: currentUser.photoUrl,
+                                        estateId: currentUser.estateId,
+                                        metadata: currentUser.metadata,
+                                      );
+
+                                      await ref
+                                          .read(userProfileProvider.notifier)
+                                          .updateUserProfile(updatedUser);
+                                    }
+                                  });
 
                                   if (!context.mounted) return;
                                   Navigator.of(context).pop();

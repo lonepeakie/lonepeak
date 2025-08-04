@@ -4,12 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
+import 'package:lonepeak/providers/treasury_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
-import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/filter_transactions.dart';
 import 'package:lonepeak/ui/estate_treasury/widgets/transaction_card.dart';
 
@@ -26,16 +25,14 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(treasuryViewModelProvider.notifier).loadTransactions();
+      ref.read(treasuryProvider.notifier).loadTransactions();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final treasuryState = ref.watch(treasuryViewModelProvider);
+    final treasuryState = ref.watch(treasuryProvider);
     final estateState = ref.watch(estateProvider);
-    final estate = ref.watch(estateProvider.notifier).estate;
-    final iban = estate.iban;
 
     return Scaffold(
       appBar: AppBar(
@@ -56,30 +53,40 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
         ],
       ),
       body: SafeArea(
-        child:
-            treasuryState.isLoading || estateState is UIStateLoading
-                ? const Center(child: CircularProgressIndicator())
-                : treasuryState.errorMessage != null
-                ? Center(child: Text('Error: ${treasuryState.errorMessage}'))
-                : estateState is UIStateFailure
-                ? Center(child: Text('Error: ${estateState.error}'))
-                : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildAccountOverviewCard(
-                        context,
-                        treasuryState.currentBalance,
-                        iban,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildRecentTransactionsContainer(
-                        treasuryState.transactions,
-                      ),
-                    ],
-                  ),
-                ),
+        child: estateState.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+          data:
+              (estate) => treasuryState.transactions.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data:
+                    (transactions) => treasuryState.currentBalance.when(
+                      loading:
+                          () =>
+                              const Center(child: CircularProgressIndicator()),
+                      error:
+                          (error, stack) =>
+                              Center(child: Text('Error: $error')),
+                      data:
+                          (balance) => SingleChildScrollView(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildAccountOverviewCard(
+                                  context,
+                                  balance,
+                                  estate?.iban,
+                                ),
+                                const SizedBox(height: 24),
+                                _buildRecentTransactionsContainer(transactions),
+                              ],
+                            ),
+                          ),
+                    ),
+              ),
+        ),
       ),
     );
   }
@@ -234,20 +241,20 @@ class _EstateTreasuryScreenState extends ConsumerState<EstateTreasuryScreen> {
                   isIncome: isIncome,
                 );
 
-                final result = await ref
-                    .read(treasuryViewModelProvider.notifier)
-                    .addTransaction(newTransaction);
+                try {
+                  await ref
+                      .read(treasuryProvider.notifier)
+                      .addTransaction(newTransaction);
 
-                if (result.isSuccess) {
                   navigator.pop();
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Transaction added successfully'),
                     ),
                   );
-                } else {
+                } catch (error) {
                   messenger.showSnackBar(
-                    SnackBar(content: Text('Error: ${result.error}')),
+                    SnackBar(content: Text('Error: $error')),
                   );
                 }
               } catch (e) {

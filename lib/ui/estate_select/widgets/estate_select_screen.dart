@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/estate_select/view_models/estate_select_viewmodel.dart';
+import 'package:lonepeak/providers/estate_select_provider.dart';
 
 class EstateSelectScreen extends ConsumerStatefulWidget {
   const EstateSelectScreen({super.key});
@@ -18,9 +17,7 @@ class _EstateSelectScreenState extends ConsumerState<EstateSelectScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(estateSelectViewModelProvider.notifier).loadUser();
-    });
+    // The provider will automatically load user data when first watched
   }
 
   @override
@@ -50,28 +47,24 @@ class _EstateSelectScreenState extends ConsumerState<EstateSelectScreen> {
           children: [
             Consumer(
               builder: (context, ref, child) {
-                final state = ref.watch(estateSelectViewModelProvider);
-                final viewModel = ref.watch(
-                  estateSelectViewModelProvider.notifier,
-                );
+                final userState = ref.watch(estateSelectUserProvider);
 
-                return switch (state) {
-                  UIStateLoading() => const CircularProgressIndicator(),
-                  UIStateFailure() => const Text(
-                    'Error loading display name',
-                    style: TextStyle(fontSize: 16, color: Colors.red),
-                  ),
-                  UIStateSuccess() => Text(
-                    'Welcome, ${viewModel.user.displayName.isNotEmpty ? viewModel.user.displayName : 'User'}!',
-                    style: AppStyles.titleTextLarge(context),
-                    textAlign: TextAlign.center,
-                  ),
-                  _ => Text(
-                    'Welcome!',
-                    style: AppStyles.titleTextLarge(context),
-                    textAlign: TextAlign.center,
-                  ),
-                };
+                return userState.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error:
+                      (error, stack) => const Text(
+                        'Error loading display name',
+                        style: TextStyle(fontSize: 16, color: Colors.red),
+                      ),
+                  data: (user) {
+                    final displayName = user?.displayName;
+                    return Text(
+                      'Welcome, ${displayName?.isNotEmpty == true ? displayName : 'User'}!',
+                      style: AppStyles.titleTextLarge(context),
+                      textAlign: TextAlign.center,
+                    );
+                  },
+                );
               },
             ),
             const SizedBox(height: 10),

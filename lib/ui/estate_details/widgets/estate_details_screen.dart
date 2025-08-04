@@ -3,14 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
+import 'package:lonepeak/providers/estate_details_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/estate_details/view_models/estate_details_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EstateDetailsScreen extends ConsumerStatefulWidget {
@@ -24,112 +23,116 @@ class EstateDetailsScreen extends ConsumerStatefulWidget {
 class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    ref.listen<UIState>(estateDetailsViewModelProvider, (previous, next) {
-      if (next is UIStateFailure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error), backgroundColor: Colors.red),
-        );
-      }
+    final detailsState = ref.watch(estateDetailsProvider);
+    final estateState = ref.watch(estateProvider);
+
+    ref.listen<AsyncValue<void>>(estateDetailsProvider, (previous, next) {
+      next.when(
+        data: (_) {}, // Success - no action needed
+        loading: () {}, // Loading - no action needed
+        error: (error, stack) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      );
     });
 
     return Scaffold(
       appBar: AppBar(title: const AppbarTitle(text: 'Details')),
-      body: Consumer(
-        builder: (context, ref, child) {
-          final detailsState = ref.watch(estateDetailsViewModelProvider);
-
-          return SafeArea(
-            child: Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      _buildBasicInfoCard(),
-                      const SizedBox(height: 16),
-                      _buildWebLinksCard(),
-                    ],
+      body: estateState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data:
+            (estate) => SafeArea(
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildBasicInfoCard(estate),
+                        const SizedBox(height: 16),
+                        _buildWebLinksCard(estate),
+                      ],
+                    ),
                   ),
-                ),
-                if (detailsState is UIStateLoading)
-                  Container(
-                    color: Colors.black54,
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-              ],
+                  if (detailsState.isLoading)
+                    Container(
+                      color: Colors.black54,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              ),
             ),
-          );
-        },
       ),
     );
   }
 
-  Widget _buildBasicInfoCard() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final currentEstate = ref.watch(estateProvider.notifier).estate;
+  Widget _buildBasicInfoCard(Estate? estate) {
+    if (estate == null) {
+      return const Center(child: Text('No estate data available'));
+    }
 
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          elevation: AppStyles.cardElevation,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppCardHeader(
-                  title: 'Basic Information',
-                  icon: Icons.business_outlined,
-                  subtitle: 'Manage your estate details',
-                  actions: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        color: AppColors.primary,
-                      ),
-                      tooltip: 'Edit',
-                      onPressed:
-                          () => _showEditEstateBottomSheet(currentEstate),
-                    ),
-                  ],
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: AppStyles.cardElevation,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppCardHeader(
+              title: 'Basic Information',
+              icon: Icons.business_outlined,
+              subtitle: 'Manage your estate details',
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary,
+                  ),
+                  tooltip: 'Edit',
+                  onPressed: () => _showEditEstateBottomSheet(estate),
                 ),
-                const SizedBox(height: 24),
-                AppInfoField(
-                  label: 'Estate Name',
-                  value:
-                      currentEstate.name.isEmpty
-                          ? 'Unknown Estate'
-                          : currentEstate.name,
-                ),
-                const SizedBox(height: 16),
-                AppInfoField(
-                  label: 'Address',
-                  value:
-                      currentEstate.displayAddress.isEmpty
-                          ? 'Unknown Address'
-                          : currentEstate.displayAddress,
-                ),
-                const SizedBox(height: 16),
-                AppInfoField(
-                  label: 'Description',
-                  value:
-                      currentEstate.description?.isEmpty ?? true
-                          ? 'Unknown Description'
-                          : currentEstate.description!,
-                ),
-                const SizedBox(height: 16),
               ],
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 24),
+            AppInfoField(
+              label: 'Estate Name',
+              value: estate.name.isEmpty ? 'Unknown Estate' : estate.name,
+            ),
+            const SizedBox(height: 16),
+            AppInfoField(
+              label: 'Address',
+              value:
+                  estate.displayAddress.isEmpty
+                      ? 'Unknown Address'
+                      : estate.displayAddress,
+            ),
+            const SizedBox(height: 16),
+            AppInfoField(
+              label: 'Description',
+              value:
+                  estate.description?.isEmpty ?? true
+                      ? 'Unknown Description'
+                      : estate.description!,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildWebLinksCard() {
-    final estate = ref.watch(estateProvider.notifier).estate;
+  Widget _buildWebLinksCard(Estate? estate) {
+    if (estate == null) {
+      return const Center(child: Text('No estate data available'));
+    }
+
     var webLinks = estate.webLinks ?? [];
 
     return Card(
@@ -395,19 +398,28 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                             AppElevatedButton(
                               onPressed: () async {
                                 if (formKey.currentState?.validate() ?? false) {
-                                  final notifier = ref.read(
-                                    estateDetailsViewModelProvider.notifier,
-                                  );
+                                  try {
+                                    await ref
+                                        .read(estateDetailsProvider.notifier)
+                                        .updateBasicInfo(
+                                          name: nameController.text.trim(),
+                                          address:
+                                              addressController.text.trim(),
+                                          description:
+                                              descriptionController.text.trim(),
+                                        );
 
-                                  await notifier.updateBasicInfo(
-                                    name: nameController.text.trim(),
-                                    address: addressController.text.trim(),
-                                    description:
-                                        descriptionController.text.trim(),
-                                  );
-
-                                  if (!context.mounted) return;
-                                  Navigator.of(context).pop();
+                                    if (!context.mounted) return;
+                                    Navigator.of(context).pop();
+                                  } catch (error) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: $error'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                               buttonText: 'Update',
@@ -561,7 +573,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             AppElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (formKey.currentState?.validate() ?? false) {
                                   // Normalize the URL
                                   String normalizedUrl =
@@ -576,11 +588,23 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                                     url: normalizedUrl,
                                     category: selectedCategory,
                                   );
-                                  final notifier = ref.read(
-                                    estateDetailsViewModelProvider.notifier,
-                                  );
-                                  notifier.addWebLink(result);
-                                  Navigator.of(context).pop(result);
+
+                                  try {
+                                    await ref
+                                        .read(estateDetailsProvider.notifier)
+                                        .addWebLink(result);
+
+                                    if (!context.mounted) return;
+                                    Navigator.of(context).pop(result);
+                                  } catch (error) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: $error'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                               buttonText: 'Add',
@@ -613,12 +637,23 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
-                  final notifier = ref.read(
-                    estateDetailsViewModelProvider.notifier,
-                  );
-                  notifier.deleteWebLink(link);
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  try {
+                    await ref
+                        .read(estateDetailsProvider.notifier)
+                        .deleteWebLink(link);
+
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop();
+                  } catch (error) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $error'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Delete'),

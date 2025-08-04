@@ -2,47 +2,94 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/domain/models/estate.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 
-final estateProvider = StateNotifierProvider<EstateProvider, UIState>((ref) {
-  final estateRepository = ref.watch(estateRepositoryProvider);
-  return EstateProvider(estateRepository);
-});
+final estateProvider =
+    StateNotifierProvider<EstateProvider, AsyncValue<Estate?>>((ref) {
+      final estateRepository = ref.watch(estateRepositoryProvider);
+      return EstateProvider(estateRepository: estateRepository);
+    });
 
-class EstateProvider extends StateNotifier<UIState> {
-  EstateProvider(this._estateRepository) : super(UIStateLoading()) {
-    loadEstate();
-  }
+class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
+  EstateProvider({required EstateRepository estateRepository})
+    : _estateRepository = estateRepository,
+      super(const AsyncValue.data(null));
 
   final EstateRepository _estateRepository;
-  Estate _estate = Estate.empty();
+  Estate? _cachedEstate;
 
-  Estate get estate => _estate;
+  Estate? get currentEstate => _cachedEstate;
 
-  Future<void> loadEstate() async {
-    state = UIStateLoading();
+  Future<Estate?> getCurrentEstate() async {
+    if (_cachedEstate != null) {
+      state = AsyncValue.data(_cachedEstate);
+      return _cachedEstate;
+    }
 
-    final result = await _estateRepository.getEstate();
+    state = const AsyncValue.loading();
 
-    if (result.isSuccess) {
-      _estate = result.data ?? Estate.empty();
-      state = UIStateSuccess();
-    } else {
-      state = UIStateFailure(result.error ?? 'Unknown error');
+    try {
+      final result = await _estateRepository.getEstate();
+
+      if (result.isFailure) {
+        state = AsyncValue.error(
+          Exception('Failed to fetch estate: ${result.error}'),
+          StackTrace.current,
+        );
+        return null;
+      }
+
+      final estate = result.data ?? Estate.empty();
+      _cachedEstate = estate;
+      state = AsyncValue.data(estate);
+      return estate;
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      return null;
     }
   }
 
-  Future<void> clearEstate() async {
-    _estate = Estate.empty();
-    state = UIStateInitial();
+  void clearEstate() {
+    _cachedEstate = null;
+    state = const AsyncValue.data(null);
   }
 
-  Future<void> refreshEstate() async {
-    await loadEstate();
+  Future<Estate?> refreshEstate() async {
+    _cachedEstate = null;
+    return await getCurrentEstate();
   }
 
-  void updateEstate(Estate estate) {
-    _estate = estate;
-    state = UIStateSuccess();
+  Future<void> updateCurrentEstate(Estate estate) async {
+    try {
+      state = const AsyncValue.loading();
+
+      final result = await _estateRepository.updateEstate(estate);
+
+      if (result.isFailure) {
+        state = AsyncValue.error(
+          Exception('Failed to update estate: ${result.error}'),
+          StackTrace.current,
+        );
+        return;
+      }
+
+      _cachedEstate = estate;
+      state = AsyncValue.data(estate);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<List<Estate>?> getPublicEstates() async {
+    try {
+      final result = await _estateRepository.getPublicEstates();
+
+      if (result.isFailure) {
+        throw Exception('Failed to fetch public estates: ${result.error}');
+      }
+
+      return result.data ?? [];
+    } catch (error) {
+      throw Exception('Failed to fetch public estates: $error');
+    }
   }
 }

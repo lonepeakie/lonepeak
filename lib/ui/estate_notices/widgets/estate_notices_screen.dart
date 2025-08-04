@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/providers/notices_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
-import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 
 class EstateNoticesScreen extends ConsumerStatefulWidget {
   const EstateNoticesScreen({super.key});
@@ -23,15 +22,12 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(estateNoticesViewModelProvider.notifier).getNotices(),
-    );
+    // The provider will automatically load notices when watched
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(estateNoticesViewModelProvider);
-    final notices = ref.read(estateNoticesViewModelProvider.notifier).notices;
+    final noticesState = ref.watch(noticesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,12 +45,34 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (state is UIStateLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (state is UIStateFailure)
-                Center(child: Text('Error: ${state.error}'))
-              else
-                ...notices.map((notice) => NoticeCard(notice: notice)),
+              noticesState.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error:
+                    (error, stack) => Center(
+                      child: Column(
+                        children: [
+                          Text('Error: $error'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(noticesProvider),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                data:
+                    (notices) =>
+                        notices.isEmpty
+                            ? const Center(child: Text('No notices available'))
+                            : Column(
+                              children:
+                                  notices
+                                      .map(
+                                        (notice) => NoticeCard(notice: notice),
+                                      )
+                                      .toList(),
+                            ),
+              ),
             ],
           ),
         ),
@@ -159,7 +177,7 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           AppElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (!formKey.currentState!.validate()) {
                                 return;
                               }
@@ -168,12 +186,32 @@ class _EstateNoticesScreenState extends ConsumerState<EstateNoticesScreen> {
                                 message: contentController.text,
                                 type: selectedType,
                               );
-                              final notifier = ref.read(
-                                estateNoticesViewModelProvider.notifier,
-                              );
-                              notifier.addNotice(newNotice);
-                              notifier.getNotices();
-                              Navigator.of(context).pop();
+
+                              try {
+                                await ref
+                                    .read(noticesProvider.notifier)
+                                    .addNotice(newNotice);
+                                if (!context.mounted) return;
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Notice created successfully',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } catch (error) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Error creating notice: $error',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             },
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,

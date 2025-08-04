@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/document.dart';
+import 'package:lonepeak/providers/documents_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
-import 'package:lonepeak/ui/estate_documents/view_models/estate_documents_viewmodel.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/create_folder_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_breadcrumbs.dart';
 import 'package:lonepeak/ui/estate_documents/widgets/document_tile.dart';
@@ -23,10 +22,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
   @override
   void initState() {
     super.initState();
-    // Load documents when the screen initializes
-    Future.microtask(
-      () => ref.read(estateDocumentsViewModelProvider.notifier).loadDocuments(),
-    );
+    // The provider will automatically load documents when watched
   }
 
   @override
@@ -37,10 +33,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(estateDocumentsViewModelProvider);
-    final viewModel = ref.read(estateDocumentsViewModelProvider.notifier);
-    final documents = viewModel.documents;
-    final breadcrumbs = viewModel.breadcrumbs;
+    final documentsState = ref.watch(documentsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,58 +47,96 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
           ),
         ],
       ),
-      body:
-          state is UIStateLoading
-              ? const Center(child: CircularProgressIndicator())
-              : state is UIStateFailure
-              ? Center(child: Text('Error: ${state.error}'))
-              : Column(
+      body: documentsState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Breadcrumb navigation
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: DocumentBreadcrumbs(
-                      breadcrumbs: breadcrumbs,
-                      onBreadcrumbTap: (doc) {
-                        viewModel.navigateToFolder(doc);
-                      },
-                      onHomePressed: () {
-                        viewModel.loadDocuments();
-                      },
-                    ),
-                  ),
-
-                  // Documents list
-                  Expanded(
-                    child:
-                        documents.isEmpty
-                            ? _buildEmptyState()
-                            : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: documents.length,
-                              itemBuilder: (context, index) {
-                                final document = documents[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: DocumentTile(
-                                    document: document,
-                                    isSelected: false, // No selection needed
-                                    onTap: () {
-                                      if (document.type ==
-                                          DocumentType.folder) {
-                                        viewModel.navigateToFolder(document);
-                                      } else {
-                                        // Show a quick preview or actions for files
-                                        _showFileOptions(context, document);
-                                      }
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
+                  Text('Error: $error'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(documentsProvider),
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
+            ),
+        data:
+            (documents) => Column(
+              children: [
+                // Breadcrumb navigation
+                Consumer(
+                  builder: (context, ref, _) {
+                    final breadcrumbs =
+                        ref.read(documentsProvider.notifier).breadcrumbs;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: DocumentBreadcrumbs(
+                        breadcrumbs: breadcrumbs,
+                        onBreadcrumbTap: (doc) async {
+                          try {
+                            await ref
+                                .read(documentsProvider.notifier)
+                                .navigateToFolder(doc);
+                          } catch (error) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $error')),
+                            );
+                          }
+                        },
+                        onHomePressed: () async {
+                          try {
+                            await ref
+                                .read(documentsProvider.notifier)
+                                .loadDocuments();
+                          } catch (error) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $error')),
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+
+                // Documents list
+                Expanded(
+                  child:
+                      documents.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: documents.length,
+                            itemBuilder: (context, index) {
+                              final document = documents[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: DocumentTile(
+                                  document: document,
+                                  isSelected: false, // No selection needed
+                                  onTap: () {
+                                    if (document.type == DocumentType.folder) {
+                                      ref
+                                          .read(documentsProvider.notifier)
+                                          .navigateToFolder(document);
+                                    } else {
+                                      // Show a quick preview or actions for files
+                                      _showFileOptions(context, document);
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                ),
+              ],
+            ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showCreateOptions(context);
@@ -229,9 +260,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
       builder: (context) {
         return CreateFolderDialog(
           onCreateFolder: (name) {
-            ref
-                .read(estateDocumentsViewModelProvider.notifier)
-                .createFolder(name);
+            ref.read(documentsProvider.notifier).createFolder(name);
           },
         );
       },
@@ -239,7 +268,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
   }
 
   void _handleFileUpload() async {
-    final viewModel = ref.read(estateDocumentsViewModelProvider.notifier);
+    final documentsNotifier = ref.read(documentsProvider.notifier);
 
     // Show loading indicator
     ScaffoldMessenger.of(context).showSnackBar(
@@ -256,7 +285,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     );
 
     // Pick and upload file
-    final success = await viewModel.pickAndUploadFile();
+    final success = await documentsNotifier.pickAndUploadFile();
 
     if (success) {
       if (mounted) {
@@ -298,7 +327,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 ref
-                    .read(estateDocumentsViewModelProvider.notifier)
+                    .read(documentsProvider.notifier)
                     .deleteDocument(document.id!);
               },
               style: ElevatedButton.styleFrom(
@@ -342,9 +371,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 Navigator.pop(context);
                 final query = _searchController.text.trim();
                 if (query.isNotEmpty) {
-                  ref
-                      .read(estateDocumentsViewModelProvider.notifier)
-                      .searchDocuments(query);
+                  ref.read(documentsProvider.notifier).searchDocuments(query);
                 }
                 _searchController.clear();
               },
