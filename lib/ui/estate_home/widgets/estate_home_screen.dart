@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
-import 'package:lonepeak/providers/estate_home_provider.dart';
+import 'package:lonepeak/providers/member_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 
 class EstateHomeScreen extends ConsumerWidget {
@@ -10,7 +10,7 @@ class EstateHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final memberState = ref.watch(estateHomeProvider);
+    final memberState = ref.watch(currentMemberProvider);
 
     return memberState.when(
       loading:
@@ -37,7 +37,7 @@ class EstateHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      ref.invalidate(estateHomeProvider);
+                      ref.invalidate(currentMemberProvider);
                     },
                     child: const Text('Retry'),
                   ),

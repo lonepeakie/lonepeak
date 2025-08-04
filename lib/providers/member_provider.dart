@@ -1,19 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/members/members_repository.dart';
 import 'package:lonepeak/data/repositories/members/members_repository_firestore.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/utils/log_printer.dart';
 
-/// Provider for current authenticated member with caching
-final memberProvider =
+final currentMemberProvider =
     StateNotifierProvider<MemberProvider, AsyncValue<Member?>>((ref) {
       final repository = ref.watch(membersRepositoryProvider);
       final appState = ref.watch(appStateProvider);
       return MemberProvider(repository, appState);
     });
 
-/// Provider for all estate members with management capabilities
+// Provider to check if current member has admin privileges
+final hasAdminPrivilegesProvider = FutureProvider<bool>((ref) async {
+  final memberAsync = ref.watch(currentMemberProvider);
+  return memberAsync.when(
+    data:
+        (member) =>
+            member != null ? RoleType.hasAdminPrivileges(member.role) : false,
+    loading: () => false,
+    error: (_, __) => false,
+  );
+});
+
 final estateMembersProvider =
     StateNotifierProvider<EstateMembersProvider, AsyncValue<List<Member>>>((
       ref,
@@ -23,7 +35,17 @@ final estateMembersProvider =
       return EstateMembersProvider(repository, appState);
     });
 
-/// Provider for active members only
+final estateMembersCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(membersRepositoryProvider);
+  final result = await repository.getMemberCount();
+
+  if (result.isFailure) {
+    throw Exception('Failed to fetch members count: ${result.error}');
+  }
+
+  return result.data ?? 0;
+});
+
 final activeMembersProvider = FutureProvider<List<Member>>((ref) async {
   final repository = ref.watch(membersRepositoryProvider);
   final result = await repository.getMembers();
@@ -37,7 +59,24 @@ final activeMembersProvider = FutureProvider<List<Member>>((ref) async {
       .toList();
 });
 
-/// Provider for pending members (awaiting approval)
+final committeeProvider = FutureProvider<List<Member>>((ref) async {
+  final repository = ref.watch(membersRepositoryProvider);
+  final roles = [
+    'president',
+    'vicepresident',
+    'secretary',
+    'treasurer',
+    'admin',
+  ];
+  final result = await repository.getMembersByRoles(roles);
+
+  if (result.isFailure) {
+    throw Exception('Failed to fetch committee members: ${result.error}');
+  }
+
+  return result.data ?? [];
+});
+
 final pendingMembersProvider = FutureProvider<List<Member>>((ref) async {
   final repository = ref.watch(membersRepositoryProvider);
   final result = await repository.getMembers();
@@ -51,7 +90,6 @@ final pendingMembersProvider = FutureProvider<List<Member>>((ref) async {
       .toList();
 });
 
-/// Provider for pending members count
 final pendingMembersCountProvider = FutureProvider<int>((ref) async {
   final pendingMembers = await ref.watch(pendingMembersProvider.future);
   return pendingMembers.length;
@@ -59,31 +97,46 @@ final pendingMembersCountProvider = FutureProvider<int>((ref) async {
 
 class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
   MemberProvider(this._repository, this._appState)
-    : super(const AsyncValue.data(null));
+    : super(const AsyncValue.loading()) {
+    _loadCurrentMember();
+  }
 
   final MembersRepository _repository;
   final AppState _appState;
-  Member? _cachedMember;
+  final _log = Logger(printer: PrefixedLogPrinter('MemberProvider'));
 
-  /// Get current member from cache or fetch if not available
+  Future<void> _loadCurrentMember() async {
+    await getCurrentMember();
+  }
+
+  void ensureMemberLoaded() {
+    if (state is! AsyncLoading && !state.hasValue) {
+      _loadCurrentMember();
+    }
+  }
+
   Future<Member?> getCurrentMember() async {
-    if (_cachedMember != null) {
-      state = AsyncValue.data(_cachedMember);
-      return _cachedMember;
+    if (state.hasValue && state.value != null && state is! AsyncError) {
+      return state.value;
     }
 
-    state = const AsyncValue.loading();
+    if (state is! AsyncLoading) {
+      state = const AsyncValue.loading();
+    }
 
     try {
       final userId = _appState.getUserId();
       if (userId == null) {
+        _log.w('No user ID found, returning null member');
         state = const AsyncValue.data(null);
         return null;
       }
 
+      _log.i('Fetching current member for user: $userId');
       final result = await _repository.getMemberById(userId);
 
       if (result.isFailure) {
+        _log.e('Failed to fetch current member: ${result.error}');
         state = AsyncValue.error(
           Exception('Failed to fetch current member: ${result.error}'),
           StackTrace.current,
@@ -91,60 +144,61 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
         return null;
       }
 
-      _cachedMember = result.data;
-      state = AsyncValue.data(_cachedMember);
-
-      // Update app state with user role
-      if (_cachedMember != null) {
-        await _appState.setUserRole(_cachedMember!.role.name);
-      }
-
-      return _cachedMember;
+      final member = result.data;
+      _log.i('Successfully fetched member: ${member?.email ?? 'null'}');
+      state = AsyncValue.data(member);
+      return member;
     } catch (error, stackTrace) {
+      _log.e(
+        'Error fetching current member: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
       state = AsyncValue.error(error, stackTrace);
       return null;
     }
   }
 
-  /// Update current member and refresh cache
   Future<void> updateCurrentMember(Member member) async {
     try {
+      _log.i('Updating current member: ${member.email}');
+
       final result = await _repository.updateMember(member);
 
       if (result.isFailure) {
+        _log.e('Failed to update member: ${result.error}');
         throw Exception('Failed to update member: ${result.error}');
       }
 
-      _cachedMember = member;
-      state = AsyncValue.data(_cachedMember);
-
-      // Update app state with new role
-      await _appState.setUserRole(member.role.name);
-    } catch (error) {
-      throw error;
+      _log.i('Successfully updated member: ${member.email}');
+      state = AsyncValue.data(member);
+    } catch (error, stackTrace) {
+      _log.e(
+        'Error updating current member: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 
-  /// Get cached member (synchronous)
-  Member? get cachedMember => _cachedMember;
+  Member? get cachedMember => state.value;
 
-  /// Check if current user has admin privileges
   Future<bool> hasAdminPrivileges() async {
-    final role = await _appState.getUserRole();
-    if (role != null) {
-      return RoleType.hasAdminPrivileges(RoleType.fromString(role));
-    }
-
     final member = await getCurrentMember();
     if (member == null) return false;
 
     return RoleType.hasAdminPrivileges(member.role);
   }
 
-  /// Clear cached member data
   void clearMember() {
-    _cachedMember = null;
     state = const AsyncValue.data(null);
+  }
+
+  Future<void> refreshMember() async {
+    state = const AsyncValue.loading();
+    await getCurrentMember();
   }
 }
 
@@ -156,7 +210,6 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
   final AppState _appState;
   List<Member> _cachedMembers = [];
 
-  /// Get all members from cache or fetch
   Future<void> getMembers() async {
     if (_cachedMembers.isNotEmpty) {
       state = AsyncValue.data([..._cachedMembers]);
@@ -179,28 +232,26 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
       _cachedMembers = result.data ?? [];
       state = AsyncValue.data([..._cachedMembers]);
 
-      // Update current user role in app state
       await _updateCurrentUserRoleInAppState();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
   }
 
-  /// Update current user's role in app state
   Future<void> _updateCurrentUserRoleInAppState() async {
     final userEmail = _appState.getUserId();
     if (userEmail == null) return;
 
-    final memberIndex = _cachedMembers.indexWhere(
+    final hasCurrentUser = _cachedMembers.any(
       (member) => member.email == userEmail,
     );
 
-    if (memberIndex != -1) {
-      await _appState.setUserRole(_cachedMembers[memberIndex].role.name);
+    if (hasCurrentUser) {
+      // Current user is found in the estate members
+      // App state can be updated here if needed for permissions/role management
     }
   }
 
-  /// Update member status (approve/reject)
   Future<void> updateMemberStatus(
     String memberEmail,
     MemberStatus newStatus,
@@ -236,17 +287,14 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
     }
   }
 
-  /// Approve a pending member
   Future<void> approveMember(String memberEmail) async {
     await updateMemberStatus(memberEmail, MemberStatus.active);
   }
 
-  /// Reject a pending member
   Future<void> rejectMember(String memberEmail) async {
     await updateMemberStatus(memberEmail, MemberStatus.inactive);
   }
 
-  /// Update member role
   Future<void> updateMemberRole(String memberEmail, RoleType newRole) async {
     try {
       final memberIndex = _cachedMembers.indexWhere(
@@ -279,7 +327,6 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
     }
   }
 
-  /// Remove a member from the estate
   Future<void> removeMember(String memberEmail) async {
     try {
       final result = await _repository.deleteMember(memberEmail);
@@ -295,40 +342,33 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
     }
   }
 
-  /// Get active members only
   List<Member> get activeMembers =>
       _cachedMembers
           .where((member) => member.status == MemberStatus.active)
           .toList();
 
-  /// Get pending members only
   List<Member> get pendingMembers =>
       _cachedMembers
           .where((member) => member.status == MemberStatus.pending)
           .toList();
 
-  /// Get pending members count
   int get pendingMembersCount =>
       _cachedMembers
           .where((member) => member.status == MemberStatus.pending)
           .length;
 
-  /// Get cached members (synchronous)
   List<Member> get cachedMembers => _cachedMembers;
 
-  /// Refresh members from repository
   Future<void> refreshMembers() async {
     _cachedMembers.clear();
     await getMembers();
   }
 
-  /// Clear cached members
   void clearMembers() {
     _cachedMembers.clear();
     state = const AsyncValue.data([]);
   }
 
-  /// Search members by name or email
   List<Member> searchMembers(String query) {
     if (query.isEmpty) return _cachedMembers;
 
@@ -342,12 +382,10 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
         .toList();
   }
 
-  /// Get members by status
   List<Member> getMembersByStatus(MemberStatus status) {
     return _cachedMembers.where((member) => member.status == status).toList();
   }
 
-  /// Get members by role
   List<Member> getMembersByRole(RoleType role) {
     return _cachedMembers.where((member) => member.role == role).toList();
   }

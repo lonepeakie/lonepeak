@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
-import 'package:lonepeak/providers/dashboard_providers.dart';
+import 'package:lonepeak/providers/member_provider.dart';
+import 'package:lonepeak/providers/notices_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -17,15 +18,6 @@ class EstateDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final estateState = ref.watch(estateProvider);
 
-    // Trigger estate loading if not already loaded
-    ref.listen(estateProvider, (previous, next) {
-      if (previous == null || (previous.value == null && next.value == null)) {
-        Future.microtask(() {
-          ref.read(estateProvider.notifier).getCurrentEstate();
-        });
-      }
-    });
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -33,7 +25,6 @@ class EstateDashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Estate Header Section
               estateState.when(
                 data: (estateData) {
                   if (estateData == null) {
@@ -48,7 +39,6 @@ class EstateDashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              // Dashboard Content
               _buildDashboardContent(context, ref),
             ],
           ),
@@ -188,7 +178,7 @@ class EstateDashboardScreen extends ConsumerWidget {
   }
 
   Card _overviewCard(BuildContext context, WidgetRef ref) {
-    final membersCountAsync = ref.watch(membersCountProvider);
+    final membersCountAsync = ref.watch(estateMembersCountProvider);
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),

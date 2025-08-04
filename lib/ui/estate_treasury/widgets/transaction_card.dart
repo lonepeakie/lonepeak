@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lonepeak/providers/treasury_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 
 class TransactionCard extends ConsumerWidget {
   const TransactionCard({super.key, required this.transaction});
@@ -133,27 +133,29 @@ class TransactionCard extends ConsumerWidget {
               child: const Text('Cancel'),
             ),
             AppButton(
-              onPressed: () {
+              onPressed: () async {
                 if (transaction.id != null) {
-                  ref
-                      .read(treasuryViewModelProvider.notifier)
-                      .deleteTransaction(transaction.id!)
-                      .then((result) {
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                          if (result.isFailure && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${result.error}')),
-                            );
-                          }
-                        } else if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Transaction deleted successfully'),
-                            ),
-                          );
-                        }
-                      });
+                  try {
+                    await ref
+                        .read(treasuryProvider.notifier)
+                        .deleteTransaction(transaction.id!);
+
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Transaction deleted successfully'),
+                        ),
+                      );
+                    }
+                  } catch (error) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Error: $error')));
+                    }
+                  }
                 } else {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(

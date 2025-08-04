@@ -109,14 +109,6 @@ class UserSiginFeature {
       );
     }
 
-    final clearRoleResult = await _appState.clearUserRole();
-    if (clearRoleResult.isFailure) {
-      _log.e('Failed to clear user role: ${clearRoleResult.error}');
-      return Result.failure(
-        clearRoleResult.error ?? 'Failed to clear user role',
-      );
-    }
-
     return Result.success(true);
   }
 }

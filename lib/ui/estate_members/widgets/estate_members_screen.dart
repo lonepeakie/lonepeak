@@ -37,7 +37,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   void _showMemberActionSheet(BuildContext context, Member member) async {
     try {
       final hasAdminAccess =
-          await ref.read(memberProvider.notifier).hasAdminPrivileges();
+          await ref.read(currentMemberProvider.notifier).hasAdminPrivileges();
       if (!context.mounted) return;
 
       if (!hasAdminAccess) {
@@ -262,7 +262,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   @override
   Widget build(BuildContext context) {
     final membersState = ref.watch(estateMembersProvider);
-    final memberState = ref.watch(memberProvider);
+    final memberState = ref.watch(currentMemberProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -274,7 +274,9 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
             data:
                 (member) => FutureBuilder<bool>(
                   future:
-                      ref.read(memberProvider.notifier).hasAdminPrivileges(),
+                      ref
+                          .read(currentMemberProvider.notifier)
+                          .hasAdminPrivileges(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data == true) {
                       return Consumer(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lonepeak/ui/login/view_models/login_viewmodel.dart';
+import 'package:lonepeak/providers/auth_provider.dart';
 
 class GoogleSignInButton extends ConsumerWidget {
   const GoogleSignInButton({super.key});
@@ -18,7 +18,7 @@ class GoogleSignInButton extends ConsumerWidget {
             GestureDetector(
               onTap: () async {
                 final success =
-                    await ref.read(loginViewModelProvider.notifier).logIn();
+                    await ref.read(authProvider.notifier).signInWithGoogle();
                 if (!success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

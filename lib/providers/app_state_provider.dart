@@ -42,10 +42,8 @@ class AppState {
   final _log = Logger(printer: PrefixedLogPrinter('AuthRepositoryFirebase'));
 
   static const String _estateIdKey = 'estate_id';
-  static const String _userRoleKey = 'user_role';
 
   String? _estateId;
-  String? _userRole;
 
   Future<String?> getEstateId() async {
     if (_estateId != null) return _estateId;
@@ -83,43 +81,10 @@ class AppState {
     }
   }
 
-  Future<String?> getUserRole() async {
-    if (_userRole != null) return _userRole;
-
-    return _loadUserRole();
-  }
-
-  Future<Result<void>> setUserRole(String role) async {
-    _userRole = role;
-
-    try {
-      await _secureStorage.write(key: _userRoleKey, value: role);
-      return Result.success(null);
-    } catch (e) {
-      return Result.failure('Failed to save user role: $e');
-    }
-  }
-
-  Future<Result<void>> clearUserRole() async {
-    _userRole = null;
-
-    try {
-      await _secureStorage.delete(key: _userRoleKey);
-      return Result.success(null);
-    } catch (e) {
-      return Result.failure('Failed to clear user role: $e');
-    }
-  }
-
   Future<Result<void>> initAppData() async {
     final estateId = await getEstateId();
     if (estateId == null || estateId.isEmpty) {
       return Result.failure('Estate ID is not set');
-    }
-
-    final userRole = await getUserRole();
-    if (userRole == null || userRole.isEmpty) {
-      return Result.failure('User role is not set');
     }
 
     return Result.success(null);
@@ -127,7 +92,6 @@ class AppState {
 
   Future<void> clearAppData() async {
     await clearEstateId();
-    await clearUserRole();
   }
 
   Future<String?> _loadEstateId() async {
@@ -192,14 +156,5 @@ class AppState {
     }
 
     return estateId;
-  }
-
-  Future<String?> _loadUserRole() async {
-    try {
-      _userRole = await _secureStorage.read(key: _userRoleKey);
-      return _userRole;
-    } catch (e) {
-      return null;
-    }
   }
 }

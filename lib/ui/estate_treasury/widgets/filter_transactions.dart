@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lonepeak/providers/treasury_provider.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
-import 'package:lonepeak/ui/estate_treasury/view_models/transaction_filters.dart';
-import 'package:lonepeak/ui/estate_treasury/view_models/treasury_viewmodel.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 
@@ -27,7 +26,7 @@ class _FilterTransactionsBottomSheetState
   @override
   void initState() {
     super.initState();
-    final currentFilters = ref.read(treasuryViewModelProvider).filters;
+    final currentFilters = ref.read(treasuryProvider).filters;
 
     if (currentFilters.startDate != null) {
       _startDateController.text = _parserFormat.format(
@@ -61,7 +60,7 @@ class _FilterTransactionsBottomSheetState
       isIncome: _isIncome,
     );
 
-    ref.read(treasuryViewModelProvider.notifier).setFilters(newFilters);
+    ref.read(treasuryProvider.notifier).applyFilters(newFilters);
     Navigator.pop(context);
   }
 
