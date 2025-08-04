@@ -4,23 +4,11 @@ import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/providers/member_provider.dart';
 
-class PendingMembersScreen extends ConsumerStatefulWidget {
+class PendingMembersScreen extends ConsumerWidget {
   const PendingMembersScreen({super.key});
 
   @override
-  ConsumerState<PendingMembersScreen> createState() =>
-      _PendingMembersScreenState();
-}
-
-class _PendingMembersScreenState extends ConsumerState<PendingMembersScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load members when first watched
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pendingMembersState = ref.watch(pendingMembersProvider);
 
     return Scaffold(
@@ -131,7 +119,6 @@ class PendingMemberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Extract first letter for the avatar
     final String avatarText =
         member.displayName.isNotEmpty
             ? member.displayName[0].toUpperCase()
@@ -144,7 +131,6 @@ class PendingMemberTile extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            // Avatar circle with first letter
             CircleAvatar(
               radius: 24,
               backgroundColor: Colors.grey.shade200,
@@ -158,7 +144,6 @@ class PendingMemberTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Name and email
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

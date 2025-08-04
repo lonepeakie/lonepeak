@@ -10,6 +10,8 @@ import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
 
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
 class EstateMembersScreen extends ConsumerStatefulWidget {
   const EstateMembersScreen({super.key});
 
@@ -20,13 +22,6 @@ class EstateMembersScreen extends ConsumerStatefulWidget {
 
 class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load members when watched
-  }
 
   @override
   void dispose() {
@@ -212,7 +207,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           .read(estateMembersProvider.notifier)
           .updateMemberRole(member.email, newRole);
 
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$displayName\'s role updated to ${newRole.name}'),
@@ -221,7 +216,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         );
       }
     } catch (error) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating role: $error'),
@@ -239,7 +234,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     try {
       await ref.read(estateMembersProvider.notifier).removeMember(member.email);
 
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$displayName removed'),
@@ -248,7 +243,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         );
       }
     } catch (error) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error removing member: $error'),
@@ -263,6 +258,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   Widget build(BuildContext context) {
     final membersState = ref.watch(estateMembersProvider);
     final memberState = ref.watch(currentMemberProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -289,7 +285,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                               IconButton(
                                 icon: const Icon(Icons.admin_panel_settings),
                                 onPressed: () {
-                                  context.go(
+                                  GoRouter.of(context).push(
                                     '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
                                   );
                                 },
@@ -349,22 +345,18 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   suffixIcon:
-                      _searchQuery.isNotEmpty
+                      searchQuery.isNotEmpty
                           ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
+                              _searchController.clear();
+                              ref.read(searchQueryProvider.notifier).state = '';
                             },
                           )
                           : null,
                 ),
                 onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
+                  ref.read(searchQueryProvider.notifier).state = value;
                 },
               ),
             ),
@@ -396,7 +388,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                           .toList();
 
                   final filteredMembers =
-                      _searchQuery.isEmpty
+                      searchQuery.isEmpty
                           ? activeMembers
                           : activeMembers.where((member) {
                             final name =
@@ -406,15 +398,15 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                                     .toLowerCase();
                             final email = member.email.toLowerCase();
                             final role = member.role.name.toLowerCase();
-                            return name.contains(_searchQuery.toLowerCase()) ||
-                                email.contains(_searchQuery.toLowerCase()) ||
-                                role.contains(_searchQuery.toLowerCase());
+                            return name.contains(searchQuery.toLowerCase()) ||
+                                email.contains(searchQuery.toLowerCase()) ||
+                                role.contains(searchQuery.toLowerCase());
                           }).toList();
 
                   return filteredMembers.isEmpty
                       ? Center(
                         child: Text(
-                          _searchQuery.isEmpty
+                          searchQuery.isEmpty
                               ? 'No members found'
                               : 'No matching members found',
                         ),
