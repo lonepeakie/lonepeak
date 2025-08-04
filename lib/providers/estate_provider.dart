@@ -21,12 +21,10 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
   final EstateRepository _estateRepository;
   final _log = Logger(printer: PrefixedLogPrinter('EstateProvider'));
 
-  /// Automatically loads the current estate when provider is created
   Future<void> _loadCurrentEstate() async {
     await getCurrentEstate();
   }
 
-  /// Ensures estate is loaded and returns current state
   void ensureEstateLoaded() {
     if (state is! AsyncLoading && (!state.hasValue || state.value == null)) {
       _loadCurrentEstate();
@@ -36,12 +34,10 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
   Estate? get currentEstate => state.value;
 
   Future<Estate?> getCurrentEstate() async {
-    // If we already have data and no error, return it
     if (state.hasValue && state.value != null && state is! AsyncError) {
       return state.value;
     }
 
-    // Set loading state only if we're not already loading
     if (state is! AsyncLoading) {
       state = const AsyncValue.loading();
     }
@@ -132,5 +128,175 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
       _log.e('Error fetching public estates: $error');
       throw Exception('Failed to fetch public estates: $error');
     }
+  }
+
+  Future<void> updateBasicInfo({
+    required String name,
+    required String address,
+    required String description,
+  }) async {
+    try {
+      _log.i('Updating estate basic info: $name');
+      final currentEstate = state.value;
+      if (currentEstate == null) {
+        _log.e('No current estate found for basic info update');
+        throw Exception('No current estate found');
+      }
+
+      final updatedEstate = currentEstate.copyWith(
+        name: name.trim(),
+        address: address.trim().isEmpty ? null : address.trim(),
+        description: description.trim().isEmpty ? null : description.trim(),
+      );
+
+      await updateCurrentEstate(updatedEstate);
+      _log.i('Successfully updated basic info for estate: $name');
+    } catch (error) {
+      _log.e('Error updating basic info: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> addWebLink(EstateWebLink webLink) async {
+    try {
+      _log.i('Adding web link: ${webLink.title}');
+      final currentEstate = state.value;
+      if (currentEstate == null) {
+        _log.e('No current estate found for adding web link');
+        throw Exception('No current estate found');
+      }
+
+      final currentWebLinks = List<EstateWebLink>.from(
+        currentEstate.webLinks ?? [],
+      );
+
+      final isDuplicate = currentWebLinks.any(
+        (link) => link.title == webLink.title || link.url == webLink.url,
+      );
+
+      if (isDuplicate) {
+        _log.w('Attempt to add duplicate web link: ${webLink.title}');
+        throw Exception('A web link with this title or URL already exists');
+      }
+
+      currentWebLinks.add(webLink);
+
+      final updatedEstate = currentEstate.copyWith(webLinks: currentWebLinks);
+      await updateCurrentEstate(updatedEstate);
+      _log.i('Successfully added web link: ${webLink.title}');
+    } catch (error) {
+      _log.e('Error adding web link: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteWebLink(EstateWebLink webLink) async {
+    try {
+      _log.i('Deleting web link: ${webLink.title}');
+      final currentEstate = state.value;
+      if (currentEstate == null) {
+        _log.e('No current estate found for deleting web link');
+        throw Exception('No current estate found');
+      }
+
+      final currentWebLinks = List<EstateWebLink>.from(
+        currentEstate.webLinks ?? [],
+      );
+
+      currentWebLinks.removeWhere(
+        (link) => link.title == webLink.title && link.url == webLink.url,
+      );
+
+      final updatedEstate = currentEstate.copyWith(webLinks: currentWebLinks);
+      await updateCurrentEstate(updatedEstate);
+      _log.i('Successfully deleted web link: ${webLink.title}');
+    } catch (error) {
+      _log.e('Error deleting web link: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> updateWebLink(
+    EstateWebLink oldWebLink,
+    EstateWebLink newWebLink,
+  ) async {
+    try {
+      _log.i('Updating web link: ${oldWebLink.title} -> ${newWebLink.title}');
+      final currentEstate = state.value;
+      if (currentEstate == null) {
+        _log.e('No current estate found for updating web link');
+        throw Exception('No current estate found');
+      }
+
+      final currentWebLinks = List<EstateWebLink>.from(
+        currentEstate.webLinks ?? [],
+      );
+
+      final index = currentWebLinks.indexWhere(
+        (link) => link.title == oldWebLink.title && link.url == oldWebLink.url,
+      );
+
+      if (index == -1) {
+        _log.e('Web link not found for update: ${oldWebLink.title}');
+        throw Exception('Web link not found');
+      }
+
+      currentWebLinks[index] = newWebLink;
+
+      final updatedEstate = currentEstate.copyWith(webLinks: currentWebLinks);
+      await updateCurrentEstate(updatedEstate);
+      _log.i('Successfully updated web link: ${newWebLink.title}');
+    } catch (error) {
+      _log.e('Error updating web link: $error');
+      rethrow;
+    }
+  }
+
+  Map<String, String?> validateBasicInfo({
+    required String name,
+    required String address,
+    required String description,
+  }) {
+    Map<String, String?> errors = {};
+
+    if (name.trim().isEmpty) {
+      errors['name'] = 'Estate name is required';
+    } else if (name.trim().length < 3) {
+      errors['name'] = 'Estate name must be at least 3 characters';
+    }
+
+    if (address.trim().isNotEmpty && address.trim().length < 10) {
+      errors['address'] = 'Please provide a complete address';
+    }
+
+    if (description.trim().isNotEmpty && description.trim().length < 20) {
+      errors['description'] = 'Description must be at least 20 characters';
+    }
+
+    return errors;
+  }
+
+  Map<String, String?> validateWebLink({
+    required String title,
+    required String url,
+  }) {
+    Map<String, String?> errors = {};
+
+    if (title.trim().isEmpty) {
+      errors['title'] = 'Title is required';
+    } else if (title.trim().length < 3) {
+      errors['title'] = 'Title must be at least 3 characters';
+    }
+
+    if (url.trim().isEmpty) {
+      errors['url'] = 'URL is required';
+    } else {
+      final uri = Uri.tryParse(url);
+      if (uri == null || !uri.hasAbsolutePath) {
+        errors['url'] = 'Please enter a valid URL';
+      }
+    }
+
+    return errors;
   }
 }

@@ -43,12 +43,10 @@ class _DocumentPermissionsDialogState extends State<DocumentPermissionsDialog> {
             ),
             const SizedBox(height: 24),
 
-            // View permission
             const SizedBox(height: 16),
             Divider(),
             const SizedBox(height: 16),
 
-            // Note
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

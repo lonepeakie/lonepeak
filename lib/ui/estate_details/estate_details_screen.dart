@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
-import 'package:lonepeak/providers/estate_details_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
@@ -23,23 +22,7 @@ class EstateDetailsScreen extends ConsumerStatefulWidget {
 class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    final detailsState = ref.watch(estateDetailsProvider);
     final estateState = ref.watch(estateProvider);
-
-    ref.listen<AsyncValue<void>>(estateDetailsProvider, (previous, next) {
-      next.when(
-        data: (_) {}, // Success - no action needed
-        loading: () {}, // Loading - no action needed
-        error: (error, stack) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.toString()),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
-      );
-    });
 
     return Scaffold(
       appBar: AppBar(title: const AppbarTitle(text: 'Details')),
@@ -48,24 +31,16 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
         error: (error, stack) => Center(child: Text('Error: $error')),
         data:
             (estate) => SafeArea(
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        _buildBasicInfoCard(estate),
-                        const SizedBox(height: 16),
-                        _buildWebLinksCard(estate),
-                      ],
-                    ),
-                  ),
-                  if (detailsState.isLoading)
-                    Container(
-                      color: Colors.black54,
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                ],
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBasicInfoCard(estate),
+                    const SizedBox(height: 24),
+                    _buildWebLinksCard(estate),
+                  ],
+                ),
               ),
             ),
       ),
@@ -400,7 +375,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                                 if (formKey.currentState?.validate() ?? false) {
                                   try {
                                     await ref
-                                        .read(estateDetailsProvider.notifier)
+                                        .read(estateProvider.notifier)
                                         .updateBasicInfo(
                                           name: nameController.text.trim(),
                                           address:
@@ -591,7 +566,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
 
                                   try {
                                     await ref
-                                        .read(estateDetailsProvider.notifier)
+                                        .read(estateProvider.notifier)
                                         .addWebLink(result);
 
                                     if (!context.mounted) return;
@@ -639,9 +614,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
               TextButton(
                 onPressed: () async {
                   try {
-                    await ref
-                        .read(estateDetailsProvider.notifier)
-                        .deleteWebLink(link);
+                    await ref.read(estateProvider.notifier).deleteWebLink(link);
 
                     if (!context.mounted) return;
                     Navigator.of(context).pop();

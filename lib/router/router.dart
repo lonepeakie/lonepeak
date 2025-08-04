@@ -12,10 +12,10 @@ import 'package:lonepeak/ui/estate_join_pending/widgets/estate_join_pending_scre
 import 'package:lonepeak/ui/estate_members/estate_members_screen.dart';
 import 'package:lonepeak/ui/estate_members/pending_members_screen.dart';
 import 'package:lonepeak/ui/estate_notices/estate_notices_screen.dart';
-import 'package:lonepeak/ui/estate_details/widgets/estate_details_screen.dart';
+import 'package:lonepeak/ui/estate_details/estate_details_screen.dart';
 import 'package:lonepeak/ui/estate_select/widgets/estate_select_screen.dart';
 import 'package:lonepeak/ui/estate_treasury/estate_treasury_screen.dart';
-import 'package:lonepeak/ui/estate_documents/widgets/estate_documents_screen.dart';
+import 'package:lonepeak/ui/estate_documents/estate_documents_screen.dart';
 import 'package:lonepeak/ui/login/widgets/login_screen.dart';
 import 'package:lonepeak/ui/user_profile/widgets/user_profile_screen.dart';
 import 'package:lonepeak/ui/splash/widgets/splash_screen.dart';

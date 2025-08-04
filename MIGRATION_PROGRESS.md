@@ -31,11 +31,12 @@ This document tracks the migration from mixed UIState/AsyncValue patterns to a u
 - **Replaces**: `estate_notices_viewmodel.dart`
 - **Key Methods**: `getNotices()`, `addNotice()`, `toggleLike()`, `updateNotice()`, `deleteNotice()`
 
-#### 5. `documents_provider.dart`
+#### 5. `documents_provider.dart` ✅ **COMPLETED**
 - **Purpose**: Document management with folder navigation
 - **Features**: File upload, folder creation, breadcrumb navigation, search
 - **Replaces**: `estate_documents_viewmodel.dart`
 - **Key Methods**: `loadDocuments()`, `navigateToFolder()`, `createFolder()`, `pickAndUploadFile()`
+- **Status**: **MIGRATED** - Removed cached fields, using separate providers for folder state, breadcrumbs, and selection
 
 #### 6. `treasury_provider.dart`
 - **Purpose**: Financial transaction management with filtering
@@ -85,11 +86,12 @@ This document tracks the migration from mixed UIState/AsyncValue patterns to a u
 - **Replaces**: `estate_select_viewmodel.dart`
 - **Key Methods**: `loadUser()`, `updateUser()`, `hasEstate`, `isNewUser`
 
-#### 12. `estate_details_provider.dart`
-- **Purpose**: Estate information management
+#### 12. `estate_details_provider.dart` ✅ **MERGED INTO ESTATE_PROVIDER**
+- **Purpose**: Estate information management (merged into `estate_provider.dart`)
 - **Features**: Basic info updates, web link management, validation
 - **Replaces**: `estate_details_viewmodel.dart`
 - **Key Methods**: `updateBasicInfo()`, `addWebLink()`, `deleteWebLink()`, `updateWebLink()`
+- **Status**: **MERGED** - All functionality moved to `estate_provider.dart` for consolidated estate management
 
 #### 13. `estate_home_provider.dart`
 - **Purpose**: Home screen data aggregation
