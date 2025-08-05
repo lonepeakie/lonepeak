@@ -245,7 +245,7 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
       }
     } catch (error) {
       _log.e('Error adding transaction: $error');
-      throw error;
+      rethrow;
     }
   }
 
@@ -307,7 +307,7 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
       }
     } catch (error) {
       _log.e('Error updating transaction: $error');
-      throw error;
+      rethrow;
     }
   }
 
@@ -357,7 +357,7 @@ class TreasuryProvider extends StateNotifier<TreasuryState> {
       }
     } catch (error) {
       _log.e('Error deleting transaction: $error');
-      throw error;
+      rethrow;
     }
   }
 

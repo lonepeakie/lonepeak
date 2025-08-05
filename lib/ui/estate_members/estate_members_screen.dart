@@ -33,10 +33,10 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     try {
       final hasAdminAccess =
           await ref.read(currentMemberProvider.notifier).hasAdminPrivileges();
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       if (!hasAdminAccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(this.context).showSnackBar(
           const SnackBar(
             content: Text('You need admin privileges to modify members'),
           ),
@@ -45,7 +45,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
       }
 
       showModalBottomSheet(
-        context: context,
+        context: this.context,
         isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -53,8 +53,8 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         builder: (context) => _buildMemberActionsSheet(context, member),
       );
     } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      ScaffoldMessenger.of(this.context).showSnackBar(
         SnackBar(
           content: Text('Error checking admin privileges: $error'),
           backgroundColor: Colors.red,
@@ -207,7 +207,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
           .read(estateMembersProvider.notifier)
           .updateMemberRole(member.email, newRole);
 
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$displayName\'s role updated to ${newRole.name}'),
@@ -216,7 +216,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         );
       }
     } catch (error) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error updating role: $error'),
@@ -234,7 +234,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     try {
       await ref.read(estateMembersProvider.notifier).removeMember(member.email);
 
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$displayName removed'),
@@ -243,7 +243,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
         );
       }
     } catch (error) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error removing member: $error'),
@@ -426,7 +426,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                             role: roleName,
                             onTap:
                                 () => {
-                                  if (context.mounted)
+                                  if (mounted)
                                     {_showMemberActionSheet(context, member)},
                                 },
                           );

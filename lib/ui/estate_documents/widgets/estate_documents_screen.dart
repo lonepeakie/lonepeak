@@ -89,7 +89,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                                 .navigateToFolder(doc);
                           } catch (error) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(content: Text('Error: $error')),
                             );
                           }
@@ -101,7 +101,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                                 .loadDocuments();
                           } catch (error) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(content: Text('Error: $error')),
                             );
                           }

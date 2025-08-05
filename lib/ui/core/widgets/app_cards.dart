@@ -119,8 +119,14 @@ class _LikeButton extends ConsumerWidget {
           try {
             await ref.read(noticesProvider.notifier).toggleLike(notice.id!);
           } catch (error) {
-            // Could show a snackbar here if needed
-            print('Error toggling like: $error');
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error toggling like: $error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           }
         }
       },

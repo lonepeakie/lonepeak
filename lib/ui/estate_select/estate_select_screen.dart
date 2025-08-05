@@ -4,24 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/providers/estate_select_provider.dart';
+import 'package:lonepeak/providers/user_provider.dart';
 
-class EstateSelectScreen extends ConsumerStatefulWidget {
+class EstateSelectScreen extends ConsumerWidget {
   const EstateSelectScreen({super.key});
 
   @override
-  ConsumerState<EstateSelectScreen> createState() => _EstateSelectScreenState();
-}
-
-class _EstateSelectScreenState extends ConsumerState<EstateSelectScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load user data when first watched
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -45,28 +34,26 @@ class _EstateSelectScreenState extends ConsumerState<EstateSelectScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Consumer(
-              builder: (context, ref, child) {
-                final userState = ref.watch(estateSelectUserProvider);
+            () {
+              final userState = ref.watch(userProvider);
 
-                return userState.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error:
-                      (error, stack) => const Text(
-                        'Error loading display name',
-                        style: TextStyle(fontSize: 16, color: Colors.red),
-                      ),
-                  data: (user) {
-                    final displayName = user?.displayName;
-                    return Text(
-                      'Welcome, ${displayName?.isNotEmpty == true ? displayName : 'User'}!',
-                      style: AppStyles.titleTextLarge(context),
-                      textAlign: TextAlign.center,
-                    );
-                  },
-                );
-              },
-            ),
+              return userState.when(
+                loading: () => const CircularProgressIndicator(),
+                error:
+                    (error, stack) => const Text(
+                      'Error loading display name',
+                      style: TextStyle(fontSize: 16, color: Colors.red),
+                    ),
+                data: (user) {
+                  final displayName = user?.displayName;
+                  return Text(
+                    'Welcome, ${displayName?.isNotEmpty == true ? displayName : 'User'}!',
+                    style: AppStyles.titleTextLarge(context),
+                    textAlign: TextAlign.center,
+                  );
+                },
+              );
+            }(),
             const SizedBox(height: 10),
             const Text(
               'Choose a path below to get started with managing your estate community.',

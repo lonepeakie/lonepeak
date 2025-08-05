@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
-import 'package:lonepeak/providers/estate_join_provider.dart';
-import 'package:lonepeak/ui/estate_join/widgets/estate_tile.dart';
+import 'package:lonepeak/providers/estate_search_provider.dart';
+import 'package:lonepeak/ui/estate_join/estate_tile.dart';
 
 class EstateJoinScreen extends ConsumerStatefulWidget {
   const EstateJoinScreen({super.key});
@@ -18,12 +19,6 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load estates when first watched
-  }
-
-  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -31,8 +26,9 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final estatesState = ref.watch(estateJoinProvider);
-    final searchQuery = ref.watch(estateSearchProvider);
+    final estatesState = ref.watch(estateSearchProvider);
+    final estateSearchNotifier = ref.read(estateSearchProvider.notifier);
+    final searchQuery = estateSearchNotifier.searchQuery;
 
     return Scaffold(
       appBar: AppBar(
@@ -71,19 +67,16 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                             onPressed: () {
                               _searchController.clear();
                               ref
-                                  .read(estateJoinProvider.notifier)
+                                  .read(estateSearchProvider.notifier)
                                   .clearSearch();
-                              ref.read(estateSearchProvider.notifier).state =
-                                  '';
                             },
                           )
                           : null,
                 ),
                 onChanged: (value) {
                   ref
-                      .read(estateJoinProvider.notifier)
+                      .read(estateSearchProvider.notifier)
                       .updateSearchQuery(value);
-                  ref.read(estateSearchProvider.notifier).state = value;
                 },
               ),
               const SizedBox(height: 16),
@@ -101,7 +94,7 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 ref
-                                    .read(estateJoinProvider.notifier)
+                                    .read(estateSearchProvider.notifier)
                                     .refreshEstates();
                               },
                               child: const Text('Retry'),
@@ -162,7 +155,7 @@ class _EstateJoinScreenState extends ConsumerState<EstateJoinScreen> {
               onPressed: () {
                 Navigator.pop(context);
                 ref
-                    .read(joinRequestProvider.notifier)
+                    .read(estateJoinProvider.notifier)
                     .requestToJoinEstate(estateId);
                 context.go('${Routes.estateSelect}${Routes.estateJoinPending}');
               },

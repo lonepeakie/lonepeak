@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/constants.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
@@ -25,6 +25,18 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
   final estateLogoController = TextEditingController();
   final estateCityController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    estateNameController.dispose();
+    estateAddressController.dispose();
+    estateEircodeController.dispose();
+    estateDescriptionController.dispose();
+    estateCountyController.dispose();
+    estateLogoController.dispose();
+    estateCityController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,9 +101,7 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                           .toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
-                      setState(() {
-                        estateCountyController.text = newValue;
-                      });
+                      estateCountyController.text = newValue;
                     }
                   },
                 ),
@@ -126,35 +136,45 @@ class _EstateCreateScreenState extends ConsumerState<EstateCreateScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     AppElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (!formKey.currentState!.validate()) {
                           return;
                         }
-                        final result = ref
-                            .read(estateFeaturesProvider)
-                            .createEstateAndAddMember(
-                              Estate(
-                                name: estateNameController.text,
-                                description: estateDescriptionController.text,
-                                address: estateAddressController.text,
-                                city: estateCityController.text,
-                                county: estateCountyController.text,
-                                logoUrl: estateLogoController.text,
-                              ),
-                            );
-                        result.then((value) {
-                          if (context.mounted) {
-                            if (value.isFailure) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: ${value.error}'),
+                        
+                        try {
+                          final estate = await ref
+                              .read(estateProvider.notifier)
+                              .createEstate(
+                                Estate(
+                                  name: estateNameController.text,
+                                  description: estateDescriptionController.text,
+                                  address: estateAddressController.text,
+                                  city: estateCityController.text,
+                                  county: estateCountyController.text,
+                                  logoUrl: estateLogoController.text,
                                 ),
                               );
-                            } else {
+                          
+                          if (context.mounted) {
+                            if (estate != null) {
                               context.go(Routes.estateHome);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Failed to create estate'),
+                                ),
+                              );
                             }
                           }
-                        });
+                        } catch (error) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $error'),
+                              ),
+                            );
+                          }
+                        }
                       },
                       buttonText: 'Create',
                     ),

@@ -95,11 +95,11 @@ class _FilterTransactionsBottomSheetState
 
       await ref.read(treasuryProvider.notifier).applyFilters(newFilters);
 
-      if (context.mounted) {
+      if (mounted) {
         Navigator.pop(context);
       }
     } catch (error) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error applying filters: $error'),

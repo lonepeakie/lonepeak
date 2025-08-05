@@ -5,19 +5,11 @@ import 'package:lonepeak/data/repositories/auth/auth_type.dart';
 import 'package:lonepeak/domain/features/user_sigin_feature.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-/// Authentication provider for login, signup, and logout operations
 final authProvider = StateNotifierProvider<AuthProvider, AsyncValue<bool>>((
   ref,
 ) {
   final userSignInFeature = ref.watch(userSiginFeatureProvider);
   return AuthProvider(userSignInFeature);
-});
-
-/// Provider for checking if user is currently authenticated
-final isAuthenticatedProvider = FutureProvider<bool>((ref) async {
-  // This would depend on your auth implementation
-  // You might need to add a method to check current auth state
-  return false; // Placeholder - implement based on your auth system
 });
 
 class AuthProvider extends StateNotifier<AsyncValue<bool>> {
@@ -26,7 +18,6 @@ class AuthProvider extends StateNotifier<AsyncValue<bool>> {
   final UserSiginFeature _userSignInFeature;
   final _log = Logger(printer: PrefixedLogPrinter('AuthProvider'));
 
-  /// Sign in with Google OAuth
   Future<bool> signInWithGoogle() async {
     state = const AsyncValue.loading();
 
@@ -54,7 +45,6 @@ class AuthProvider extends StateNotifier<AsyncValue<bool>> {
     }
   }
 
-  /// Sign in with email and password
   Future<bool> signInWithEmail(String email, String password) async {
     state = const AsyncValue.loading();
 
@@ -89,7 +79,6 @@ class AuthProvider extends StateNotifier<AsyncValue<bool>> {
     }
   }
 
-  /// Sign up with email and password
   Future<bool> signUpWithEmail(String email, String password) async {
     state = const AsyncValue.loading();
 
@@ -124,7 +113,6 @@ class AuthProvider extends StateNotifier<AsyncValue<bool>> {
     }
   }
 
-  /// Sign out the current user
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
 
@@ -150,12 +138,10 @@ class AuthProvider extends StateNotifier<AsyncValue<bool>> {
     }
   }
 
-  /// Reset authentication state
   void resetAuthState() {
     state = const AsyncValue.data(false);
   }
 
-  /// Get current authentication status
   bool get isAuthenticated {
     return state.value ?? false;
   }

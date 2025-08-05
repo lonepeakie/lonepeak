@@ -2,23 +2,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
+import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 final estateProvider =
     StateNotifierProvider<EstateProvider, AsyncValue<Estate?>>((ref) {
       final estateRepository = ref.watch(estateRepositoryProvider);
-      return EstateProvider(estateRepository: estateRepository);
+      final estateFeatures = ref.watch(estateFeaturesProvider);
+      return EstateProvider(
+        estateRepository: estateRepository,
+        estateFeatures: estateFeatures,
+      );
+    });
+
+final estateJoinProvider =
+    StateNotifierProvider<EstateJoinProvider, AsyncValue<bool>>((ref) {
+      final estateFeatures = ref.watch(estateFeaturesProvider);
+      return EstateJoinProvider(estateFeatures);
     });
 
 class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
-  EstateProvider({required EstateRepository estateRepository})
-    : _estateRepository = estateRepository,
-      super(const AsyncValue.loading()) {
+  EstateProvider({
+    required EstateRepository estateRepository,
+    required EstateFeatures estateFeatures,
+  }) : _estateRepository = estateRepository,
+       _estateFeatures = estateFeatures,
+       super(const AsyncValue.loading()) {
     _loadCurrentEstate();
   }
 
   final EstateRepository _estateRepository;
+  final EstateFeatures _estateFeatures;
   final _log = Logger(printer: PrefixedLogPrinter('EstateProvider'));
 
   Future<void> _loadCurrentEstate() async {
@@ -128,6 +143,59 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
       _log.e('Error fetching public estates: $error');
       throw Exception('Failed to fetch public estates: $error');
     }
+  }
+
+  Future<Estate?> createEstate(Estate estate) async {
+    state = const AsyncValue.loading();
+
+    try {
+      final result = await _estateFeatures.createEstateAndAddMember(estate);
+
+      if (result.isFailure) {
+        _log.e('Estate creation failed: ${result.error}');
+        state = AsyncValue.error(
+          Exception('Failed to create estate: ${result.error}'),
+          StackTrace.current,
+        );
+        return null;
+      }
+
+      _log.i('Estate created successfully: ${estate.name}');
+      state = AsyncValue.data(estate);
+      return estate;
+    } catch (error, stackTrace) {
+      _log.e('Estate creation error: $error');
+      state = AsyncValue.error(error, stackTrace);
+      return null;
+    }
+  }
+
+  Map<String, String?> validateEstateData({
+    required String name,
+    required String address,
+    required String description,
+  }) {
+    Map<String, String?> errors = {};
+
+    if (name.trim().isEmpty) {
+      errors['name'] = 'Estate name is required';
+    } else if (name.trim().length < 3) {
+      errors['name'] = 'Estate name must be at least 3 characters';
+    }
+
+    if (address.trim().isEmpty) {
+      errors['address'] = 'Estate address is required';
+    } else if (address.trim().length < 10) {
+      errors['address'] = 'Please provide a complete address';
+    }
+
+    if (description.trim().isEmpty) {
+      errors['description'] = 'Estate description is required';
+    } else if (description.trim().length < 20) {
+      errors['description'] = 'Description must be at least 20 characters';
+    }
+
+    return errors;
   }
 
   Future<void> updateBasicInfo({
@@ -298,5 +366,62 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
     }
 
     return errors;
+  }
+
+  Future<void> exitEstate() async {
+    try {
+      _log.i('Exiting current estate');
+      state = const AsyncValue.loading();
+
+      final result = await _estateFeatures.exitEstate();
+
+      if (result.isFailure) {
+        _log.e('Failed to exit estate: ${result.error}');
+        state = AsyncValue.error(
+          Exception('Failed to exit estate: ${result.error}'),
+          StackTrace.current,
+        );
+        return;
+      }
+
+      _log.i('Successfully exited estate');
+      state = const AsyncValue.data(null);
+    } catch (error, stackTrace) {
+      _log.e('Error exiting estate: $error');
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+}
+
+class EstateJoinProvider extends StateNotifier<AsyncValue<bool>> {
+  EstateJoinProvider(this._estateFeatures)
+    : super(const AsyncValue.data(false));
+
+  final EstateFeatures _estateFeatures;
+  final _log = Logger(printer: PrefixedLogPrinter('EstateJoinProvider'));
+
+  Future<bool> requestToJoinEstate(String estateId) async {
+    state = const AsyncValue.loading();
+
+    try {
+      final result = await _estateFeatures.requestToJoinEstate(estateId);
+
+      if (result.isFailure) {
+        _log.e('Failed to request estate join: ${result.error}');
+        state = AsyncValue.error(
+          Exception('Failed to request to join estate: ${result.error}'),
+          StackTrace.current,
+        );
+        return false;
+      }
+
+      _log.i('Successfully requested to join estate: $estateId');
+      state = const AsyncValue.data(true);
+      return true;
+    } catch (error, stackTrace) {
+      _log.e('Error requesting to join estate: $error');
+      state = AsyncValue.error(error, stackTrace);
+      return false;
+    }
   }
 }

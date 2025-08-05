@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
-import 'package:lonepeak/providers/user_profile_provider.dart';
+import 'package:lonepeak/providers/user_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
@@ -25,9 +25,6 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(userProfileProvider.notifier).getUserProfile(),
-    );
   }
 
   @override
@@ -38,7 +35,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userState = ref.watch(userProfileProvider);
+    final userState = ref.watch(userProvider);
     final estateState = ref.watch(estateProvider);
 
     return Scaffold(
@@ -364,7 +361,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               AppElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
-                  await ref.read(userProfileProvider.notifier).signOut();
+                  await ref.read(userProvider.notifier).signOut();
                   if (context.mounted) {
                     context.go(Routes.welcome);
                   }
@@ -401,7 +398,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               AppElevatedButton(
                 onPressed: () async {
-                  await ref.read(userProfileProvider.notifier).leaveEstate();
+                  await ref.read(estateProvider.notifier).exitEstate();
                   if (context.mounted) {
                     context.go(Routes.estateSelect);
                   }
@@ -479,9 +476,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                             AppElevatedButton(
                               onPressed: () async {
                                 if (formKey.currentState?.validate() ?? false) {
-                                  final userState = ref.read(
-                                    userProfileProvider,
-                                  );
+                                  final userState = ref.read(userProvider);
 
                                   userState.whenData((currentUser) async {
                                     if (currentUser != null) {
@@ -495,8 +490,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                       );
 
                                       await ref
-                                          .read(userProfileProvider.notifier)
-                                          .updateUserProfile(updatedUser);
+                                          .read(userProvider.notifier)
+                                          .updateUser(updatedUser);
                                     }
                                   });
 

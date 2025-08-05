@@ -53,7 +53,6 @@ class EstateJoinPendingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 40),
 
-                    // Status items
                     _buildStatusItem(
                       context,
                       icon: Icons.check_circle,
@@ -69,7 +68,6 @@ class EstateJoinPendingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 48),
 
-                    // What happens next section
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Column(
