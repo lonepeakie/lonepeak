@@ -8,31 +8,11 @@ import 'package:lonepeak/ui/estate_documents/create_folder_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/document_breadcrumbs.dart';
 import 'package:lonepeak/ui/estate_documents/document_tile.dart';
 
-class EstateDocumentsScreen extends ConsumerStatefulWidget {
+class EstateDocumentsScreen extends ConsumerWidget {
   const EstateDocumentsScreen({super.key});
 
   @override
-  ConsumerState<EstateDocumentsScreen> createState() =>
-      _EstateDocumentsScreenState();
-}
-
-class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // The provider will automatically load documents when watched
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final documentsState = ref.watch(documentsProvider);
 
     return Scaffold(
@@ -40,18 +20,10 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
         title: const AppbarTitle(text: 'Documents'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.read(documentsProvider.notifier).refreshDocuments();
-            },
-            tooltip: 'Refresh',
-          ),
-          IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              _showSearchDialog(context);
+              _showSearchDialog(context, ref);
             },
-            tooltip: 'Search',
           ),
         ],
       ),
@@ -88,10 +60,11 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                                 .read(documentsProvider.notifier)
                                 .navigateToFolder(doc);
                           } catch (error) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                              SnackBar(content: Text('Error: $error')),
-                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: $error')),
+                              );
+                            }
                           }
                         },
                         onHomePressed: () async {
@@ -100,10 +73,11 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                                 .read(documentsProvider.notifier)
                                 .loadDocuments();
                           } catch (error) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                              SnackBar(content: Text('Error: $error')),
-                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: $error')),
+                              );
+                            }
                           }
                         },
                       ),
@@ -115,7 +89,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 Expanded(
                   child:
                       documents.isEmpty
-                          ? _buildEmptyState()
+                          ? _buildEmptyState(context, ref)
                           : ListView.builder(
                             padding: const EdgeInsets.all(16),
                             itemCount: documents.length,
@@ -123,35 +97,18 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                               final document = documents[index];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Consumer(
-                                  builder: (context, ref, _) {
-                                    final selectedDocument = ref.watch(
-                                      selectedDocumentProvider,
-                                    );
-                                    final isSelected =
-                                        selectedDocument?.id == document.id;
-
-                                    return DocumentTile(
-                                      document: document,
-                                      isSelected: isSelected,
-                                      onTap: () {
-                                        if (document.type ==
-                                            DocumentType.folder) {
-                                          ref
-                                              .read(documentsProvider.notifier)
-                                              .navigateToFolder(document);
-                                        } else {
-                                          // Select the document and show options
-                                          ref
-                                              .read(
-                                                selectedDocumentProvider
-                                                    .notifier,
-                                              )
-                                              .state = document;
-                                          _showFileOptions(context, document);
-                                        }
-                                      },
-                                    );
+                                child: DocumentTile(
+                                  document: document,
+                                  isSelected: false, // No selection needed
+                                  onTap: () {
+                                    if (document.type == DocumentType.folder) {
+                                      ref
+                                          .read(documentsProvider.notifier)
+                                          .navigateToFolder(document);
+                                    } else {
+                                      // Show a quick preview or actions for files
+                                      _showFileOptions(context, ref, document);
+                                    }
                                   },
                                 ),
                               );
@@ -163,14 +120,14 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showCreateOptions(context);
+          _showCreateOptions(context, ref);
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -196,13 +153,13 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 return Column(
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => _showCreateFolderDialog(context),
+                      onPressed: () => _showCreateFolderDialog(context, ref),
                       icon: const Icon(Icons.create_new_folder),
                       label: const Text('New Folder'),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      onPressed: () => _handleFileUpload(),
+                      onPressed: () => _handleFileUpload(context, ref),
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Upload File'),
                     ),
@@ -216,12 +173,12 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                   runSpacing: 12,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => _showCreateFolderDialog(context),
+                      onPressed: () => _showCreateFolderDialog(context, ref),
                       icon: const Icon(Icons.create_new_folder),
                       label: const Text('New Folder'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => _handleFileUpload(),
+                      onPressed: () => _handleFileUpload(context, ref),
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Upload File'),
                     ),
@@ -237,7 +194,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
 
   // Methods for document details panel have been removed as they're no longer needed
 
-  void _showCreateOptions(BuildContext context) {
+  void _showCreateOptions(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -257,7 +214,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 title: const Text('Create New Folder'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showCreateFolderDialog(context);
+                  _showCreateFolderDialog(context, ref);
                 },
               ),
               ListTile(
@@ -268,7 +225,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 title: const Text('Upload File'),
                 onTap: () {
                   Navigator.pop(context);
-                  _handleFileUpload();
+                  _handleFileUpload(context, ref);
                 },
               ),
             ],
@@ -278,7 +235,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     );
   }
 
-  void _showCreateFolderDialog(BuildContext context) {
+  void _showCreateFolderDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) {
@@ -291,7 +248,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     );
   }
 
-  void _handleFileUpload() async {
+  void _handleFileUpload(BuildContext context, WidgetRef ref) async {
     final documentsNotifier = ref.read(documentsProvider.notifier);
 
     // Show loading indicator
@@ -312,7 +269,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     final success = await documentsNotifier.pickAndUploadFile();
 
     if (success) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File uploaded successfully'),
@@ -321,7 +278,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
         );
       }
     } else {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File upload canceled or failed'),
@@ -332,7 +289,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     }
   }
 
-  void _confirmDelete(BuildContext context, Document document) {
+  void _confirmDelete(BuildContext context, WidgetRef ref, Document document) {
     showDialog(
       context: context,
       builder: (context) {
@@ -368,14 +325,16 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
 
   // Permission dialog removed as it's no longer needed
 
-  void _showSearchDialog(BuildContext context) {
+  void _showSearchDialog(BuildContext context, WidgetRef ref) {
+    final searchController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Search Documents'),
           content: TextField(
-            controller: _searchController,
+            controller: searchController,
             decoration: const InputDecoration(
               hintText: 'Enter search term',
               prefixIcon: Icon(Icons.search),
@@ -386,21 +345,18 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                _searchController.clear();
+                searchController.dispose();
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                final query = _searchController.text.trim();
+                final query = searchController.text.trim();
                 if (query.isNotEmpty) {
                   ref.read(documentsProvider.notifier).searchDocuments(query);
-                } else {
-                  // If empty query, reload current folder
-                  ref.read(documentsProvider.notifier).refreshDocuments();
                 }
-                _searchController.clear();
+                searchController.dispose();
               },
               child: const Text('Search'),
             ),
@@ -410,7 +366,11 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
     );
   }
 
-  void _showFileOptions(BuildContext context, Document document) {
+  void _showFileOptions(
+    BuildContext context,
+    WidgetRef ref,
+    Document document,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -443,7 +403,7 @@ class _EstateDocumentsScreenState extends ConsumerState<EstateDocumentsScreen> {
                 title: const Text('Delete File'),
                 onTap: () {
                   Navigator.pop(context);
-                  _confirmDelete(context, document);
+                  _confirmDelete(context, ref, document);
                 },
               ),
               const Divider(),

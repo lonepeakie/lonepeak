@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/ui/core/ui_state.dart';
-import 'package:lonepeak/ui/login/view_models/login_viewmodel.dart';
+import 'package:lonepeak/providers/auth_provider.dart';
 import 'package:lonepeak/ui/login/widgets/google_sigin_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -249,7 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final success = await ref
-          .read(loginViewModelProvider.notifier)
+          .read(authProvider.notifier)
           .signInWithEmail(
             _emailController.text.trim(),
             _passwordController.text,
@@ -263,10 +262,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       } else {
         if (mounted) {
-          final viewModelState = ref.read(loginViewModelProvider);
+          final authState = ref.read(authProvider);
           final errorMessage =
-              viewModelState is UIStateFailure
-                  ? viewModelState.error
+              authState.hasError
+                  ? authState.error.toString()
                   : 'Failed to sign in. Please check your credentials.';
 
           ScaffoldMessenger.of(
@@ -288,7 +287,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final success = await ref
-          .read(loginViewModelProvider.notifier)
+          .read(authProvider.notifier)
           .signUpWithEmail(
             _emailController.text.trim(),
             _passwordController.text,
@@ -302,10 +301,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       } else {
         if (mounted) {
-          final viewModelState = ref.read(loginViewModelProvider);
+          final authState = ref.read(authProvider);
           final errorMessage =
-              viewModelState is UIStateFailure
-                  ? viewModelState.error
+              authState.hasError
+                  ? authState.error.toString()
                   : 'Failed to create account. Please try again.';
 
           ScaffoldMessenger.of(

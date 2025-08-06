@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/providers/notices_provider.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
-import 'package:lonepeak/ui/estate_notices/view_models/estate_notices_viewmodel.dart';
 
 class NoticeCard extends ConsumerWidget {
   const NoticeCard({
@@ -114,13 +114,20 @@ class _LikeButton extends ConsumerWidget {
       icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
       iconSize: 20,
       color: hasLiked ? AppColors.primary : Colors.grey,
-      onPressed: () {
+      onPressed: () async {
         if (notice.id != null) {
-          final noticesVM = ref.read(estateNoticesViewModelProvider.notifier);
-          noticesVM.toggleLike(notice.id!);
-
-          final dashboardVM = ref.read(estateNoticesViewModelProvider.notifier);
-          dashboardVM.toggleLike(notice.id!);
+          try {
+            await ref.read(noticesProvider.notifier).toggleLike(notice.id!);
+          } catch (error) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error toggling like: $error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
         }
       },
     );
