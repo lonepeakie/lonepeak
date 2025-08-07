@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EstateDetailsScreen extends ConsumerStatefulWidget {
@@ -19,7 +21,8 @@ class EstateDetailsScreen extends ConsumerStatefulWidget {
       _EstateDetailsScreenState();
 }
 
-class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
+class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen>
+    with PermissionMixin {
   @override
   Widget build(BuildContext context) {
     final estateState = ref.watch(estateProvider);
@@ -72,7 +75,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                   ),
                   tooltip: 'Edit',
                   onPressed: () => _showEditEstateBottomSheet(estate),
-                ),
+                ).withPermission(Permissions.estateWrite),
               ],
             ),
             const SizedBox(height: 24),
@@ -130,7 +133,7 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
                   ),
                   tooltip: 'Add New Link',
                   onPressed: _showAddLinkBottomSheet,
-                ),
+                ).withPermission(Permissions.estateWrite),
               ],
             ),
             const SizedBox(height: 16),
@@ -164,78 +167,88 @@ class _EstateDetailsScreenState extends ConsumerState<EstateDetailsScreen> {
   Widget _buildWebLinkTile(EstateWebLink link) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: link.url.isNotEmpty ? () => _launchUrl(link.url) : null,
-        onLongPress: () => _showDeleteLinkDialog(link),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+      child: FutureBuilder<bool>(
+        future: hasPermission(Permissions.estateWrite),
+        builder: (context, snapshot) {
+          final canEdit = snapshot.data ?? false;
+
+          return InkWell(
+            onTap: link.url.isNotEmpty ? () => _launchUrl(link.url) : null,
+            onLongPress: canEdit ? () => _showDeleteLinkDialog(link) : null,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  AppIcons.getWebLinkIcon(link.category.name),
-                  color: AppColors.primary,
-                  size: 24,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      link.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      link.url.length > 30
-                          ? '${link.url.substring(0, 30)}...'
-                          : link.url,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
                 children: [
-                  InkWell(
-                    onTap: () => _showDeleteLinkDialog(link),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.delete_outline,
-                        color: AppColors.red,
-                        size: 20,
-                      ),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    child: Icon(
+                      AppIcons.getWebLinkIcon(link.category.name),
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          link.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          link.url.length > 30
+                              ? '${link.url.substring(0, 30)}...'
+                              : link.url,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        onTap: () => _showDeleteLinkDialog(link),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: AppColors.red,
+                            size: 20,
+                          ),
+                        ),
+                      ).withPermission(Permissions.estateWrite),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

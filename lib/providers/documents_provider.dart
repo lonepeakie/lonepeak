@@ -5,13 +5,17 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/document/documents_repository.dart';
 import 'package:lonepeak/data/repositories/document/documents_repository_firestore.dart';
 import 'package:lonepeak/domain/models/document.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 /// Provider for documents with full folder navigation and file management
 final documentsProvider =
-    StateNotifierProvider<DocumentsProvider, AsyncValue<List<Document>>>((ref) {
+    createUserScopedProvider<DocumentsProvider, List<Document>>((
+      currentUserId,
+      ref,
+    ) {
       final repository = ref.watch(documentsRepositoryProvider);
-      return DocumentsProvider(repository, ref);
+      return DocumentsProvider(repository, ref, currentUserId);
     });
 
 /// Provider for current folder ID
@@ -23,17 +27,27 @@ final selectedDocumentProvider = StateProvider<Document?>((ref) => null);
 /// Provider for breadcrumbs navigation
 final breadcrumbsProvider = StateProvider<List<Document>>((ref) => []);
 
-class DocumentsProvider extends StateNotifier<AsyncValue<List<Document>>> {
-  DocumentsProvider(this._repository, this._ref)
-    : super(const AsyncValue.loading()) {
-    _log.i('DocumentsProvider initialized - auto-loading documents');
-    // Initialize with root documents
-    loadDocuments();
-  }
+class DocumentsProvider extends UserScopedStateNotifier<List<Document>>
+    with UserScopedProviderMixin<List<Document>> {
+  DocumentsProvider(this._repository, this._ref, String? currentUserId)
+    : super(currentUserId, const AsyncValue.loading());
 
   final DocumentsRepository _repository;
   final Ref _ref;
   final _log = Logger(printer: PrefixedLogPrinter('DocumentsProvider'));
+
+  @override
+  void initializeWithUser() {
+    _log.i(
+      'DocumentsProvider initialized - auto-loading documents for user: $currentUserId',
+    );
+    loadDocuments();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data([]);
+  }
 
   /// Load documents for a specific folder
   Future<void> loadDocuments({String? folderId}) async {

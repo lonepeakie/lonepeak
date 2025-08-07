@@ -3,15 +3,18 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository_firestore.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-final noticesProvider =
-    StateNotifierProvider<NoticesProvider, AsyncValue<List<Notice>>>((ref) {
-      final repository = ref.watch(noticesRepositoryProvider);
-      return NoticesProvider(repository);
-    });
+final noticesProvider = createUserScopedProvider<NoticesProvider, List<Notice>>(
+  (currentUserId, ref) {
+    final repository = ref.watch(noticesRepositoryProvider);
+    return NoticesProvider(repository, currentUserId);
+  },
+);
 
 final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
+  // This provider also needs user scoping - let's make it simple for now
   final repository = ref.watch(noticesRepositoryProvider);
   final result = await repository.getLatestNotices();
 
@@ -22,13 +25,23 @@ final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
   return result.data ?? [];
 });
 
-class NoticesProvider extends StateNotifier<AsyncValue<List<Notice>>> {
-  NoticesProvider(this._repository) : super(const AsyncValue.loading()) {
-    _loadNotices();
-  }
+class NoticesProvider extends UserScopedStateNotifier<List<Notice>>
+    with UserScopedProviderMixin<List<Notice>> {
+  NoticesProvider(this._repository, String? currentUserId)
+    : super(currentUserId, const AsyncValue.loading());
 
   final NoticesRepository _repository;
   final _log = Logger(printer: PrefixedLogPrinter('NoticesProvider'));
+
+  @override
+  void initializeWithUser() {
+    _loadNotices();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data([]);
+  }
 
   Future<void> _loadNotices() async {
     await getNotices();

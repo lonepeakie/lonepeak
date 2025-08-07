@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Role {
-  final String type;
-  final List<Permission> permissions;
+  final String name;
+  final List<String> permissions;
 
-  Role({required this.type, required this.permissions});
+  Role({required this.name, required this.permissions});
 
   factory Role.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
@@ -12,37 +12,45 @@ class Role {
   ) {
     final data = snapshot.data();
     return Role(
-      type: data?['type'] as String,
+      name: data?['name'] as String,
       permissions:
           (data?['permissions'] as List<dynamic>)
-              .map((e) => Permission.fromJson(e as Map<String, dynamic>))
+              .map((e) => e as String)
               .toList(),
     );
   }
 
   Map<String, dynamic> toFirestore() {
-    return {
-      'type': type,
-      'permissions': permissions.map((e) => e.toJson()).toList(),
-    };
+    return {'name': name, 'permissions': permissions};
   }
 }
 
-class Permission {
+enum PermissionNamespace {
+  treasury('Treasury'),
+  members('Members'),
+  notices('Notices'),
+  documents('Documents'),
+  estate('Estate');
+
   final String name;
-  final bool hasAccess;
 
-  Permission({required this.name, required this.hasAccess});
+  const PermissionNamespace(this.name);
 
-  factory Permission.fromJson(Map<String, dynamic> json) {
-    return Permission(
-      name: json['name'] as String,
-      hasAccess: json['hasAccess'] as bool,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'name': name, 'hasAccess': hasAccess};
+  static PermissionNamespace fromString(String namespace) {
+    switch (namespace.toLowerCase()) {
+      case 'treasury':
+        return PermissionNamespace.treasury;
+      case 'members':
+        return PermissionNamespace.members;
+      case 'notices':
+        return PermissionNamespace.notices;
+      case 'documents':
+        return PermissionNamespace.documents;
+      case 'estate':
+        return PermissionNamespace.estate;
+      default:
+        throw Exception('Unknown permission namespace: $namespace');
+    }
   }
 }
 
@@ -79,12 +87,4 @@ enum RoleType {
         throw Exception('Unknown role: $role');
     }
   }
-
-  static bool hasAdminPrivileges(RoleType role) {
-    return role == RoleType.admin ||
-        role == RoleType.president ||
-        role == RoleType.vicepresident;
-  }
 }
-
-enum PermissionName { estate, member }

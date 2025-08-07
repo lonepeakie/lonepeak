@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/providers/member_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/widgets/app_tiles.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -29,38 +31,15 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
     super.dispose();
   }
 
-  void _showMemberActionSheet(BuildContext context, Member member) async {
-    try {
-      final hasAdminAccess =
-          await ref.read(currentMemberProvider.notifier).hasAdminPrivileges();
-      if (!mounted) return;
-
-      if (!hasAdminAccess) {
-        ScaffoldMessenger.of(this.context).showSnackBar(
-          const SnackBar(
-            content: Text('You need admin privileges to modify members'),
-          ),
-        );
-        return;
-      }
-
-      showModalBottomSheet(
-        context: this.context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (context) => _buildMemberActionsSheet(context, member),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(this.context).showSnackBar(
-        SnackBar(
-          content: Text('Error checking admin privileges: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  void _showMemberActionSheet(BuildContext context, Member member) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _buildMemberActionsSheet(context, member),
+    );
   }
 
   Widget _buildMemberActionsSheet(BuildContext context, Member member) {
@@ -117,7 +96,7 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
               leading: const Icon(Icons.edit),
               title: const Text('Change Role'),
               onTap: () => _showChangeRoleDialog(context, member),
-            ),
+            ).withPermission(Permissions.membersWrite),
 
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -127,6 +106,27 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
                 style: TextStyle(color: Colors.red),
               ),
               onTap: () => _showRemoveMemberConfirmation(context, member),
+            ).withPermission(Permissions.membersDelete),
+
+            // Show message if user has no permissions
+            MultiPermissionGuard(
+              permissions: [
+                Permissions.membersWrite,
+                Permissions.membersDelete,
+              ],
+              requireAll: false,
+              fallback: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'You can only view member information.',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              child: const SizedBox.shrink(),
             ),
           ],
         ),
@@ -257,78 +257,58 @@ class _EstateMembersScreenState extends ConsumerState<EstateMembersScreen> {
   @override
   Widget build(BuildContext context) {
     final membersState = ref.watch(estateMembersProvider);
-    final memberState = ref.watch(currentMemberProvider);
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const AppbarTitle(text: 'Members'),
         actions: [
-          memberState.when(
-            loading: () => const SizedBox.shrink(),
-            error: (error, stack) => const SizedBox.shrink(),
-            data:
-                (member) => FutureBuilder<bool>(
-                  future:
-                      ref
-                          .read(currentMemberProvider.notifier)
-                          .hasAdminPrivileges(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data == true) {
-                      return Consumer(
-                        builder: (context, ref, _) {
-                          final pendingMembersAsync = ref.watch(
-                            pendingMembersCountProvider,
-                          );
-                          return Stack(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.admin_panel_settings),
-                                onPressed: () {
-                                  GoRouter.of(context).push(
-                                    '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
-                                  );
-                                },
-                              ),
-                              pendingMembersAsync.when(
-                                loading: () => const SizedBox.shrink(),
-                                error:
-                                    (error, stack) => const SizedBox.shrink(),
-                                data:
-                                    (count) =>
-                                        count > 0
-                                            ? Positioned(
-                                              right: 4,
-                                              top: 4,
-                                              child: Container(
-                                                padding: const EdgeInsets.all(
-                                                  4.0,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue.shade300,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Text(
-                                                  count.toString(),
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                            : const SizedBox.shrink(),
-                              ),
-                            ],
-                          );
-                        },
+          Consumer(
+            builder: (context, ref, _) {
+              final pendingMembersAsync = ref.watch(
+                pendingMembersCountProvider,
+              );
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.admin_panel_settings),
+                    onPressed: () {
+                      GoRouter.of(context).push(
+                        '${Routes.estateHome}${Routes.estateMembers}${Routes.estateMembersPending}',
                       );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-          ),
+                    },
+                  ),
+                  pendingMembersAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (error, stack) => const SizedBox.shrink(),
+                    data:
+                        (count) =>
+                            count > 0
+                                ? Positioned(
+                                  right: 4,
+                                  top: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade300,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      count.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                : const SizedBox.shrink(),
+                  ),
+                ],
+              );
+            },
+          ).withPermission(Permissions.membersWrite),
         ],
       ),
       body: SafeArea(

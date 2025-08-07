@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository_firestore.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 /// Transaction filters for treasury data
@@ -57,12 +58,15 @@ class TreasuryState {
 }
 
 /// Provider for treasury management with caching
-final treasuryProvider = StateNotifierProvider<TreasuryProvider, TreasuryState>(
-  (ref) {
-    final repository = ref.watch(treasuryRepositoryProvider);
-    return TreasuryProvider(repository);
-  },
-);
+// User-scoped treasury provider - using the general helper function
+final treasuryProvider =
+    createUserScopedProviderGeneral<TreasuryProvider, TreasuryState>((
+      currentUserId,
+      ref,
+    ) {
+      final repository = ref.watch(treasuryRepositoryProvider);
+      return TreasuryProvider(repository, currentUserId);
+    });
 
 /// Provider for current balance
 final currentBalanceProvider = FutureProvider<double>((ref) async {
@@ -107,11 +111,16 @@ final treasurySummaryProvider = FutureProvider<Map<String, double>>((
 });
 
 class TreasuryProvider extends StateNotifier<TreasuryState> {
-  TreasuryProvider(this._repository) : super(const TreasuryState()) {
-    _loadTransactions();
+  TreasuryProvider(this._repository, this._currentUserId)
+    : super(const TreasuryState()) {
+    // Only load transactions if we have a valid user ID
+    if (_currentUserId != null) {
+      _loadTransactions();
+    }
   }
 
   final TreasuryRepository _repository;
+  final String? _currentUserId; // User ID that scopes this provider
   final _log = Logger(printer: PrefixedLogPrinter('TreasuryProvider'));
 
   /// Get current transactions from state

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
-import 'package:lonepeak/providers/auth_state_provider.dart';
+import 'package:lonepeak/providers/auth/auth_state_provider.dart';
 import 'package:lonepeak/router/routes.dart';
 import 'package:lonepeak/ui/estate_create/estate_create_screen.dart';
 import 'package:lonepeak/ui/estate_dashboard/estate_dashboard_screen.dart';

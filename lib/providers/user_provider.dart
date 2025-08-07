@@ -3,59 +3,60 @@ import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
-import 'package:lonepeak/providers/auth_provider.dart';
-import 'package:lonepeak/providers/auth_state_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 
-final userProvider = StateNotifierProvider<UserProvider, AsyncValue<User?>>((
+// User-scoped provider - using the helper function
+final userProvider = createUserScopedProvider<UserProvider, User?>((
+  currentUserId,
   ref,
 ) {
   final usersRepository = ref.watch(usersRepositoryProvider);
   final appState = ref.watch(appStateProvider);
-  final authState = ref.watch(authStateProvider);
-  final authNotifier = ref.watch(authProvider.notifier);
 
   return UserProvider(
     usersRepository: usersRepository,
     appState: appState,
-    authState: authState,
-    authNotifier: authNotifier,
+    currentUserId: currentUserId,
   );
 });
 
-class UserProvider extends StateNotifier<AsyncValue<User?>> {
+class UserProvider extends UserScopedStateNotifier<User?>
+    with UserScopedProviderMixin<User?> {
   UserProvider({
     required this.usersRepository,
     required this.appState,
-    required this.authState,
-    required this.authNotifier,
-  }) : super(const AsyncValue.data(null)) {
-    loadUser();
-  }
+    required String? currentUserId,
+  }) : super(currentUserId, const AsyncValue.loading());
 
   final UsersRepository usersRepository;
   final AppState appState;
-  final AuthState authState;
-  final AuthProvider authNotifier;
 
-  User? _cachedUser;
+  @override
+  void initializeWithUser() {
+    loadUser();
+  }
 
-  User? get currentUser => _cachedUser;
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data(null);
+  } // User ID that scopes this provider
+
+  // Use state.value instead of cached field
+  User? get currentUser => state.value;
 
   Future<User?> loadUser() async {
-    final currentUserId = authState.currentUser?.email;
+    // Use the currentUserId from the provider parameter
+    final userId = currentUserId;
 
-    if (currentUserId == null) {
-      state = AsyncValue.error(
-        Exception('No authenticated user found'),
-        StackTrace.current,
-      );
+    if (userId == null) {
+      state = const AsyncValue.data(null);
       return null;
     }
 
     state = const AsyncValue.loading();
 
     try {
-      final result = await usersRepository.getUser(currentUserId);
+      final result = await usersRepository.getUser(userId);
 
       if (result.isFailure) {
         state = AsyncValue.error(
@@ -66,7 +67,6 @@ class UserProvider extends StateNotifier<AsyncValue<User?>> {
       }
 
       final user = result.data;
-      _cachedUser = user;
       state = AsyncValue.data(user);
       return user;
     } catch (error, stackTrace) {
@@ -76,9 +76,8 @@ class UserProvider extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<User?> getUser() async {
-    if (_cachedUser != null) {
-      state = AsyncValue.data(_cachedUser);
-      return _cachedUser;
+    if (state.hasValue && state.value != null) {
+      return state.value;
     }
     return await loadUser();
   }
@@ -97,42 +96,18 @@ class UserProvider extends StateNotifier<AsyncValue<User?>> {
         return;
       }
 
-      _cachedUser = user;
       state = AsyncValue.data(user);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
-    }
-  }
-
-  Future<void> signOut() async {
-    try {
-      state = const AsyncValue.loading();
-
-      // Use the auth provider's sign out logic
-      final success = await authNotifier.signOut();
-
-      if (success) {
-        // Clear cached data
-        _cachedUser = null;
-        state = const AsyncValue.data(null);
-      } else {
-        state = AsyncValue.error(
-          Exception('Sign out failed'),
-          StackTrace.current,
-        );
-      }
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 
   void clearUserProfile() {
-    _cachedUser = null;
     state = const AsyncValue.data(null);
   }
 
   Future<User?> refreshUser() async {
-    _cachedUser = null;
     return await loadUser();
   }
 }

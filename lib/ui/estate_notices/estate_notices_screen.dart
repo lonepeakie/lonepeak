@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/notice.dart';
 import 'package:lonepeak/providers/notices_provider.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_chip.dart';
@@ -9,6 +10,7 @@ import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
 import 'package:lonepeak/ui/core/widgets/app_cards.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 
 class EstateNoticesScreen extends ConsumerWidget {
   const EstateNoticesScreen({super.key});
@@ -24,7 +26,7 @@ class EstateNoticesScreen extends ConsumerWidget {
           AppbarActionButton(
             icon: Icons.notification_add,
             onPressed: () => _showCreateNoticeBottomSheet(context, ref),
-          ),
+          ).withPermission(Permissions.noticesWrite),
         ],
       ),
       body: SafeArea(

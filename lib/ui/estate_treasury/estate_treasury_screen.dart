@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/providers/treasury_provider.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_buttons.dart';
 import 'package:lonepeak/ui/core/widgets/app_inputs.dart';
 import 'package:lonepeak/ui/core/widgets/appbar_action_button.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 import 'package:lonepeak/ui/estate_treasury/filter_transactions.dart';
 import 'package:lonepeak/ui/estate_treasury/transaction_card.dart';
 
@@ -31,11 +33,11 @@ class EstateTreasuryScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.download_outlined),
             onPressed: () {},
-          ),
+          ).withPermission(Permissions.treasuryReports),
           AppbarActionButton(
             icon: Icons.add,
             onPressed: () => _showAddTransactionBottomSheet(context, ref),
-          ),
+          ).withPermission(Permissions.treasuryWrite),
         ],
       ),
       body: SafeArea(
