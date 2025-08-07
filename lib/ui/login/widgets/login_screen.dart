@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lonepeak/providers/auth_provider.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/ui/login/widgets/google_sigin_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {

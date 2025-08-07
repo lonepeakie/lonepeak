@@ -2,7 +2,6 @@ class Permissions {
   static const membersRead = 'members:read';
   static const membersWrite = 'members:write';
   static const membersDelete = 'members:delete';
-  static const membersAdmin = 'members:admin';
 
   static const documentsRead = 'documents:read';
   static const documentsWrite = 'documents:write';
@@ -40,13 +39,24 @@ class PermissionGroups {
     Permissions.treasuryReports,
   ];
 
+  static const estateManagement = [
+    Permissions.estateRead,
+    Permissions.estateWrite,
+    Permissions.estateAdmin,
+  ];
+
+  static const noticesManagement = [
+    Permissions.noticesRead,
+    Permissions.noticesWrite,
+    Permissions.noticesDelete,
+  ];
+
   static const fullAccess = [
     ...memberManagement,
     ...documentManagement,
     ...treasuryManagement,
-    Permissions.membersAdmin,
-    Permissions.estateAdmin,
-    Permissions.noticesWrite,
+    ...estateManagement,
+    ...noticesManagement,
   ];
 
   static const readOnlyAccess = [
@@ -57,4 +67,3 @@ class PermissionGroups {
     Permissions.noticesRead,
   ];
 }
-

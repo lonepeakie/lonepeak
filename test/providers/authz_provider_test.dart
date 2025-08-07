@@ -52,7 +52,6 @@ void main() {
         test('grants access to any permission with wildcard', () {
           expect(authzProvider.hasPermission(Permissions.documentsRead), true);
           expect(authzProvider.hasPermission(Permissions.treasuryWrite), true);
-          expect(authzProvider.hasPermission(Permissions.membersAdmin), true);
         });
       });
 
