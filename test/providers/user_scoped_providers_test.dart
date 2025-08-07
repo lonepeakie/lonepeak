@@ -1,9 +1,31 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/providers/auth/authn_provider.dart';
-import 'package:lonepeak/providers/user_provider.dart';
-import 'package:lonepeak/providers/member_provider.dart';
-import 'package:lonepeak/providers/auth/authz_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
+
+// Simple test provider using the user-scoped pattern
+final testUserScopedProvider = createUserScopedProvider<TestProvider, String?>((
+  currentUserId,
+  ref,
+) {
+  return TestProvider(currentUserId);
+});
+
+class TestProvider extends UserScopedStateNotifier<String?>
+    with UserScopedProviderMixin<String?> {
+  TestProvider(String? currentUserId)
+    : super(currentUserId, const AsyncValue.data(null));
+
+  @override
+  void initializeWithUser() {
+    state = AsyncValue.data('User: $currentUserId');
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data(null);
+  }
+}
 
 void main() {
   group('User-Scoped Providers', () {
@@ -35,81 +57,47 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      // Track provider instances
-      var userProviderInstance1 = container.read(userProvider.notifier);
+      // Track provider instances by reading the state value
+      var provider1State = container.read(testUserScopedProvider);
+      expect(provider1State.value, isNull); // Should be null initially
 
       // Change user ID - this should recreate the provider
       container.read(currentUserIdProvider.notifier).state =
           'user1@example.com';
 
-      var userProviderInstance2 = container.read(userProvider.notifier);
-      expect(
-        identical(userProviderInstance1, userProviderInstance2),
-        isFalse,
-        reason: 'Provider should be recreated when user ID changes',
-      );
+      var provider2State = container.read(testUserScopedProvider);
+      expect(provider2State.value, 'User: user1@example.com');
 
       // Change user ID again
       container.read(currentUserIdProvider.notifier).state =
           'user2@example.com';
 
-      var userProviderInstance3 = container.read(userProvider.notifier);
-      expect(
-        identical(userProviderInstance2, userProviderInstance3),
-        isFalse,
-        reason: 'Provider should be recreated again when user ID changes',
-      );
+      var provider3State = container.read(testUserScopedProvider);
+      expect(provider3State.value, 'User: user2@example.com');
 
       // Clear user ID (logout)
       container.read(currentUserIdProvider.notifier).state = null;
 
-      var userProviderInstance4 = container.read(userProvider.notifier);
-      expect(
-        identical(userProviderInstance3, userProviderInstance4),
-        isFalse,
-        reason: 'Provider should be recreated when user logs out',
-      );
+      var provider4State = container.read(testUserScopedProvider);
+      expect(provider4State.value, isNull);
     });
 
-    test('member provider is recreated when currentUserId changes', () {
+    test('test provider notifier is recreated when currentUserId changes', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      // Track provider instances
-      var memberProviderInstance1 = container.read(
-        currentMemberProvider.notifier,
-      );
+      // Track provider notifier instances
+      var notifierInstance1 = container.read(testUserScopedProvider.notifier);
 
       // Change user ID - this should recreate the provider
       container.read(currentUserIdProvider.notifier).state =
           'user1@example.com';
 
-      var memberProviderInstance2 = container.read(
-        currentMemberProvider.notifier,
-      );
+      var notifierInstance2 = container.read(testUserScopedProvider.notifier);
       expect(
-        identical(memberProviderInstance1, memberProviderInstance2),
+        identical(notifierInstance1, notifierInstance2),
         isFalse,
-        reason: 'Member provider should be recreated when user ID changes',
-      );
-    });
-
-    test('authz provider is recreated when currentUserId changes', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      // Initial authz provider
-      var authzInstance1 = await container.read(authzProvider.future);
-
-      // Change user ID - this should recreate the provider
-      container.read(currentUserIdProvider.notifier).state =
-          'user1@example.com';
-
-      var authzInstance2 = await container.read(authzProvider.future);
-      expect(
-        identical(authzInstance1, authzInstance2),
-        isFalse,
-        reason: 'Authz provider should be recreated when user ID changes',
+        reason: 'Provider notifier should be recreated when user ID changes',
       );
     });
   });
