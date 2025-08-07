@@ -4,17 +4,14 @@ import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
-import 'package:lonepeak/providers/auth/authn_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-// User-scoped estate provider - automatically recreates when currentUserIdProvider changes
-final estateProvider = StateNotifierProvider<
-  EstateProvider,
-  AsyncValue<Estate?>
->((ref) {
-  // Watch the current user ID - provider will be recreated when this changes
-  final currentUserId = ref.watch(currentUserIdProvider);
-
+// User-scoped estate provider - using the helper function
+final estateProvider = createUserScopedProvider<EstateProvider, Estate?>((
+  currentUserId,
+  ref,
+) {
   final estateRepository = ref.watch(estateRepositoryProvider);
   final estateFeatures = ref.watch(estateFeaturesProvider);
   return EstateProvider(
@@ -30,27 +27,29 @@ final estateJoinProvider =
       return EstateJoinProvider(estateFeatures);
     });
 
-class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
+class EstateProvider extends UserScopedStateNotifier<Estate?>
+    with UserScopedProviderMixin<Estate?> {
   EstateProvider({
     required EstateRepository estateRepository,
     required EstateFeatures estateFeatures,
-    required this.currentUserId,
+    required String? currentUserId,
   }) : _estateRepository = estateRepository,
        _estateFeatures = estateFeatures,
-       super(const AsyncValue.loading()) {
-    // Only load estate if we have a valid user ID
-    if (currentUserId != null) {
-      _loadCurrentEstate();
-    } else {
-      state = const AsyncValue.data(null);
-    }
-  }
-
-  final String? currentUserId; // User ID that scopes this provider
+       super(currentUserId, const AsyncValue.loading());
 
   final EstateRepository _estateRepository;
   final EstateFeatures _estateFeatures;
   final _log = Logger(printer: PrefixedLogPrinter('EstateProvider'));
+
+  @override
+  void initializeWithUser() {
+    _loadCurrentEstate();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data(null);
+  }
 
   Future<void> _loadCurrentEstate() async {
     await getCurrentEstate();
@@ -115,31 +114,20 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
   }
 
   Future<void> updateCurrentEstate(Estate estate) async {
-    try {
+    await safeUserOperation(() async {
       _log.i('Updating current estate: ${estate.name}');
-      state = const AsyncValue.loading();
+      setLoadingIfUserContext();
 
       final result = await _estateRepository.updateEstate(estate);
 
       if (result.isFailure) {
         _log.e('Failed to update estate: ${result.error}');
-        state = AsyncValue.error(
-          Exception('Failed to update estate: ${result.error}'),
-          StackTrace.current,
-        );
-        return;
+        throw Exception('Failed to update estate: ${result.error}');
       }
 
       _log.i('Successfully updated estate: ${estate.name}');
       state = AsyncValue.data(estate);
-    } catch (error, stackTrace) {
-      _log.e(
-        'Error updating current estate: $error',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      state = AsyncValue.error(error, stackTrace);
-    }
+    }, operationName: 'updateCurrentEstate');
   }
 
   Future<List<Estate>?> getPublicEstates() async {

@@ -3,52 +3,43 @@ import 'package:lonepeak/data/repositories/users/users_repository.dart';
 import 'package:lonepeak/data/repositories/users/users_repository_firebase.dart';
 import 'package:lonepeak/domain/models/user.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
-import 'package:lonepeak/providers/auth/auth_state_provider.dart';
-import 'package:lonepeak/providers/auth/authn_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 
-// User-scoped provider - automatically recreates when currentUserIdProvider changes
-final userProvider = StateNotifierProvider<UserProvider, AsyncValue<User?>>((
+// User-scoped provider - using the helper function
+final userProvider = createUserScopedProvider<UserProvider, User?>((
+  currentUserId,
   ref,
 ) {
-  // Watch the current user ID - provider will be recreated when this changes
-  final currentUserId = ref.watch(currentUserIdProvider);
-
   final usersRepository = ref.watch(usersRepositoryProvider);
   final appState = ref.watch(appStateProvider);
-  final authState = ref.watch(authStateProvider);
-  final authNotifier = ref.watch(authProvider.notifier);
 
   return UserProvider(
     usersRepository: usersRepository,
     appState: appState,
-    authState: authState,
-    authNotifier: authNotifier,
-    currentUserId: currentUserId, // Pass the current user ID
+    currentUserId: currentUserId,
   );
 });
 
-class UserProvider extends StateNotifier<AsyncValue<User?>> {
+class UserProvider extends UserScopedStateNotifier<User?>
+    with UserScopedProviderMixin<User?> {
   UserProvider({
     required this.usersRepository,
     required this.appState,
-    required this.authState,
-    required this.authNotifier,
-    required this.currentUserId,
-  }) : super(const AsyncValue.loading()) {
-    // Only load user if we have a valid user ID
-    if (currentUserId != null) {
-      loadUser();
-    } else {
-      // No user ID means no user
-      state = const AsyncValue.data(null);
-    }
-  }
+    required String? currentUserId,
+  }) : super(currentUserId, const AsyncValue.loading());
 
   final UsersRepository usersRepository;
   final AppState appState;
-  final AuthState authState;
-  final AuthProvider authNotifier;
-  final String? currentUserId; // User ID that scopes this provider
+
+  @override
+  void initializeWithUser() {
+    loadUser();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data(null);
+  } // User ID that scopes this provider
 
   // Use state.value instead of cached field
   User? get currentUser => state.value;

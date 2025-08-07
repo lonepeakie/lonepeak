@@ -3,7 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository.dart';
 import 'package:lonepeak/data/repositories/treasury/treasury_repository_firestore.dart';
 import 'package:lonepeak/domain/models/treasury_transaction.dart';
-import 'package:lonepeak/providers/auth/authn_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 /// Transaction filters for treasury data
@@ -58,16 +58,15 @@ class TreasuryState {
 }
 
 /// Provider for treasury management with caching
-// User-scoped treasury provider - automatically recreates when currentUserIdProvider changes
-final treasuryProvider = StateNotifierProvider<TreasuryProvider, TreasuryState>(
-  (ref) {
-    // Watch the current user ID - provider will be recreated when this changes
-    final currentUserId = ref.watch(currentUserIdProvider);
-
-    final repository = ref.watch(treasuryRepositoryProvider);
-    return TreasuryProvider(repository, currentUserId);
-  },
-);
+// User-scoped treasury provider - using the general helper function
+final treasuryProvider =
+    createUserScopedProviderGeneral<TreasuryProvider, TreasuryState>((
+      currentUserId,
+      ref,
+    ) {
+      final repository = ref.watch(treasuryRepositoryProvider);
+      return TreasuryProvider(repository, currentUserId);
+    });
 
 /// Provider for current balance
 final currentBalanceProvider = FutureProvider<double>((ref) async {

@@ -5,33 +5,27 @@ import 'package:lonepeak/data/repositories/members/members_repository_firestore.
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
-import 'package:lonepeak/providers/auth/authn_provider.dart';
+import 'package:lonepeak/providers/core/user_scoped_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-// User-scoped current member provider
-final currentMemberProvider = StateNotifierProvider<
-  MemberProvider,
-  AsyncValue<Member?>
->((ref) {
-  // Watch the current user ID - provider will be recreated when this changes
-  final currentUserId = ref.watch(currentUserIdProvider);
+// User-scoped current member provider - using the helper function
+final currentMemberProvider = createUserScopedProvider<MemberProvider, Member?>(
+  (currentUserId, ref) {
+    final repository = ref.watch(membersRepositoryProvider);
+    final appState = ref.watch(appStateProvider);
+    return MemberProvider(repository, appState, currentUserId);
+  },
+);
 
-  final repository = ref.watch(membersRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  return MemberProvider(repository, appState, currentUserId);
-});
-
-// User-scoped estate members provider
-final estateMembersProvider = StateNotifierProvider<
-  EstateMembersProvider,
-  AsyncValue<List<Member>>
->((ref) {
-  // Watch the current user ID - provider will be recreated when this changes
-  final currentUserId = ref.watch(currentUserIdProvider);
-
-  final repository = ref.watch(membersRepositoryProvider);
-  return EstateMembersProvider(repository, currentUserId);
-});
+// User-scoped estate members provider - using the helper function
+final estateMembersProvider =
+    createUserScopedProvider<EstateMembersProvider, List<Member>>((
+      currentUserId,
+      ref,
+    ) {
+      final repository = ref.watch(membersRepositoryProvider);
+      return EstateMembersProvider(repository, currentUserId);
+    });
 
 final estateMembersCountProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(membersRepositoryProvider);
@@ -93,19 +87,26 @@ final pendingMembersCountProvider = FutureProvider<int>((ref) async {
   return pendingMembers.length;
 });
 
-class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
-  MemberProvider(this._repository, this._appState, this._currentUserId)
-    : super(const AsyncValue.loading()) {
-    // Only load member if we have a valid user ID
-    if (_currentUserId != null) {
-      _loadCurrentMember();
-    }
-  }
+class MemberProvider extends UserScopedStateNotifier<Member?>
+    with UserScopedProviderMixin<Member?> {
+  MemberProvider(this._repository, this._appState, String? currentUserId)
+    : super(currentUserId, const AsyncValue.loading());
 
   final MembersRepository _repository;
   final AppState _appState;
-  final String? _currentUserId; // User ID that scopes this provider
   final _log = Logger(printer: PrefixedLogPrinter('MemberProvider'));
+
+  @override
+  void initializeWithUser() {
+    // Auto-load member when created with user context
+    _loadCurrentMember();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    // Set null state when no user context
+    state = const AsyncValue.data(null);
+  }
 
   Future<void> _loadCurrentMember() async {
     await getCurrentMember();
@@ -113,23 +114,20 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
 
   void ensureMemberLoaded() {
     if (state is! AsyncLoading && !state.hasValue) {
-      _loadCurrentMember();
+      executeIfUserContext(_loadCurrentMember);
     }
   }
 
   Future<Member?> getCurrentMember() async {
-    // If we already have a valid member and no error, return it
-    if (state.hasValue && state.value != null && state is! AsyncError) {
-      return state.value;
-    }
+    return safeUserOperation<Member?>(() async {
+      // If we already have a valid member and no error, return it
+      if (state.hasValue && state.value != null && state is! AsyncError) {
+        return state.value!;
+      }
 
-    // Set loading state only if not already loading
-    if (state is! AsyncLoading) {
-      state = const AsyncValue.loading();
-    }
+      setLoadingIfUserContext();
 
-    try {
-      final userId = _currentUserId ?? _appState.getUserId();
+      final userId = currentUserId ?? _appState.getUserId();
       if (userId == null) {
         _log.w('No user ID found, returning null member');
         state = const AsyncValue.data(null);
@@ -141,30 +139,18 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
 
       if (result.isFailure) {
         _log.e('Failed to fetch current member: ${result.error}');
-        state = AsyncValue.error(
-          Exception('Failed to fetch current member: ${result.error}'),
-          StackTrace.current,
-        );
-        return null;
+        throw Exception('Failed to fetch current member: ${result.error}');
       }
 
       final member = result.data;
       _log.i('Successfully fetched member: ${member?.email ?? 'null'}');
       state = AsyncValue.data(member);
       return member;
-    } catch (error, stackTrace) {
-      _log.e(
-        'Error fetching current member: $error',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      state = AsyncValue.error(error, stackTrace);
-      return null;
-    }
+    });
   }
 
   Future<void> updateCurrentMember(Member member) async {
-    try {
+    await safeUserOperation(() async {
       _log.i('Updating current member: ${member.email}');
 
       final result = await _repository.updateMember(member);
@@ -176,15 +162,7 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
 
       _log.i('Successfully updated member: ${member.email}');
       state = AsyncValue.data(member);
-    } catch (error, stackTrace) {
-      _log.e(
-        'Error updating current member: $error',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      state = AsyncValue.error(error, stackTrace);
-      rethrow;
-    }
+    }, operationName: 'updateCurrentMember');
   }
 
   Member? get cachedMember => state.value;
@@ -199,19 +177,24 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
   }
 }
 
-class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
-  EstateMembersProvider(this._repository, this._currentUserId)
-    : super(const AsyncValue.loading()) {
-    // Only load members if we have a valid user ID
-    if (_currentUserId != null) {
-      _loadMembers();
-    }
-  }
+class EstateMembersProvider extends UserScopedStateNotifier<List<Member>>
+    with UserScopedProviderMixin<List<Member>> {
+  EstateMembersProvider(this._repository, String? currentUserId)
+    : super(currentUserId, const AsyncValue.loading());
 
   final MembersRepository _repository;
-  final String? _currentUserId; // User ID that scopes this provider
   final _log = Logger(printer: PrefixedLogPrinter('EstateMembersProvider'));
   List<Member> _cachedMembers = [];
+
+  @override
+  void initializeWithUser() {
+    _loadMembers();
+  }
+
+  @override
+  void initializeWithoutUser() {
+    state = const AsyncValue.data([]);
+  }
 
   Future<void> _loadMembers() async {
     await getMembers();
@@ -220,51 +203,38 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
   void ensureMembersLoaded() {
     if (state is! AsyncLoading &&
         (!state.hasValue || state.value?.isEmpty == true)) {
-      _loadMembers();
+      executeIfUserContext(_loadMembers);
     }
   }
 
   Future<void> getMembers() async {
-    if (_cachedMembers.isNotEmpty && state.hasValue && state is! AsyncError) {
-      _log.i('Using cached members (${_cachedMembers.length} members)');
-      return;
-    }
+    await safeUserOperation(() async {
+      if (_cachedMembers.isNotEmpty && state.hasValue && state is! AsyncError) {
+        _log.i('Using cached members (${_cachedMembers.length} members)');
+        return;
+      }
 
-    if (state is! AsyncLoading) {
-      state = const AsyncValue.loading();
-    }
+      setLoadingIfUserContext();
 
-    try {
       _log.i('Fetching estate members from repository');
       final result = await _repository.getMembers();
 
       if (result.isFailure) {
         _log.e('Failed to fetch members: ${result.error}');
-        state = AsyncValue.error(
-          Exception('Failed to fetch members: ${result.error}'),
-          StackTrace.current,
-        );
-        return;
+        throw Exception('Failed to fetch members: ${result.error}');
       }
 
       _cachedMembers = result.data ?? [];
       _log.i('Successfully fetched ${_cachedMembers.length} members');
       state = AsyncValue.data([..._cachedMembers]);
-    } catch (error, stackTrace) {
-      _log.e(
-        'Error fetching members: $error',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      state = AsyncValue.error(error, stackTrace);
-    }
+    });
   }
 
   Future<void> updateMemberStatus(
     String memberEmail,
     MemberStatus newStatus,
   ) async {
-    try {
+    await safeUserOperation(() async {
       _log.i('Updating member status: $memberEmail to $newStatus');
       final memberIndex = _cachedMembers.indexWhere(
         (member) => member.email == memberEmail,
@@ -294,10 +264,7 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
       _cachedMembers[memberIndex] = updatedMember;
       _log.i('Successfully updated member status: $memberEmail');
       state = AsyncValue.data([..._cachedMembers]);
-    } catch (error) {
-      _log.e('Error updating member status: $error');
-      rethrow;
-    }
+    }, operationName: 'updateMemberStatus');
   }
 
   Future<void> approveMember(String memberEmail) async {
@@ -311,7 +278,7 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
   }
 
   Future<void> updateMemberRole(String memberEmail, RoleType newRole) async {
-    try {
+    await safeUserOperation(() async {
       _log.i('Updating member role: $memberEmail to $newRole');
       final memberIndex = _cachedMembers.indexWhere(
         (member) => member.email == memberEmail,
@@ -341,14 +308,11 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
       _cachedMembers[memberIndex] = updatedMember;
       _log.i('Successfully updated member role: $memberEmail');
       state = AsyncValue.data([..._cachedMembers]);
-    } catch (error) {
-      _log.e('Error updating member role: $error');
-      rethrow;
-    }
+    }, operationName: 'updateMemberRole');
   }
 
   Future<void> removeMember(String memberEmail) async {
-    try {
+    await safeUserOperation(() async {
       _log.i('Removing member: $memberEmail');
       final result = await _repository.deleteMember(memberEmail);
 
@@ -360,10 +324,7 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
       _cachedMembers.removeWhere((member) => member.email == memberEmail);
       _log.i('Successfully removed member: $memberEmail');
       state = AsyncValue.data([..._cachedMembers]);
-    } catch (error) {
-      _log.e('Error removing member: $error');
-      rethrow;
-    }
+    }, operationName: 'removeMember');
   }
 
   List<Member> get activeMembers =>
@@ -384,10 +345,12 @@ class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
   List<Member> get cachedMembers => _cachedMembers;
 
   Future<void> refreshMembers() async {
-    _log.i('Refreshing members');
-    _cachedMembers.clear();
-    state = const AsyncValue.loading();
-    await getMembers();
+    await safeUserOperation(() async {
+      _log.i('Refreshing members');
+      _cachedMembers.clear();
+      setLoadingIfUserContext();
+      await getMembers();
+    }, operationName: 'refreshMembers');
   }
 
   void clearMembers() {
