@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lonepeak/domain/models/estate.dart';
 import 'package:lonepeak/domain/models/user.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/providers/estate_provider.dart';
 import 'package:lonepeak/providers/user_provider.dart';
 import 'package:lonepeak/router/routes.dart';
@@ -361,7 +362,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               AppElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
-                  await ref.read(userProvider.notifier).signOut();
+                  await ref.read(authProvider.notifier).signOut();
                   if (context.mounted) {
                     context.go(Routes.welcome);
                   }

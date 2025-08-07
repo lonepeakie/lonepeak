@@ -4,17 +4,25 @@ import 'package:lonepeak/data/repositories/estate/estate_repository.dart';
 import 'package:lonepeak/data/repositories/estate/estate_repository_firebase.dart';
 import 'package:lonepeak/domain/features/estate_features.dart';
 import 'package:lonepeak/domain/models/estate.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-final estateProvider =
-    StateNotifierProvider<EstateProvider, AsyncValue<Estate?>>((ref) {
-      final estateRepository = ref.watch(estateRepositoryProvider);
-      final estateFeatures = ref.watch(estateFeaturesProvider);
-      return EstateProvider(
-        estateRepository: estateRepository,
-        estateFeatures: estateFeatures,
-      );
-    });
+// User-scoped estate provider - automatically recreates when currentUserIdProvider changes
+final estateProvider = StateNotifierProvider<
+  EstateProvider,
+  AsyncValue<Estate?>
+>((ref) {
+  // Watch the current user ID - provider will be recreated when this changes
+  final currentUserId = ref.watch(currentUserIdProvider);
+
+  final estateRepository = ref.watch(estateRepositoryProvider);
+  final estateFeatures = ref.watch(estateFeaturesProvider);
+  return EstateProvider(
+    estateRepository: estateRepository,
+    estateFeatures: estateFeatures,
+    currentUserId: currentUserId,
+  );
+});
 
 final estateJoinProvider =
     StateNotifierProvider<EstateJoinProvider, AsyncValue<bool>>((ref) {
@@ -26,11 +34,19 @@ class EstateProvider extends StateNotifier<AsyncValue<Estate?>> {
   EstateProvider({
     required EstateRepository estateRepository,
     required EstateFeatures estateFeatures,
+    required this.currentUserId,
   }) : _estateRepository = estateRepository,
        _estateFeatures = estateFeatures,
        super(const AsyncValue.loading()) {
-    _loadCurrentEstate();
+    // Only load estate if we have a valid user ID
+    if (currentUserId != null) {
+      _loadCurrentEstate();
+    } else {
+      state = const AsyncValue.data(null);
+    }
   }
+
+  final String? currentUserId; // User ID that scopes this provider
 
   final EstateRepository _estateRepository;
   final EstateFeatures _estateFeatures;

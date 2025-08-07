@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/member.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 import 'package:lonepeak/providers/member_provider.dart';
 
 class PendingMembersScreen extends ConsumerWidget {
@@ -167,13 +169,13 @@ class PendingMemberTile extends StatelessWidget {
               color: Colors.green,
               onPressed: onApprove,
               tooltip: 'Approve',
-            ),
+            ).withPermission(Permissions.membersWrite),
             IconButton(
               icon: const Icon(Icons.cancel_outlined),
               color: Colors.red,
               onPressed: onReject,
               tooltip: 'Reject',
-            ),
+            ).withPermission(Permissions.membersWrite),
           ],
         ),
       ),

@@ -5,33 +5,33 @@ import 'package:lonepeak/data/repositories/members/members_repository_firestore.
 import 'package:lonepeak/domain/models/member.dart';
 import 'package:lonepeak/domain/models/role.dart';
 import 'package:lonepeak/providers/app_state_provider.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
-final currentMemberProvider =
-    StateNotifierProvider<MemberProvider, AsyncValue<Member?>>((ref) {
-      final repository = ref.watch(membersRepositoryProvider);
-      final appState = ref.watch(appStateProvider);
-      return MemberProvider(repository, appState);
-    });
+// User-scoped current member provider
+final currentMemberProvider = StateNotifierProvider<
+  MemberProvider,
+  AsyncValue<Member?>
+>((ref) {
+  // Watch the current user ID - provider will be recreated when this changes
+  final currentUserId = ref.watch(currentUserIdProvider);
 
-final hasAdminPrivilegesProvider = FutureProvider<bool>((ref) async {
-  final memberAsync = ref.watch(currentMemberProvider);
-  return memberAsync.when(
-    data:
-        (member) =>
-            member != null ? RoleType.hasAdminPrivileges(member.role) : false,
-    loading: () => false,
-    error: (_, __) => false,
-  );
+  final repository = ref.watch(membersRepositoryProvider);
+  final appState = ref.watch(appStateProvider);
+  return MemberProvider(repository, appState, currentUserId);
 });
 
-final estateMembersProvider =
-    StateNotifierProvider<EstateMembersProvider, AsyncValue<List<Member>>>((
-      ref,
-    ) {
-      final repository = ref.watch(membersRepositoryProvider);
-      return EstateMembersProvider(repository);
-    });
+// User-scoped estate members provider
+final estateMembersProvider = StateNotifierProvider<
+  EstateMembersProvider,
+  AsyncValue<List<Member>>
+>((ref) {
+  // Watch the current user ID - provider will be recreated when this changes
+  final currentUserId = ref.watch(currentUserIdProvider);
+
+  final repository = ref.watch(membersRepositoryProvider);
+  return EstateMembersProvider(repository, currentUserId);
+});
 
 final estateMembersCountProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(membersRepositoryProvider);
@@ -94,13 +94,17 @@ final pendingMembersCountProvider = FutureProvider<int>((ref) async {
 });
 
 class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
-  MemberProvider(this._repository, this._appState)
+  MemberProvider(this._repository, this._appState, this._currentUserId)
     : super(const AsyncValue.loading()) {
-    _loadCurrentMember();
+    // Only load member if we have a valid user ID
+    if (_currentUserId != null) {
+      _loadCurrentMember();
+    }
   }
 
   final MembersRepository _repository;
   final AppState _appState;
+  final String? _currentUserId; // User ID that scopes this provider
   final _log = Logger(printer: PrefixedLogPrinter('MemberProvider'));
 
   Future<void> _loadCurrentMember() async {
@@ -114,16 +118,18 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
   }
 
   Future<Member?> getCurrentMember() async {
+    // If we already have a valid member and no error, return it
     if (state.hasValue && state.value != null && state is! AsyncError) {
       return state.value;
     }
 
+    // Set loading state only if not already loading
     if (state is! AsyncLoading) {
       state = const AsyncValue.loading();
     }
 
     try {
-      final userId = _appState.getUserId();
+      final userId = _currentUserId ?? _appState.getUserId();
       if (userId == null) {
         _log.w('No user ID found, returning null member');
         state = const AsyncValue.data(null);
@@ -183,13 +189,6 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
 
   Member? get cachedMember => state.value;
 
-  Future<bool> hasAdminPrivileges() async {
-    final member = await getCurrentMember();
-    if (member == null) return false;
-
-    return RoleType.hasAdminPrivileges(member.role);
-  }
-
   void clearMember() {
     state = const AsyncValue.data(null);
   }
@@ -201,11 +200,16 @@ class MemberProvider extends StateNotifier<AsyncValue<Member?>> {
 }
 
 class EstateMembersProvider extends StateNotifier<AsyncValue<List<Member>>> {
-  EstateMembersProvider(this._repository) : super(const AsyncValue.loading()) {
-    _loadMembers();
+  EstateMembersProvider(this._repository, this._currentUserId)
+    : super(const AsyncValue.loading()) {
+    // Only load members if we have a valid user ID
+    if (_currentUserId != null) {
+      _loadMembers();
+    }
   }
 
   final MembersRepository _repository;
+  final String? _currentUserId; // User ID that scopes this provider
   final _log = Logger(printer: PrefixedLogPrinter('EstateMembersProvider'));
   List<Member> _cachedMembers = [];
 

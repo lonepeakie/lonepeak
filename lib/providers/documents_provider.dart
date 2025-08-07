@@ -5,13 +5,15 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/document/documents_repository.dart';
 import 'package:lonepeak/data/repositories/document/documents_repository_firestore.dart';
 import 'package:lonepeak/domain/models/document.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 /// Provider for documents with full folder navigation and file management
 final documentsProvider =
     StateNotifierProvider<DocumentsProvider, AsyncValue<List<Document>>>((ref) {
+      final currentUserId = ref.watch(currentUserIdProvider);
       final repository = ref.watch(documentsRepositoryProvider);
-      return DocumentsProvider(repository, ref);
+      return DocumentsProvider(repository, ref, currentUserId);
     });
 
 /// Provider for current folder ID
@@ -24,15 +26,20 @@ final selectedDocumentProvider = StateProvider<Document?>((ref) => null);
 final breadcrumbsProvider = StateProvider<List<Document>>((ref) => []);
 
 class DocumentsProvider extends StateNotifier<AsyncValue<List<Document>>> {
-  DocumentsProvider(this._repository, this._ref)
+  DocumentsProvider(this._repository, this._ref, this._currentUserId)
     : super(const AsyncValue.loading()) {
-    _log.i('DocumentsProvider initialized - auto-loading documents');
-    // Initialize with root documents
-    loadDocuments();
+    _log.i(
+      'DocumentsProvider initialized - auto-loading documents for user: $_currentUserId',
+    );
+    // Initialize with root documents only if user is logged in
+    if (_currentUserId != null) {
+      loadDocuments();
+    }
   }
 
   final DocumentsRepository _repository;
   final Ref _ref;
+  final String? _currentUserId;
   final _log = Logger(printer: PrefixedLogPrinter('DocumentsProvider'));
 
   /// Load documents for a specific folder

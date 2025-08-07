@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lonepeak/domain/models/document.dart';
 import 'package:lonepeak/providers/documents_provider.dart';
+import 'package:lonepeak/providers/auth/permissions.dart';
 import 'package:lonepeak/ui/core/themes/themes.dart';
 import 'package:lonepeak/ui/core/widgets/app_labels.dart';
+import 'package:lonepeak/ui/core/widgets/permission_widgets.dart';
 import 'package:lonepeak/ui/estate_documents/create_folder_dialog.dart';
 import 'package:lonepeak/ui/estate_documents/document_breadcrumbs.dart';
 import 'package:lonepeak/ui/estate_documents/document_tile.dart';
@@ -123,7 +125,7 @@ class EstateDocumentsScreen extends ConsumerWidget {
           _showCreateOptions(context, ref);
         },
         child: const Icon(Icons.add),
-      ),
+      ).withPermission(Permissions.documentsWrite),
     );
   }
 
@@ -156,13 +158,13 @@ class EstateDocumentsScreen extends ConsumerWidget {
                       onPressed: () => _showCreateFolderDialog(context, ref),
                       icon: const Icon(Icons.create_new_folder),
                       label: const Text('New Folder'),
-                    ),
+                    ).withPermission(Permissions.documentsWrite),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () => _handleFileUpload(context, ref),
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Upload File'),
-                    ),
+                    ).withPermission(Permissions.documentsWrite),
                   ],
                 );
               } else {
@@ -176,12 +178,12 @@ class EstateDocumentsScreen extends ConsumerWidget {
                       onPressed: () => _showCreateFolderDialog(context, ref),
                       icon: const Icon(Icons.create_new_folder),
                       label: const Text('New Folder'),
-                    ),
+                    ).withPermission(Permissions.documentsWrite),
                     OutlinedButton.icon(
                       onPressed: () => _handleFileUpload(context, ref),
                       icon: const Icon(Icons.upload_file),
                       label: const Text('Upload File'),
-                    ),
+                    ).withPermission(Permissions.documentsWrite),
                   ],
                 );
               }

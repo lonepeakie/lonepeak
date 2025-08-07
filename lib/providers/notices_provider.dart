@@ -3,15 +3,22 @@ import 'package:logger/logger.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository.dart';
 import 'package:lonepeak/data/repositories/notice/notices_repository_firestore.dart';
 import 'package:lonepeak/domain/models/notice.dart';
+import 'package:lonepeak/providers/auth/authn_provider.dart';
 import 'package:lonepeak/utils/log_printer.dart';
 
 final noticesProvider =
     StateNotifierProvider<NoticesProvider, AsyncValue<List<Notice>>>((ref) {
+      final currentUserId = ref.watch(currentUserIdProvider);
       final repository = ref.watch(noticesRepositoryProvider);
-      return NoticesProvider(repository);
+      return NoticesProvider(repository, currentUserId);
     });
 
 final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
+  final currentUserId = ref.watch(currentUserIdProvider);
+  if (currentUserId == null) {
+    return [];
+  }
+
   final repository = ref.watch(noticesRepositoryProvider);
   final result = await repository.getLatestNotices();
 
@@ -23,11 +30,15 @@ final latestNoticesProvider = FutureProvider<List<Notice>>((ref) async {
 });
 
 class NoticesProvider extends StateNotifier<AsyncValue<List<Notice>>> {
-  NoticesProvider(this._repository) : super(const AsyncValue.loading()) {
-    _loadNotices();
+  NoticesProvider(this._repository, this._currentUserId)
+    : super(const AsyncValue.loading()) {
+    if (_currentUserId != null) {
+      _loadNotices();
+    }
   }
 
   final NoticesRepository _repository;
+  final String? _currentUserId;
   final _log = Logger(printer: PrefixedLogPrinter('NoticesProvider'));
 
   Future<void> _loadNotices() async {
